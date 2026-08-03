@@ -42,7 +42,7 @@ GitHub Pagesから最初のHTMLを読み込んだ後、PDFの読み込み・サ�
 
 ### ダウンロードして使う
 
-[pdf-organizer.html](https://github.com/ttomohisa/html-pdf-organizer/pdf-organizer.html) をリポジトリからダウンロードして、最新のChromiumベースのブラウザ（FirefoxまたはSafari）で開いてください。
+[pdf-organizer.html](https://github.com/ttomohisa/html-pdf-organizer/blob/main/pdf-organizer.html) をリポジトリからダウンロードして、最新のChromiumベースのブラウザ（FirefoxまたはSafari）で開いてください。
 
 ### ビルドして使う(advance)
 

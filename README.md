@@ -40,7 +40,7 @@ Just [open the demo](https://ttomohisa.github.io/html-pdf-organizer/pdf-organize
 
 ### Use the download file
 
-1. Download [pdf-organizer.html](https://github.com/ttomohisa/html-pdf-organizer/pdf-organizer.html) from this repository.
+1. Download [pdf-organizer.html](https://github.com/ttomohisa/html-pdf-organizer/blob/main/pdf-organizer.html) from this repository.
 2. Open it in a current Chromium-based browser, Firefox, or Safari.
 
 ### Use it fully offline(advance)
