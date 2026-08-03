@@ -1,7 +1,7 @@
 PDF Organizer — 最初に確認すること
 
 GitHub Pagesデモ:
-https://ttomohisa.github.io/html-pdf-organizer/pdf-organizer.html
+https://ttomohisa.github.io/html-pdf-organizer/
 
 GitHubへ公開する場合:
 1. このフォルダーの中身をリポジトリ直下へ配置

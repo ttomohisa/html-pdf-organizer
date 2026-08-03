@@ -10,7 +10,7 @@ PDFのページ整理を、ファイルを外部へアップロードせずブ�
 
 ## 🚀 デモ
 
-### [GitHub PagesでPDF Organizerを開く](https://ttomohisa.github.io/html-pdf-organizer/pdf-organizer.html)
+### [GitHub PagesでPDF Organizerを開く](https://ttomohisa.github.io/html-pdf-organizer/)
 
 GitHub Pagesから最初のHTMLを読み込んだ後、PDFの読み込み・サムネイル生成・並び替え・回転・保存は端末内で処理されます。選択したPDFがサーバーへ送信されることはありません。
 
@@ -38,7 +38,7 @@ GitHub Pagesから最初のHTMLを読み込んだ後、PDFの読み込み・サ�
 
 ### Webで使う
 
-[デモを開く](https://ttomohisa.github.io/html-pdf-organizer/pdf-organizer.html)だけで利用できます。インストールやアカウント登録は不要です。
+[デモを開く](https://ttomohisa.github.io/html-pdf-organizer/)だけで利用できます。インストールやアカウント登録は不要です。
 
 ### ダウンロードして使う
 

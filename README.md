@@ -10,7 +10,7 @@ A privacy-focused, single-HTML app for reorganizing PDF pages without uploading 
 
 ## 🚀 Live demo
 
-### [Open PDF Organizer on GitHub Pages](https://ttomohisa.github.io/html-pdf-organizer/pdf-organizer.html)
+### [Open PDF Organizer on GitHub Pages](https://ttomohisa.github.io/html-pdf-organizer/)
 
 GitHub Pages delivers the initial HTML. After it loads, PDF parsing, thumbnails, reordering, rotation, preview, and export are processed locally on your device. The PDFs you select are not uploaded by the app.
 
@@ -36,7 +36,7 @@ GitHub Pages delivers the initial HTML. After it loads, PDF parsing, thumbnails,
 
 ### Use the web demo
 
-Just [open the demo](https://ttomohisa.github.io/html-pdf-organizer/pdf-organizer.html). No installation or account is required.
+Just [open the demo](https://ttomohisa.github.io/html-pdf-organizer/). No installation or account is required.
 
 ### Use the download file
 
