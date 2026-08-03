@@ -1,0 +1,20 @@
+{
+  "pdfLib": {
+    "package": "pdf-lib",
+    "version": "1.17.1",
+    "entry": "dist/pdf-lib.min.js"
+  },
+  "pdfJs": {
+    "package": "pdfjs-dist",
+    "version": "6.2.108",
+    "entry": "build/pdf.min.mjs",
+    "worker": "build/pdf.worker.min.mjs",
+    "assetDirectories": [
+      "cmaps",
+      "standard_fonts",
+      "wasm",
+      "iccs",
+      "image_decoders"
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+name: Bug report / 不具合報告
+description: Report a reproducible problem / 再現可能な不具合を報告
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not attach confidential PDF files. / 機密PDFは添付しないでください。
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary / 概要
+      description: What happened? / 何が起きましたか？
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / 再現手順
+      placeholder: "1. Add a PDF... / 1. PDFを追加..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior / 期待する動作
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version / ブラウザとバージョン
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS and device / OSと端末
+    validations:
+      required: true
+  - type: textarea
+    id: pdf
+    attributes:
+      label: PDF characteristics / PDFの特徴
+      description: Page count, approximate size, image-heavy or not, signatures/forms, etc. / ページ数、容量、画像量、署名・フォームの有無など

@@ -1,0 +1,28 @@
+name: Feature request / 機能要望
+description: Suggest an improvement / 改善案を提案
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case / 課題・利用場面
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution / 希望する解決方法
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered / 検討した代替案
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Project constraints / プロジェクト方針
+      options:
+        - label: The proposal can preserve the single-HTML distribution. / 単一HTMLでの配布を維持できます。
+        - label: The proposal can support both Japanese and English. / 日本語・英語の両方に対応できます。
