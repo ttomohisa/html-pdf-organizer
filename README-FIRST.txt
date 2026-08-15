@@ -1,18 +1,10 @@
-PDF Organizer — 最初に確認すること
+PDF Organizer - repository bundle
 
-GitHub Pagesデモ:
-https://ttomohisa.github.io/html-pdf-organizer/
+Main source: src/index.template.html
+Build offline single HTML: build-offline.bat or .\build-offline.ps1
+Output: dist/index.html
 
-GitHubへ公開する場合:
-1. このフォルダーの中身をリポジトリ直下へ配置
-2. Settings → Pages → Source を GitHub Actions に設定
-3. mainへプッシュ
-4. Actionsのデプロイ完了後、上記URLを開く
+pdf-organizer.html is a directly openable preview build.
+For the fully embedded/no-network build, run the offline builder.
 
-完全オフラインHTMLをローカル生成する場合:
-1. build-offline.bat をダブルクリック
-2. 初回のみ依存ライブラリをダウンロード
-3. dist\index.html が完成
-4. ネット接続を切って動作確認
-
-詳しくは README.ja.md と docs\GITHUB_PAGES.ja.md を確認してください。
+Mobile improvements are already integrated into the source; no patch step is required.

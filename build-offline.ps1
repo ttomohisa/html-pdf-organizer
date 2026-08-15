@@ -55,7 +55,7 @@ function Expand-NpmPackage([string]$PackageName, [string]$Version) {
       $partialPath = "$archivePath.part"
       Remove-Item -Force -ErrorAction SilentlyContinue $partialPath
       Write-Step "Downloading $PackageName@$Version"
-      Invoke-WebRequest -Uri $url -OutFile $partialPath -UseBasicParsing -Headers @{ "User-Agent" = "html-pdf-organizer-offline-builder/1.0" }
+      Invoke-WebRequest -Uri $url -OutFile $partialPath -UseBasicParsing -Headers @{ "User-Agent" = "pdf-organizer-offline-builder/1.0" }
       Move-Item -Force $partialPath $archivePath
     } else {
       Write-Step "Using cached archive for $PackageName@$Version"

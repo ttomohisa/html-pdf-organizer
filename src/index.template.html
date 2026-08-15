@@ -891,7 +891,322 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
-  </style>
+  
+/* mobile-enhancements: integrated */
+/* Mobile UX and live-sort enhancements injected by build-offline.ps1. */
+
+.page-card.sort-shifted {
+  z-index: 2;
+  will-change: transform;
+  transition: transform .16s cubic-bezier(.2, .75, .25, 1), border-color .15s ease, box-shadow .15s ease, background .15s ease !important;
+}
+
+body.is-sorting .page-card.drag-source {
+  opacity: 0 !important;
+}
+
+.toast-action {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 4px 9px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.toast-action:hover { background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface-hover)); }
+.toast-action:active { transform: scale(.97); }
+
+.mobile-edit-dock,
+.mobile-tools-dialog { display: none; }
+
+@media (max-width: 760px) {
+  :root { --thumb-width: 120px; }
+
+  .main {
+    padding-inline: 10px;
+    padding-bottom: calc(122px + env(safe-area-inset-bottom));
+  }
+
+  .workspace-header {
+    margin-bottom: 8px;
+  }
+
+  .toolbar {
+    display: none !important;
+  }
+
+  .mobile-edit-dock {
+    position: sticky;
+    z-index: 25;
+    top: calc(var(--header-height) + 7px);
+    display: block;
+    margin: 0 -2px 12px;
+    padding: 7px;
+    border: 1px solid color-mix(in srgb, var(--line) 84%, transparent);
+    border-radius: 17px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    box-shadow: 0 8px 26px rgba(25, 28, 24, .10);
+    backdrop-filter: blur(18px) saturate(1.15);
+  }
+  .mobile-edit-dock[hidden] { display: none !important; }
+
+  .mobile-dock-top {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 3px 6px 7px;
+  }
+  .mobile-dock-status {
+    min-width: 0;
+    flex: 1;
+    color: var(--text-muted);
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mobile-dock-status strong { color: var(--text); font-size: 12px; }
+  .mobile-clear-selection {
+    min-height: 29px;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .mobile-clear-selection[hidden] { display: none; }
+
+  .mobile-dock-history {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .mobile-history-button {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .mobile-history-button:active:not(:disabled) { background: var(--surface-muted); transform: scale(.95); }
+  .mobile-history-button:disabled { opacity: .32; }
+  .mobile-history-button svg { width: 18px; height: 18px; }
+
+  .mobile-dock-actions {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+    padding: 4px;
+    border-radius: 14px;
+    background: var(--surface-muted);
+  }
+  .mobile-dock-button {
+    position: relative;
+    min-width: 0;
+    min-height: 53px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 2px;
+    padding: 5px 2px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-dock-button:active:not(:disabled) { background: var(--surface); transform: scale(.97); }
+  .mobile-dock-button:disabled { opacity: .34; }
+  .mobile-dock-button svg { width: 20px; height: 20px; }
+  .mobile-dock-button span {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 9px;
+    font-weight: 760;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mobile-dock-button.danger { color: var(--danger); }
+
+  .pages-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+  .page-card {
+    padding: 4px;
+    border-radius: 10px;
+  }
+  .thumb-frame { border-radius: 7px; }
+  .thumb-frame canvas {
+    max-width: calc(100% - 8px);
+    max-height: calc(100% - 8px);
+  }
+  .page-order {
+    top: 5px;
+    left: 5px;
+    min-width: 23px;
+    height: 23px;
+    padding: 0 5px;
+    border-radius: 7px;
+    font-size: 10px;
+  }
+  .select-indicator {
+    top: 5px;
+    right: 5px;
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+  }
+  .select-indicator svg { width: 15px; height: 15px; }
+
+  .card-actions {
+    left: auto !important;
+    right: 7px !important;
+    bottom: 29px !important;
+    padding: 2px;
+    border-radius: 8px;
+    background: rgba(23, 25, 22, .60);
+  }
+  .card-actions .icon-button:not([data-action="preview"]) { display: none; }
+  .card-actions .icon-button[data-action="preview"] { width: 27px; height: 27px; }
+  .card-actions .icon-button[data-action="preview"] svg { width: 14px; height: 14px; }
+
+  .page-meta {
+    min-height: 25px;
+    padding: 5px 1px 1px;
+  }
+  .source-name { display: none; }
+  .source-page {
+    overflow: hidden;
+    font-size: 9px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .export-bar {
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: calc(100% - 16px);
+    gap: 5px;
+    padding: 6px;
+    border-radius: 15px;
+  }
+  .filename-input { min-height: 38px; padding-inline: 9px; font-size: 12px; }
+  .export-bar .button { min-height: 38px; padding-inline: 9px; }
+  .export-bar #saveSelectedButton .button-label { display: none; }
+  .export-bar #saveSelectedButton { width: 40px; padding-inline: 0; }
+
+  .toast-region {
+    top: auto;
+    right: 50%;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    width: min(390px, calc(100% - 20px));
+    transform: translateX(50%);
+  }
+  .toast {
+    align-items: center;
+    border-color: color-mix(in srgb, var(--line) 70%, transparent);
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    backdrop-filter: blur(14px);
+  }
+  .toast-message { font-size: 12px; }
+
+  .mobile-tools-dialog {
+    width: 100%;
+    max-width: none;
+    max-height: min(68dvh, 560px);
+    margin: auto 0 0;
+    padding: 0;
+    overflow: hidden;
+    border-width: 1px 0 0;
+    border-radius: 22px 22px 0 0;
+    background: var(--surface);
+  }
+  .mobile-tools-dialog[open] { display: block; }
+  .mobile-tools-dialog::backdrop {
+    background: rgba(15, 17, 14, .42);
+    backdrop-filter: blur(2px);
+  }
+  .mobile-tools-handle {
+    width: 42px;
+    height: 4px;
+    margin: 9px auto 3px;
+    border-radius: 999px;
+    background: var(--line-strong);
+  }
+  .mobile-tools-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 16px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .mobile-tools-head strong { font-size: 15px; }
+  .mobile-tools-close {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .mobile-tools-close:active { background: var(--surface-muted); }
+  .mobile-tools-close svg { width: 18px; height: 18px; }
+  .mobile-tools-list {
+    display: grid;
+    gap: 7px;
+    padding: 12px 12px calc(14px + env(safe-area-inset-bottom));
+  }
+  .mobile-tools-action {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 720;
+    text-align: left;
+    cursor: pointer;
+  }
+  .mobile-tools-action:active:not(:disabled) { background: var(--surface-muted); transform: scale(.99); }
+  .mobile-tools-action:disabled { opacity: .38; }
+  .mobile-tools-action svg { width: 19px; height: 19px; flex: 0 0 auto; }
+  .mobile-tools-action.danger { color: var(--danger); }
+}
+
+@media (max-width: 360px) {
+  .pages-grid { gap: 5px !important; }
+  .mobile-edit-dock { margin-inline: -4px; padding: 6px; }
+  .mobile-dock-actions { gap: 1px; padding: 3px; }
+  .mobile-dock-button { min-height: 50px; }
+  .mobile-dock-button span { font-size: 8px; }
+}
+
+</style>
 </head>
 <body>
   <header class="app-header">
@@ -1104,7 +1419,7 @@
     });
     if (!window.PDFLib) throw new Error("The embedded pdf-lib module did not expose window.PDFLib.");
 
-    const PDFJS_BASE = "https://html-pdf-organizer.invalid/";
+    const PDFJS_BASE = "https://pdf-organizer.invalid/";
     const embeddedAssets = JSON.parse(decodeBase64Text(embeddedText("vendorPdfAssetsBase64")) || "{}");
     const assetMimeType = (path) => {
       if (/\.wasm$/i.test(path)) return "application/wasm";
@@ -1497,7 +1812,7 @@
       }
     };
 
-    const LANGUAGE_STORAGE_KEY = "html-pdf-organizer-language";
+    const LANGUAGE_STORAGE_KEY = "pdf-organizer-language";
     let currentLanguage = (() => {
       try {
         const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
@@ -2673,6 +2988,379 @@
         showToast(t("libraryLoadFailed"), "error", 0);
       }
     });
+
+
+// mobile-enhancements: integrated
+    /* Mobile UX and live-sort enhancements injected by build-offline.ps1. */
+    (() => {
+      const mobileText = (ja, en) => currentLanguage === "ja" ? ja : en;
+      const mobileIcon = {
+        more: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></svg>`
+      };
+
+      let dragLayoutSnapshot = null;
+
+      function captureDragLayout(event) {
+        const card = event.target.closest(".page-card");
+        if (!card || event.target.closest("button, input, a")) return;
+        const cards = Array.from(elements.pagesGrid.querySelectorAll(".page-card"));
+        dragLayoutSnapshot = {
+          scrollY: window.scrollY,
+          ids: cards.map((item) => item.dataset.pageId),
+          rects: new Map(cards.map((item) => {
+            const rect = item.getBoundingClientRect();
+            return [item.dataset.pageId, {
+              left: rect.left,
+              top: rect.top,
+              right: rect.right,
+              bottom: rect.bottom,
+              width: rect.width,
+              height: rect.height
+            }];
+          }))
+        };
+      }
+
+      elements.pagesGrid.addEventListener("pointerdown", captureDragLayout, true);
+
+      function stableRect(id) {
+        const rect = dragLayoutSnapshot?.rects.get(id);
+        if (!rect) return null;
+        const scrollDeltaY = window.scrollY - dragLayoutSnapshot.scrollY;
+        return {
+          ...rect,
+          top: rect.top - scrollDeltaY,
+          bottom: rect.bottom - scrollDeltaY
+        };
+      }
+
+      function clearLiveSortTransforms() {
+        elements.pagesGrid.querySelectorAll(".page-card").forEach((card) => {
+          card.classList.remove("sort-shifted");
+          card.style.removeProperty("transform");
+        });
+      }
+
+      function applyLiveSortTransforms(insertionIndex, movingIds) {
+        if (!dragLayoutSnapshot) return;
+        const fullIds = dragLayoutSnapshot.ids.filter((id) => elements.pagesGrid.querySelector(`.page-card[data-page-id="${CSS.escape(id)}"]`));
+        const movingInOrder = fullIds.filter((id) => movingIds.has(id));
+        const remainingIds = fullIds.filter((id) => !movingIds.has(id));
+        const targetIndex = Math.max(0, Math.min(insertionIndex, remainingIds.length));
+        const previewOrder = [
+          ...remainingIds.slice(0, targetIndex),
+          ...movingInOrder,
+          ...remainingIds.slice(targetIndex)
+        ];
+
+        const slotRects = fullIds.map((id) => stableRect(id));
+        fullIds.forEach((id, currentIndex) => {
+          const card = elements.pagesGrid.querySelector(`.page-card[data-page-id="${CSS.escape(id)}"]`);
+          if (!card) return;
+          if (movingIds.has(id)) {
+            card.classList.remove("sort-shifted");
+            card.style.removeProperty("transform");
+            return;
+          }
+          const nextIndex = previewOrder.indexOf(id);
+          const from = slotRects[currentIndex];
+          const to = slotRects[nextIndex];
+          if (!from || !to || nextIndex < 0) return;
+          const dx = Math.round(to.left - from.left);
+          const dy = Math.round(to.top - from.top);
+          card.classList.toggle("sort-shifted", dx !== 0 || dy !== 0);
+          if (dx || dy) card.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+          else card.style.removeProperty("transform");
+        });
+      }
+
+      const originalGetDropIndex = getDropIndex;
+      getDropIndex = function enhancedGetDropIndex(clientX, clientY, movingIds) {
+        if (!dragLayoutSnapshot) return originalGetDropIndex(clientX, clientY, movingIds);
+
+        const candidates = dragLayoutSnapshot.ids
+          .filter((id) => !movingIds.has(id))
+          .map((id, index) => ({
+            id,
+            index,
+            card: elements.pagesGrid.querySelector(`.page-card[data-page-id="${CSS.escape(id)}"]`),
+            rect: stableRect(id)
+          }))
+          .filter((item) => item.card && item.rect);
+
+        elements.pagesGrid.querySelectorAll(".drop-before, .drop-after").forEach((card) => {
+          card.classList.remove("drop-before", "drop-after");
+        });
+        if (!candidates.length) {
+          applyLiveSortTransforms(0, movingIds);
+          return 0;
+        }
+
+        const rows = [];
+        for (const candidate of candidates) {
+          let row = rows.find((item) => Math.abs(item.top - candidate.rect.top) < 12);
+          if (!row) {
+            row = { top: candidate.rect.top, bottom: candidate.rect.bottom, items: [] };
+            rows.push(row);
+          }
+          row.bottom = Math.max(row.bottom, candidate.rect.bottom);
+          row.items.push(candidate);
+        }
+        rows.sort((a, b) => a.top - b.top);
+        rows.forEach((row) => row.items.sort((a, b) => a.rect.left - b.rect.left));
+
+        let insertionIndex = 0;
+        if (clientY >= rows.at(-1).bottom) {
+          const last = candidates.at(-1);
+          last.card.classList.add("drop-after");
+          insertionIndex = candidates.length;
+        } else {
+          const selectedRow = clientY <= rows[0].top
+            ? rows[0]
+            : rows.reduce((best, row) => {
+                const center = (row.top + row.bottom) / 2;
+                const bestCenter = (best.top + best.bottom) / 2;
+                return Math.abs(clientY - center) < Math.abs(clientY - bestCenter) ? row : best;
+              }, rows[0]);
+
+          insertionIndex = selectedRow.items.at(-1).index + 1;
+          for (const candidate of selectedRow.items) {
+            if (clientX < candidate.rect.left + candidate.rect.width / 2) {
+              candidate.card.classList.add("drop-before");
+              insertionIndex = candidate.index;
+              break;
+            }
+          }
+          if (insertionIndex === selectedRow.items.at(-1).index + 1) {
+            selectedRow.items.at(-1).card.classList.add("drop-after");
+          }
+        }
+
+        applyLiveSortTransforms(insertionIndex, movingIds);
+        return insertionIndex;
+      };
+
+      const originalCleanupDragVisuals = cleanupDragVisuals;
+      cleanupDragVisuals = function enhancedCleanupDragVisuals(drag = pointerDrag) {
+        clearLiveSortTransforms();
+        dragLayoutSnapshot = null;
+        return originalCleanupDragVisuals(drag);
+      };
+
+      function templateMatches(key, message) {
+        const template = translations[currentLanguage]?.[key] || "";
+        if (!template) return false;
+        const parts = template.split("{count}").map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+        return new RegExp(`^${parts.join("\\d+")}$`).test(message);
+      }
+
+      // Keep a monotonic edit revision so an old toast can never undo a newer edit.
+      let editRevision = 0;
+      const originalPushHistoryForRevision = pushHistory;
+      pushHistory = function enhancedPushHistory(snapshot) {
+        editRevision += 1;
+        return originalPushHistoryForRevision(snapshot);
+      };
+      const originalUndoForRevision = undo;
+      undo = function enhancedUndo() {
+        editRevision += 1;
+        return originalUndoForRevision();
+      };
+      const originalRedoForRevision = redo;
+      redo = function enhancedRedo() {
+        editRevision += 1;
+        return originalRedoForRevision();
+      };
+      // The desktop toolbar registered these click handlers before this enhancement
+      // was injected, so count those direct clicks explicitly as well.
+      elements.undoButton.addEventListener("click", () => { editRevision += 1; }, true);
+      elements.redoButton.addEventListener("click", () => { editRevision += 1; }, true);
+
+      const originalShowToast = showToast;
+
+      showToast = function enhancedShowToast(message, type = "info", duration = 4500) {
+        const undoable = type !== "error" && (
+          templateMatches("deletedPages", message) || templateMatches("clearedAll", message)
+        );
+        originalShowToast(message, type, undoable ? Math.max(duration, 5200) : duration);
+        if (!undoable) return;
+
+        const undoRevision = editRevision;
+        const toast = elements.toastRegion.lastElementChild;
+        if (!toast || toast.querySelector(".toast-action")) return;
+        toast.classList.add("undoable");
+        const action = document.createElement("button");
+        action.className = "toast-action";
+        action.type = "button";
+        action.textContent = t("undo");
+        action.addEventListener("click", () => {
+          toast.remove();
+          if (editRevision !== undoRevision) {
+            showToast(mobileText("この操作はすでに古くなっています", "This undo is no longer available"), "info", 1800);
+            return;
+          }
+          undo();
+        });
+        const close = toast.querySelector(".toast-close");
+        toast.insertBefore(action, close || null);
+      };
+
+      const originalToolbar = document.querySelector(".toolbar");
+      const mobileDock = document.createElement("div");
+      mobileDock.className = "mobile-edit-dock";
+      mobileDock.setAttribute("aria-label", mobileText("ページ編集", "Page editing"));
+
+      const dockTop = document.createElement("div");
+      dockTop.className = "mobile-dock-top";
+      const dockStatus = document.createElement("div");
+      dockStatus.className = "mobile-dock-status";
+      const mobileClearSelectionButton = document.createElement("button");
+      mobileClearSelectionButton.type = "button";
+      mobileClearSelectionButton.className = "mobile-clear-selection";
+      mobileClearSelectionButton.addEventListener("click", () => elements.clearSelectionButton.click());
+      const dockHistory = document.createElement("div");
+      dockHistory.className = "mobile-dock-history";
+
+      function createHistoryProxy(source, icon, label) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "mobile-history-button";
+        button.innerHTML = icon;
+        button.setAttribute("aria-label", label);
+        button.title = label;
+        button.addEventListener("click", () => source.click());
+        button._sourceButton = source;
+        return button;
+      }
+
+      const mobileUndoButton = createHistoryProxy(elements.undoButton, icons.undo, t("undo"));
+      const mobileRedoButton = createHistoryProxy(elements.redoButton, icons.redo, t("redo"));
+      dockHistory.append(mobileUndoButton, mobileRedoButton);
+      dockTop.append(dockStatus, mobileClearSelectionButton, dockHistory);
+
+      const dockActions = document.createElement("div");
+      dockActions.className = "mobile-dock-actions";
+      const dockProxyButtons = [];
+
+      function createDockProxy(source, icon, labelKey, className = "") {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `mobile-dock-button${className ? ` ${className}` : ""}`;
+        button.innerHTML = `${icon}<span></span>`;
+        button.dataset.labelKey = labelKey;
+        button.addEventListener("click", () => source.click());
+        button._sourceButton = source;
+        dockProxyButtons.push(button);
+        return button;
+      }
+
+      const mobileSelectAllButton = createDockProxy(elements.selectAllButton, icons.selectAll, "selectAll");
+      const mobileRotateLeftButton = createDockProxy(elements.rotateLeftButton, icons.rotateLeft, "rotateLeft");
+      const mobileRotateRightButton = createDockProxy(elements.rotateRightButton, icons.rotateRight, "rotateRight");
+      const mobileDeleteButton = createDockProxy(elements.deleteButton, icons.trash, "delete", "danger");
+      const mobileMoreButton = document.createElement("button");
+      mobileMoreButton.type = "button";
+      mobileMoreButton.className = "mobile-dock-button";
+      mobileMoreButton.innerHTML = `${mobileIcon.more}<span></span>`;
+      dockActions.append(mobileSelectAllButton, mobileRotateLeftButton, mobileRotateRightButton, mobileDeleteButton, mobileMoreButton);
+      mobileDock.append(dockTop, dockActions);
+      originalToolbar.insertAdjacentElement("afterend", mobileDock);
+
+      const mobileToolsDialog = document.createElement("dialog");
+      mobileToolsDialog.className = "mobile-tools-dialog";
+      mobileToolsDialog.innerHTML = `
+        <div class="mobile-tools-handle" aria-hidden="true"></div>
+        <div class="mobile-tools-head">
+          <strong class="mobile-tools-title"></strong>
+          <button class="mobile-tools-close" type="button" aria-label="${mobileText("閉じる", "Close")}">${icons.close}</button>
+        </div>
+        <div class="mobile-tools-list"></div>
+      `;
+      document.body.append(mobileToolsDialog);
+      const mobileToolsList = mobileToolsDialog.querySelector(".mobile-tools-list");
+      const mobileToolsTitle = mobileToolsDialog.querySelector(".mobile-tools-title");
+      const mobileToolsClose = mobileToolsDialog.querySelector(".mobile-tools-close");
+
+      function createMobileTool(source, icon, label, danger = false) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `mobile-tools-action${danger ? " danger" : ""}`;
+        button.innerHTML = `${icon}<span></span>`;
+        button.querySelector("span").textContent = label;
+        button.disabled = source.disabled;
+        button.addEventListener("click", () => {
+          mobileToolsDialog.close();
+          source.click();
+        });
+        return button;
+      }
+
+      function renderMobileTools() {
+        mobileToolsTitle.textContent = mobileText("その他の操作", "More actions");
+        mobileToolsClose.setAttribute("aria-label", mobileText("閉じる", "Close"));
+        mobileToolsList.replaceChildren(
+          createMobileTool(elements.addButton, icons.addFile, t("addPdf")),
+          createMobileTool(elements.clearSelectionButton, icons.clearSelection, t("clearSelection")),
+          createMobileTool(elements.redoButton, icons.redo, t("redo")),
+          createMobileTool(elements.clearAllButton, icons.trash, mobileText("全ページを一覧から削除", "Remove every page"), true)
+        );
+      }
+
+      mobileMoreButton.addEventListener("click", () => {
+        renderMobileTools();
+        if (!mobileToolsDialog.open) mobileToolsDialog.showModal();
+      });
+      mobileToolsClose.addEventListener("click", () => mobileToolsDialog.close());
+      mobileToolsDialog.addEventListener("click", (event) => {
+        const rect = mobileToolsDialog.getBoundingClientRect();
+        const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+        if (outside) mobileToolsDialog.close();
+      });
+
+      function updateMobileText() {
+        mobileDock.setAttribute("aria-label", t("pageEditing"));
+        mobileClearSelectionButton.textContent = mobileText("選択解除", "Clear");
+        mobileUndoButton.setAttribute("aria-label", t("undo"));
+        mobileUndoButton.title = t("undo");
+        mobileRedoButton.setAttribute("aria-label", t("redo"));
+        mobileRedoButton.title = t("redo");
+        dockProxyButtons.forEach((button) => {
+          const label = t(button.dataset.labelKey);
+          button.querySelector("span").textContent = label;
+          button.setAttribute("aria-label", label);
+          button.title = label;
+        });
+        mobileMoreButton.querySelector("span").textContent = mobileText("その他", "More");
+        mobileMoreButton.setAttribute("aria-label", mobileText("その他の操作", "More actions"));
+        mobileMoreButton.title = mobileText("その他の操作", "More actions");
+      }
+
+      function syncMobileDock() {
+        dockStatus.innerHTML = elements.selectionStatus.innerHTML;
+        mobileClearSelectionButton.hidden = state.selected.size === 0;
+        mobileDock.hidden = elements.workspace.hidden || state.pages.length === 0;
+        [mobileUndoButton, mobileRedoButton, ...dockProxyButtons].forEach((button) => {
+          button.disabled = Boolean(button._sourceButton?.disabled);
+        });
+      }
+
+      const originalUpdateUiState = updateUiState;
+      updateUiState = function enhancedUpdateUiState() {
+        originalUpdateUiState();
+        syncMobileDock();
+      };
+
+      const originalApplyLanguage = applyLanguage;
+      applyLanguage = function enhancedApplyLanguage(language, rerender = true) {
+        originalApplyLanguage(language, rerender);
+        updateMobileText();
+        syncMobileDock();
+      };
+
+      updateMobileText();
+      syncMobileDock();
+    })();
+
 
     applyLanguage(currentLanguage, false);
   </script>

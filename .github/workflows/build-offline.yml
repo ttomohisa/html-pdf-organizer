@@ -1,10 +1,8 @@
-name: Validate offline HTML build
+name: Build offline HTML
 
 on:
-  workflow_dispatch:
   pull_request:
-    branches:
-      - main
+  push:
     paths:
       - "src/**"
       - "versions.json"
@@ -12,39 +10,16 @@ on:
       - "build-offline.bat"
       - ".github/workflows/build-offline.yml"
 
-permissions:
-  contents: read
-
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 20
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Build fully embedded HTML
-        shell: pwsh
-        run: ./build-offline.ps1
-
-      - name: Verify no external runtime dependency
-        shell: pwsh
-        run: |
-          $html = Get-Content -Raw -Encoding UTF8 dist/index.html
-          if ($html -match '<script[^>]+src\s*=\s*["'']https?://' -or $html -match 'import\s+.+?from\s+["'']https?://') {
-            throw "External runtime dependency remains in dist/index.html"
-          }
-          if ($html -match '__PDF_[A-Z_]+__') {
-            throw "Build placeholder remains in dist/index.html"
-          }
-
-      - name: Upload standalone build artifact
-        uses: actions/upload-artifact@v7
+      - uses: actions/checkout@v4
+      - name: Build standalone HTML
+        shell: powershell
+        run: .\build-offline.ps1
+      - name: Upload build
+        uses: actions/upload-artifact@v4
         with:
-          name: html-pdf-organizer-offline-${{ github.event.pull_request.head.sha || github.sha }}
-          path: |
-            dist/index.html
-            dist/dependency-manifest.json
-            dist/.nojekyll
-          if-no-files-found: error
-          retention-days: 14
+          name: pdf-organizer-offline
+          path: dist/

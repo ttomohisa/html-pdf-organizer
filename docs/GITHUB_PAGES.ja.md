@@ -5,7 +5,7 @@
 想定する公開URL：
 
 ```text
-https://ttomohisa.github.io/html-pdf-organizer/
+https://ttomohisa.github.io/pdf-organizer/
 ```
 
 ## 1. リポジトリを作成する
@@ -13,7 +13,7 @@ https://ttomohisa.github.io/html-pdf-organizer/
 GitHubで次のリポジトリを作成します。
 
 - Owner: `ttomohisa`
-- Repository name: `html-pdf-organizer`
+- Repository name: `pdf-organizer`
 - Visibility: Public
 - Default branch: `main`
 
@@ -49,7 +49,7 @@ GitHubで次のリポジトリを作成します。
 Actionsの実行が成功すると、デプロイジョブに公開URLが表示されます。
 
 ```text
-https://ttomohisa.github.io/html-pdf-organizer/
+https://ttomohisa.github.io/pdf-organizer/
 ```
 
 公開直後は反映に少し時間がかかることがあります。ブラウザのキャッシュが残る場合は、再読み込みまたはプライベートウィンドウで確認してください。
@@ -78,7 +78,7 @@ GitHub Pages版は、ページを開くためにGitHubのサーバーからHTML�
 
 - **Settings → Pages → Source** が **GitHub Actions** になっているか確認します。
 - Actionsの **Deploy offline app to GitHub Pages** が成功しているか確認します。
-- リポジトリ名が `html-pdf-organizer` 以外の場合、URLも変わります。
+- リポジトリ名が `pdf-organizer` 以外の場合、URLも変わります。
 
 ### ワークフローにPages権限のエラーが出る
 
