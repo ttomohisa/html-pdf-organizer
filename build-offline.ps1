@@ -1,6 +1,7 @@
 param(
   [switch]$ForceDownload,
-  [string]$OutputPath = ""
+  [string]$OutputPath = "",
+  [double]$MaxOutputSizeMb = 6.0
 )
 
 $ErrorActionPreference = "Stop"
@@ -80,13 +81,28 @@ function Expand-NpmPackage([string]$PackageName, [string]$Version) {
   }
 }
 
-function Get-Base64FromBytes([byte[]]$Bytes) {
-  return [Convert]::ToBase64String($Bytes)
+function Get-GzipBase64FromBytes([byte[]]$Bytes) {
+  $memory = [System.IO.MemoryStream]::new()
+  try {
+    $gzip = [System.IO.Compression.GZipStream]::new($memory, [System.IO.Compression.CompressionLevel]::Optimal, $true)
+    try {
+      $gzip.Write($Bytes, 0, $Bytes.Length)
+    } finally {
+      $gzip.Dispose()
+    }
+    return [Convert]::ToBase64String($memory.ToArray())
+  } finally {
+    $memory.Dispose()
+  }
 }
 
-function Get-Base64FromFile([string]$Path) {
+function Get-GzipBase64FromUtf8([string]$Text) {
+  return Get-GzipBase64FromBytes ([System.Text.Encoding]::UTF8.GetBytes($Text))
+}
+
+function Get-GzipBase64FromFile([string]$Path) {
   if (-not (Test-Path $Path)) { throw "Required dependency file not found: $Path" }
-  return Get-Base64FromBytes ([System.IO.File]::ReadAllBytes($Path))
+  return Get-GzipBase64FromBytes ([System.IO.File]::ReadAllBytes($Path))
 }
 
 function Get-MinifiedJavaScript([string]$Path) {
@@ -95,10 +111,6 @@ function Get-MinifiedJavaScript([string]$Path) {
   # Source map comments are unnecessary in the standalone artifact and may make DevTools look for extra files.
   $text = [regex]::Replace($text, "(?m)^\s*//# sourceMappingURL=.*$", "")
   return $text
-}
-
-function To-Base64Utf8([string]$Text) {
-  return Get-Base64FromBytes ([System.Text.Encoding]::UTF8.GetBytes($Text))
 }
 
 function Get-EmbeddedAssetMap([string]$PackageRoot, [object[]]$Directories) {
@@ -120,7 +132,7 @@ function Get-EmbeddedAssetMap([string]$PackageRoot, [object[]]$Directories) {
         throw "Asset path is outside the package root: $fileFull"
       }
       $relative = $fileFull.Substring($rootFull.Length).TrimStart($trimChars).Replace([char]92, [char]47)
-      $map[$relative] = Get-Base64FromFile $_.FullName
+      $map[$relative] = Get-GzipBase64FromFile $_.FullName
     }
   }
   return $map
@@ -156,8 +168,9 @@ if ($assetMap.Count -eq 0) { throw "No PDF.js support assets were found. Check v
 $assetJson = $assetMap | ConvertTo-Json -Compress -Depth 4
 
 $manifest = [ordered]@{
-  build = "offline-v1.0"
+  build = "offline-v1.1-gzip"
   generatedAtUtc = [DateTime]::UtcNow.ToString("o")
+  payloadCompression = "gzip"
   dependencies = [ordered]@{
     pdfLib = [ordered]@{
       package = [string]$versions.pdfLib.package
@@ -173,6 +186,7 @@ $manifest = [ordered]@{
       embeddedEntry = [string]$versions.pdfJs.entry
       embeddedWorker = [string]$versions.pdfJs.worker
       embeddedAssetCount = $assetMap.Count
+      embeddedAssetCompression = "gzip-per-file"
       embeddedEntrySha256 = (Get-FileHash -Algorithm SHA256 -Path $pdfJsPath).Hash.ToLowerInvariant()
       embeddedWorkerSha256 = (Get-FileHash -Algorithm SHA256 -Path $pdfWorkerPath).Hash.ToLowerInvariant()
     }
@@ -183,10 +197,10 @@ $manifestJson = $manifest | ConvertTo-Json -Compress -Depth 8
 Write-Step "Generating standalone HTML"
 $template = [System.IO.File]::ReadAllText($TemplatePath, [System.Text.Encoding]::UTF8)
 $replacements = [ordered]@{
-  "__PDF_LIB_BASE64__" = To-Base64Utf8 $pdfLibSource
-  "__PDF_JS_BASE64__" = To-Base64Utf8 $pdfJsSource
-  "__PDF_WORKER_BASE64__" = To-Base64Utf8 $pdfWorkerSource
-  "__PDF_ASSETS_BASE64__" = To-Base64Utf8 $assetJson
+  "__PDF_LIB_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfLibSource
+  "__PDF_JS_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfJsSource
+  "__PDF_WORKER_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfWorkerSource
+  "__PDF_ASSETS_GZIP_JSON__" = $assetJson.Replace("<", "\u003c")
   "__DEPENDENCY_MANIFEST_JSON__" = $manifestJson.Replace("<", "\u003c")
 }
 foreach ($entry in $replacements.GetEnumerator()) {
@@ -207,9 +221,14 @@ if ($remainingUrls) { throw "The generated HTML still contains a runtime externa
 if ($template.Contains("__PDF_")) { throw "One or more dependency placeholders remain in the generated HTML." }
 
 $outputHash = (Get-FileHash -Algorithm SHA256 -Path $OutputPath).Hash.ToLowerInvariant()
-$outputSizeMb = [Math]::Round((Get-Item $OutputPath).Length / 1MB, 2)
+$outputSizeBytes = (Get-Item $OutputPath).Length
+$outputSizeMb = [Math]::Round($outputSizeBytes / 1MB, 2)
 Write-Host ""
 Write-Host "[OK] Standalone HTML: $OutputPath" -ForegroundColor Green
-Write-Host "[OK] Size: $outputSizeMb MB"
+Write-Host "[OK] Size: $outputSizeMb MB (gzip-compressed embedded payloads)"
 Write-Host "[OK] SHA-256: $outputHash"
 Write-Host "[OK] Runtime network access is blocked by CSP and the embedded asset loader."
+
+if ($MaxOutputSizeMb -gt 0 -and $outputSizeBytes -gt ($MaxOutputSizeMb * 1MB)) {
+  throw "Generated HTML is $outputSizeMb MB, exceeding the configured limit of $MaxOutputSizeMb MB. Review dependency growth or pass -MaxOutputSizeMb 0 to disable this guard."
+}

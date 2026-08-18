@@ -120,9 +120,10 @@ build-offline.bat -ForceDownload
 The build process automatically:
 
 - Downloads pinned tarballs from the official npm registry
-- Embeds dependency files and PDF.js support assets into one HTML file
+- Gzip-compresses dependency libraries and stores PDF.js support assets as individually gzip-compressed entries inside the single HTML file
 - Records SHA-256 hashes for the tarballs, PDF.js entry, and worker
 - Rejects remaining external script references and unresolved placeholders
+- Fails the build if the generated HTML exceeds 6 MB by default, catching size regressions
 - Stops when an incompatible PDF.js package-layout change requires review
 - Generates `dist/dependency-manifest.json`
 

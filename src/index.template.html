@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja" data-build="offline-v1.0">
+<html lang="ja" data-build="offline-v1.1-gzip">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; form-action 'none'; connect-src 'none'; img-src data: blob:; media-src blob:; style-src 'unsafe-inline'; script-src 'unsafe-inline' blob:; worker-src blob:; font-src data: blob:">
@@ -1617,13 +1617,13 @@ body.is-sorting .page-card.drag-source {
     </div>
   </dialog>
 
-  <!-- Build: offline-v1.0
-       All runtime code and PDF.js assets are embedded by build-offline.ps1.
+  <!-- Build: offline-v1.1-gzip
+       Runtime code and PDF.js assets are embedded as gzip-compressed Base64 by build-offline.ps1.
        No network request is required or permitted while the app is running. -->
-  <script type="application/octet-stream" id="vendorPdfLibBase64">__PDF_LIB_BASE64__</script>
-  <script type="application/octet-stream" id="vendorPdfJsBase64">__PDF_JS_BASE64__</script>
-  <script type="application/octet-stream" id="vendorPdfWorkerBase64">__PDF_WORKER_BASE64__</script>
-  <script type="application/octet-stream" id="vendorPdfAssetsBase64">__PDF_ASSETS_BASE64__</script>
+  <script type="application/octet-stream" id="vendorPdfLibGzipBase64">__PDF_LIB_GZIP_BASE64__</script>
+  <script type="application/octet-stream" id="vendorPdfJsGzipBase64">__PDF_JS_GZIP_BASE64__</script>
+  <script type="application/octet-stream" id="vendorPdfWorkerGzipBase64">__PDF_WORKER_GZIP_BASE64__</script>
+  <script type="application/json" id="vendorPdfAssetsGzipMap">__PDF_ASSETS_GZIP_JSON__</script>
   <script type="application/json" id="embeddedDependencyManifest">__DEPENDENCY_MANIFEST_JSON__</script>
   <script type="module">
     const decodeBase64Bytes = (value) => {
@@ -1633,10 +1633,18 @@ body.is-sorting .page-card.drag-source {
       for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
       return bytes;
     };
-    const decodeBase64Text = (value) => new TextDecoder().decode(decodeBase64Bytes(value));
+    const gunzipBase64Bytes = async (value) => {
+      if (typeof DecompressionStream !== "function") {
+        throw new Error("This browser does not support the DecompressionStream API required by the offline build.");
+      }
+      const compressed = decodeBase64Bytes(value);
+      const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
+      return new Uint8Array(await new Response(stream).arrayBuffer());
+    };
+    const gunzipBase64Text = async (value) => new TextDecoder().decode(await gunzipBase64Bytes(value));
     const embeddedText = (id) => document.getElementById(id)?.textContent?.trim() || "";
 
-    const pdfLibSource = decodeBase64Text(embeddedText("vendorPdfLibBase64"));
+    const pdfLibSource = await gunzipBase64Text(embeddedText("vendorPdfLibGzipBase64"));
     const pdfLibBlobUrl = URL.createObjectURL(new Blob([pdfLibSource], { type: "text/javascript" }));
     await new Promise((resolve, reject) => {
       const pdfLibScript = document.createElement("script");
@@ -1648,7 +1656,8 @@ body.is-sorting .page-card.drag-source {
     if (!window.PDFLib) throw new Error("The embedded pdf-lib module did not expose window.PDFLib.");
 
     const PDFJS_BASE = "https://pdf-organizer.invalid/";
-    const embeddedAssets = JSON.parse(decodeBase64Text(embeddedText("vendorPdfAssetsBase64")) || "{}");
+    const embeddedAssets = JSON.parse(embeddedText("vendorPdfAssetsGzipMap") || "{}");
+    const embeddedAssetCache = new Map();
     const assetMimeType = (path) => {
       if (/\.wasm$/i.test(path)) return "application/wasm";
       if (/\.(mjs|js)$/i.test(path)) return "text/javascript";
@@ -1656,12 +1665,16 @@ body.is-sorting .page-card.drag-source {
       if (/\.(ttf|otf|pfb)$/i.test(path)) return "font/otf";
       return "application/octet-stream";
     };
-    const responseForEmbeddedAsset = (url) => {
+    const getEmbeddedAssetBytes = async (key, encoded) => {
+      if (!embeddedAssetCache.has(key)) embeddedAssetCache.set(key, gunzipBase64Bytes(encoded));
+      return embeddedAssetCache.get(key);
+    };
+    const responseForEmbeddedAsset = async (url) => {
       if (typeof url !== "string" || !url.startsWith(PDFJS_BASE)) return null;
       const key = decodeURIComponent(url.slice(PDFJS_BASE.length));
       const encoded = embeddedAssets[key];
       if (typeof encoded !== "string") return new Response("Embedded PDF.js asset not found", { status: 404 });
-      return new Response(decodeBase64Bytes(encoded), {
+      return new Response(await getEmbeddedAssetBytes(key, encoded), {
         status: 200,
         headers: { "Content-Type": assetMimeType(key), "Cache-Control": "public, max-age=31536000, immutable" }
       });
@@ -1669,7 +1682,7 @@ body.is-sorting .page-card.drag-source {
 
     globalThis.fetch = async (input, init) => {
       const url = typeof input === "string" ? input : input?.url;
-      const embedded = responseForEmbeddedAsset(url);
+      const embedded = await responseForEmbeddedAsset(url);
       if (embedded) return embedded;
       throw new TypeError("External network access is disabled in PDF Organizer.");
     };
@@ -1682,6 +1695,15 @@ body.is-sorting .page-card.drag-source {
         const bytes = new Uint8Array(binary.length);
         for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
         return bytes;
+      };
+      const __assetCache__ = new Map();
+      const __gunzipBase64Bytes__ = async (key, value) => {
+        if (!__assetCache__.has(key)) {
+          const compressed = __decodeBase64Bytes__(value);
+          const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
+          __assetCache__.set(key, new Response(stream).arrayBuffer().then(buffer => new Uint8Array(buffer)));
+        }
+        return __assetCache__.get(key);
       };
       const __assetMimeType__ = (path) => {
         if (/\.wasm$/i.test(path)) return "application/wasm";
@@ -1696,7 +1718,7 @@ body.is-sorting .page-card.drag-source {
           const key = decodeURIComponent(url.slice(__PDFJS_ASSET_BASE__.length));
           const encoded = __PDFJS_ASSETS__[key];
           if (typeof encoded !== "string") return new Response("Embedded PDF.js asset not found", { status: 404 });
-          return new Response(__decodeBase64Bytes__(encoded), {
+          return new Response(await __gunzipBase64Bytes__(key, encoded), {
             status: 200,
             headers: { "Content-Type": __assetMimeType__(key), "Cache-Control": "public, max-age=31536000, immutable" }
           });
@@ -1705,9 +1727,9 @@ body.is-sorting .page-card.drag-source {
       };
     `;
 
-    const workerSource = workerPrelude + "\n" + decodeBase64Text(embeddedText("vendorPdfWorkerBase64"));
+    const workerSource = workerPrelude + "\n" + await gunzipBase64Text(embeddedText("vendorPdfWorkerGzipBase64"));
     const workerBlobUrl = URL.createObjectURL(new Blob([workerSource], { type: "text/javascript" }));
-    const pdfJsSource = decodeBase64Text(embeddedText("vendorPdfJsBase64"));
+    const pdfJsSource = await gunzipBase64Text(embeddedText("vendorPdfJsGzipBase64"));
     const pdfJsBlobUrl = URL.createObjectURL(new Blob([pdfJsSource], { type: "text/javascript" }));
     const pdfjsLib = await import(pdfJsBlobUrl);
     pdfjsLib.GlobalWorkerOptions.workerSrc = workerBlobUrl;

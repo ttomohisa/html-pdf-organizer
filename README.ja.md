@@ -52,7 +52,7 @@ GitHub Pagesから最初のHTMLを読み込んだ後、PDFの読み込み・サ�
 4. 生成された `dist/index.html` を任意の場所へコピーします。
 5. 以降は `dist/index.html` 単体を、インターネット接続なしで開けます。
 
-Python、Node.js、ローカルWebサーバーは不要です。Windows標準のPowerShellと `tar.exe` を使用します。
+Python、Node.js、ローカルWebサーバーは不要です。Windows標準のPowerShellと `tar.exe` を使用します。 生成物は内包ライブラリをgzip圧縮して保持し、PDF.jsの補助データは必要になったものだけ `DecompressionStream` で展開するため、機能を削らずに従来の完全内包方式よりファイルサイズと初期展開コストを抑えています。
 
 ## 使い方
 
@@ -121,9 +121,10 @@ build-offline.bat -ForceDownload
 ビルド処理は以下を自動で行います。
 
 - npm公式レジストリから固定バージョンのtarballを取得
-- 依存ファイルとPDF.jsサポートデータを単一HTMLへBase64内包
+- 依存ライブラリをgzip圧縮し、PDF.jsサポートデータもファイル単位でgzip圧縮して単一HTMLへ内包
 - 依存tarball、PDF.js本体、WorkerのSHA-256を記録
 - 外部スクリプト参照や未置換プレースホルダーを検査
+- 生成HTMLが標準で6MBを超えた場合にビルドを停止し、サイズ肥大化を検知
 - PDF.jsのパッケージ構成に互換性のない変更がある場合は停止
 - `dist/dependency-manifest.json` を生成
 

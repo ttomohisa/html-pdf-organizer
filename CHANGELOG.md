@@ -20,3 +20,5 @@
 - Added live card reflow while drag-reordering before drop.
 - Added app-like mobile edit dock and simplified per-card actions.
 - Added Undo action to deletion/clear-all toasts.
+- Reduced standalone HTML size by gzip-compressing embedded dependency payloads during the offline build.
+- Added a default 6 MB build-size guard to catch future dependency-size regressions.
