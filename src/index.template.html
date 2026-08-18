@@ -212,28 +212,121 @@
       transform: translateY(-1px);
     }
 
-    .drop-content { position: relative; max-width: 560px; }
+    .drop-content { position: relative; width: 100%; max-width: 680px; }
     .drop-icon {
       width: 48px;
       height: 48px;
       display: grid;
       place-items: center;
-      margin: 0 auto 12px;
+      margin: 0 auto 10px;
       border-radius: 14px;
       background: var(--accent-soft);
       color: var(--accent);
     }
-    .drop-zone h2 { margin: 0; font-size: 19px; }
-    .drop-zone p { margin: 7px 0 16px; color: var(--text-muted); font-size: 13px; }
+    .drop-zone h2 { margin: 0; font-size: 21px; letter-spacing: -.01em; }
+    .drop-zone p {
+      max-width: 590px;
+      margin: 7px auto 12px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .initial-overview {
+      display: grid;
+      grid-template-columns: minmax(210px, .72fr) minmax(0, 1.6fr);
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 12px;
+      padding: 15px 17px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+    }
+    .initial-overview[hidden] { display: none !important; }
+    .overview-copy { min-width: 0; }
+    .overview-label {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+    .initial-overview h2 {
+      margin: 0;
+      font-size: clamp(16px, 1.5vw, 20px);
+      letter-spacing: -.015em;
+      line-height: 1.35;
+    }
+    .overview-actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 7px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .overview-actions li {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: 11px;
+      background: var(--surface-muted);
+    }
+    .overview-action-icon {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .overview-action-icon svg { width: 16px; height: 16px; display: block; }
+    .overview-action-copy { min-width: 0; }
+    .overview-action-copy strong,
+    .overview-action-copy small { display: block; }
+    .overview-action-copy strong {
+      overflow: hidden;
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 780;
+      line-height: 1.25;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .overview-action-copy small {
+      margin-top: 2px;
+      overflow: hidden;
+      color: var(--text-muted);
+      font-size: 9px;
+      line-height: 1.25;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .drop-hint {
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
 
-    .privacy-note {
+    .privacy-promise {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      margin-top: 12px;
-      color: var(--text-muted);
-      font-size: 12px;
+      gap: 7px;
+      max-width: 100%;
+      margin-top: 9px;
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 780;
+      line-height: 1.35;
     }
+    .privacy-promise svg { width: 16px; height: 16px; flex: 0 0 auto; }
 
     .workspace[hidden], .drop-zone[hidden] { display: none !important; }
 
@@ -367,6 +460,7 @@
       align-items: start;
       min-height: 180px;
     }
+    .pages-grid[hidden] { display: none !important; }
 
     .page-card {
       position: relative;
@@ -381,6 +475,55 @@
       touch-action: manipulation;
       transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease, background .15s ease, opacity .15s ease;
       -webkit-tap-highlight-color: transparent;
+    }
+
+    .add-pdf-card {
+      width: 100%;
+      aspect-ratio: .68;
+      min-width: 0;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 9px;
+      padding: 18px 12px;
+      border: 1.5px dashed var(--line-strong);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--surface) 88%, transparent);
+      color: var(--text-muted);
+      font: inherit;
+      cursor: pointer;
+      transition: border-color .15s ease, background .15s ease, color .15s ease, transform .15s ease, box-shadow .15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .add-pdf-card:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+    .add-pdf-card:active { transform: translateY(0); }
+    .add-pdf-card.is-dragover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+    }
+    .add-pdf-card-icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .add-pdf-card-icon svg { width: 22px; height: 22px; display: block; }
+    .add-pdf-card-label {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 780;
+      line-height: 1.3;
     }
 
     .page-card:hover { border-color: var(--line-strong); transform: translateY(-1px); }
@@ -633,9 +776,11 @@
       background: var(--surface);
       text-align: center;
     }
-    .empty-state[hidden] { display: none; }
+    .empty-state[hidden] { display: none !important; }
+    .empty-state.is-dragover { border-color: var(--accent); background: var(--accent-soft); }
     .empty-state h3 { margin: 10px 0 4px; font-size: 16px; }
     .empty-state p { margin: 0; color: var(--text-muted); font-size: 13px; }
+    .empty-state .button { margin-top: 14px; }
 
     .export-bar {
       position: fixed;
@@ -733,6 +878,7 @@
     dialog {
       width: min(640px, calc(100% - 28px));
       max-height: min(760px, calc(100vh - 36px));
+      max-height: min(760px, calc(100dvh - 36px));
       padding: 0;
       overflow: hidden;
       border: 1px solid var(--line);
@@ -742,6 +888,12 @@
       box-shadow: var(--shadow-md);
     }
     dialog::backdrop { background: rgba(15, 17, 14, .52); backdrop-filter: blur(4px); }
+    #helpDialog[open] {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      max-height: calc(100vh - 24px);
+      max-height: calc(100dvh - 24px);
+    }
     .dialog-header {
       display: flex;
       align-items: center;
@@ -751,7 +903,14 @@
       border-bottom: 1px solid var(--line);
     }
     .dialog-header h2 { margin: 0; font-size: 17px; }
-    .dialog-body { padding: 20px 20px 30px; overflow: auto; max-height: calc(100vh - 130px); }
+    .dialog-body { padding: 20px 20px 30px; overflow: auto; max-height: calc(100vh - 130px); max-height: calc(100dvh - 130px); }
+    #helpDialog .dialog-body {
+      min-height: 0;
+      max-height: none;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
     .dialog-body h3 {
       margin: 26px 0 8px;
       padding-top: 20px;
@@ -853,7 +1012,37 @@
       .header-actions .button-label { display: none; }
       .language-button { min-width: 43px; padding-inline: 8px; }
       .main { padding-top: 15px; }
-      .drop-zone { min-height: 220px; }
+      .initial-overview {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 10px;
+        padding: 13px;
+        border-radius: 14px;
+      }
+      .overview-label { margin-bottom: 2px; font-size: 10px; }
+      .initial-overview h2 { font-size: 16px; }
+      .overview-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+      .overview-actions li { gap: 7px; padding: 8px; }
+      .overview-action-icon { width: 26px; height: 26px; border-radius: 8px; }
+      .overview-action-copy strong { font-size: 10px; }
+      .overview-action-copy small { font-size: 8px; }
+      .privacy-promise { margin-top: 8px; padding: 6px 8px; font-size: 10px; }
+      .drop-zone { min-height: 210px; padding: 20px 14px; }
+      .drop-zone h2 { font-size: 18px; }
+      .drop-zone p { margin-bottom: 13px; font-size: 12px; }
+      .drop-hint { display: none; }
+      #helpDialog {
+        width: calc(100% - 16px);
+        max-height: calc(100vh - 16px);
+        max-height: calc(100dvh - 16px);
+        border-radius: 14px;
+      }
+      #helpDialog[open] {
+        max-height: calc(100vh - 16px);
+        max-height: calc(100dvh - 16px);
+      }
+      #helpDialog .dialog-header { padding: 14px 14px; }
+      #helpDialog .dialog-body { padding: 16px 16px calc(26px + env(safe-area-inset-bottom)); }
       .workspace-header { align-items: center; }
       .workspace-guide { display: none; }
       .compact-drop span { display: none; }
@@ -1051,6 +1240,15 @@ body.is-sorting .page-card.drag-source {
     padding: 4px;
     border-radius: 10px;
   }
+  .add-pdf-card {
+    aspect-ratio: .68;
+    gap: 6px;
+    padding: 10px 6px;
+    border-radius: 10px;
+  }
+  .add-pdf-card-icon { width: 34px; height: 34px; border-radius: 10px; }
+  .add-pdf-card-icon svg { width: 18px; height: 18px; }
+  .add-pdf-card-label { font-size: 10px; }
   .thumb-frame { border-radius: 7px; }
   .thumb-frame canvas {
     max-width: calc(100% - 8px);
@@ -1231,16 +1429,42 @@ body.is-sorting .page-card.drag-source {
   </header>
 
   <main class="main">
+    <section class="initial-overview" id="initialOverview" aria-labelledby="overviewHeading">
+      <div class="overview-copy">
+        <span class="overview-label" data-i18n="overviewLabel">PDF Organizerでできること</span>
+        <h2 id="overviewHeading" data-i18n="overviewHeading">ページを見ながら、整理・結合・保存</h2>
+        <div class="privacy-promise"><span id="shieldIcon" aria-hidden="true"></span><span data-i18n="privacyNote">すべての処理はこの端末内で完結</span></div>
+      </div>
+      <ul class="overview-actions">
+        <li>
+          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7h10M8 12h10M8 17h10"/><path d="m4 5-2 2 2 2M2 7h3M4 15l-2 2 2 2M2 17h3"/></svg></span>
+          <span class="overview-action-copy"><strong data-i18n="overviewReorder">並べ替え</strong><small data-i18n="overviewReorderNote">ドラッグで順番変更</small></span>
+        </li>
+        <li>
+          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg></span>
+          <span class="overview-action-copy"><strong data-i18n="overviewEdit">回転・削除</strong><small data-i18n="overviewEditNote">不要ページも整理</small></span>
+        </li>
+        <li>
+          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="10" height="14" rx="2"/><path d="M10 3h6a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4h-6"/></svg></span>
+          <span class="overview-action-copy"><strong data-i18n="overviewMerge">PDFを結合</strong><small data-i18n="overviewMergeNote">複数ファイルをひとつに</small></span>
+        </li>
+        <li>
+          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7.5 11 4.5 4.5 4.5-4.5"/><path d="M5 20h14"/></svg></span>
+          <span class="overview-action-copy"><strong data-i18n="overviewExport">必要なページを保存</strong><small data-i18n="overviewExportNote">全部・選択だけ両対応</small></span>
+        </li>
+      </ul>
+    </section>
+
     <section class="drop-zone" id="initialDropZone" tabindex="0" role="button" data-i18n-aria-label="addPdfAria" aria-label="PDFファイルを追加">
       <div class="drop-content">
         <div class="drop-icon" id="initialDropIcon" aria-hidden="true"></div>
-        <h2 data-i18n="dropHeading">PDFをここにドロップ</h2>
-        <p data-i18n="dropDescription">複数ファイルを一度に追加できます。ページはブラウザの外へ送信されません。</p>
+        <h2 data-i18n="dropHeading">PDFを追加して始める</h2>
+        <p data-i18n="dropDescription">1つでも複数でも、そのまま追加できます。</p>
         <button class="button primary" id="initialAddButton" type="button">
           <span id="initialAddIcon" aria-hidden="true"></span>
           <span data-i18n="choosePdf">PDFを選択</span>
         </button>
-        <div class="privacy-note"><span id="shieldIcon" aria-hidden="true"></span><span data-i18n="privacyNote">すべての処理はこの端末内で完結</span></div>
+        <div class="drop-hint" data-i18n="dropHint">または、この枠内にPDFをドラッグ＆ドロップ</div>
       </div>
     </section>
 
@@ -1292,6 +1516,10 @@ body.is-sorting .page-card.drag-source {
           <div class="drop-icon" id="emptyIcon" aria-hidden="true"></div>
           <h3 data-i18n="noPagesHeading">ページがありません</h3>
           <p data-i18n="noPagesBody">PDFを追加するか、元に戻してください。</p>
+          <button class="button primary" id="emptyAddButton" type="button">
+            <span id="emptyAddIcon" aria-hidden="true"></span>
+            <span data-i18n="addPdf">PDFを追加</span>
+          </button>
         </div>
       </div>
     </section>
@@ -1514,6 +1742,7 @@ body.is-sorting .page-card.drag-source {
 
     const $ = (selector) => document.querySelector(selector);
     const elements = {
+      initialOverview: $("#initialOverview"),
       initialDropZone: $("#initialDropZone"),
       compactDropZone: $("#compactDropZone"),
       workspace: $("#workspace"),
@@ -1523,6 +1752,7 @@ body.is-sorting .page-card.drag-source {
       fileInput: $("#fileInput"),
       initialAddButton: $("#initialAddButton"),
       addButton: $("#addButton"),
+      emptyAddButton: $("#emptyAddButton"),
       selectionStatus: $("#selectionStatus"),
       selectAllButton: $("#selectAllButton"),
       clearSelectionButton: $("#clearSelectionButton"),
@@ -1585,7 +1815,7 @@ body.is-sorting .page-card.drag-source {
       ["shieldIcon", "shield"], ["compactAddIcon", "addFile"], ["selectAllIcon", "selectAll"],
       ["clearSelectionIcon", "clearSelection"], ["rotateLeftIcon", "rotateLeft"], ["rotateRightIcon", "rotateRight"],
       ["deleteIcon", "trash"], ["undoButton", "undo"], ["redoButton", "redo"], ["zoomSmallIcon", "zoomSmall"],
-      ["zoomLargeIcon", "zoomLarge"], ["clearAllIcon", "trash"], ["emptyIcon", "file"],
+      ["zoomLargeIcon", "zoomLarge"], ["clearAllIcon", "trash"], ["emptyIcon", "file"], ["emptyAddIcon", "addFile"],
       ["saveSelectedIcon", "download"], ["saveAllIcon", "download"], ["closeHelpButton", "close"],
       ["previewPreviousButton", "previous"], ["previewNextButton", "next"], ["closePreviewButton", "close"],
       ["workspaceGuideIcon", "dragGroup"]
@@ -1599,8 +1829,19 @@ body.is-sorting .page-card.drag-source {
         switchLanguage: "Switch to English",
         helpTitle: "使い方と注意事項",
         addPdfAria: "PDFファイルを追加",
-        dropHeading: "PDFをここにドロップ",
-        dropDescription: "複数ファイルを一度に追加できます。ページはブラウザの外へ送信されません。",
+        overviewLabel: "PDF Organizerでできること",
+        overviewHeading: "ページを見ながら、整理・結合・保存",
+        overviewReorder: "並べ替え",
+        overviewReorderNote: "ドラッグで順番変更",
+        overviewEdit: "回転・削除",
+        overviewEditNote: "不要ページも整理",
+        overviewMerge: "PDFを結合",
+        overviewMergeNote: "複数ファイルをひとつに",
+        overviewExport: "必要なページを保存",
+        overviewExportNote: "全部・選択だけ両対応",
+        dropHeading: "PDFを追加して始める",
+        dropDescription: "1つでも複数でも、そのまま追加できます。",
+        dropHint: "または、この枠内にPDFをドラッグ＆ドロップ",
         choosePdf: "PDFを選択",
         privacyNote: "すべての処理はこの端末内で完結",
         pageListHeading: "ページ一覧",
@@ -1708,8 +1949,19 @@ body.is-sorting .page-card.drag-source {
         switchLanguage: "日本語に切り替え",
         helpTitle: "How to use & notes",
         addPdfAria: "Add PDF files",
-        dropHeading: "Drop PDFs here",
-        dropDescription: "Add multiple files at once. Your PDF pages never leave this browser.",
+        overviewLabel: "What PDF Organizer can do",
+        overviewHeading: "Review pages, organize, merge, and save",
+        overviewReorder: "Reorder",
+        overviewReorderNote: "Drag pages into place",
+        overviewEdit: "Rotate & delete",
+        overviewEditNote: "Clean up unwanted pages",
+        overviewMerge: "Merge PDFs",
+        overviewMergeNote: "Combine multiple files",
+        overviewExport: "Save the pages you need",
+        overviewExportNote: "All pages or selected only",
+        dropHeading: "Add PDFs to get started",
+        dropDescription: "Add one PDF or several at once.",
+        dropHint: "Or drag and drop PDFs anywhere in this box",
         choosePdf: "Choose PDFs",
         privacyNote: "Everything is processed on this device",
         pageListHeading: "Pages",
@@ -1937,8 +2189,10 @@ body.is-sorting .page-card.drag-source {
       const hasPages = pageCount > 0;
       const hasSelection = selectedCount > 0;
 
-      elements.initialDropZone.hidden = state.documents.size > 0 || hasPages;
-      elements.workspace.hidden = state.documents.size === 0 && !hasPages;
+      const showInitialView = state.documents.size === 0 && !hasPages;
+      elements.initialOverview.hidden = !showInitialView;
+      elements.initialDropZone.hidden = !showInitialView;
+      elements.workspace.hidden = showInitialView;
       elements.emptyState.hidden = hasPages || elements.workspace.hidden;
       elements.pagesGrid.hidden = !hasPages;
       elements.exportBar.hidden = !hasPages;
@@ -2032,10 +2286,23 @@ body.is-sorting .page-card.drag-source {
       return button;
     }
 
+    function createAddPdfCard() {
+      const button = document.createElement("button");
+      button.className = "add-pdf-card";
+      button.type = "button";
+      button.setAttribute("aria-label", t("addPdf"));
+      button.innerHTML = `<span class="add-pdf-card-icon" aria-hidden="true">${icons.addFile}</span><span class="add-pdf-card-label">${t("addPdf")}</span>`;
+      button.addEventListener("click", () => elements.fileInput.click());
+      bindDropZone(button);
+      return button;
+    }
+
     function renderGrid() {
       if (thumbnailObserver) thumbnailObserver.disconnect();
       state.renderQueue.length = 0;
-      elements.pagesGrid.replaceChildren(...state.pages.map(createPageCard));
+      const children = state.pages.map(createPageCard);
+      if (state.pages.length) children.push(createAddPdfCard());
+      elements.pagesGrid.replaceChildren(...children);
       updateUiState();
       observeVisibleThumbnails();
     }
@@ -2863,6 +3130,7 @@ body.is-sorting .page-card.drag-source {
 
     bindDropZone(elements.initialDropZone);
     bindDropZone(elements.compactDropZone);
+    bindDropZone(elements.emptyState);
 
     elements.initialDropZone.addEventListener("click", (event) => {
       if (!event.target.closest("button")) elements.fileInput.click();
@@ -2875,6 +3143,7 @@ body.is-sorting .page-card.drag-source {
     });
     elements.initialAddButton.addEventListener("click", (event) => { event.stopPropagation(); elements.fileInput.click(); });
     elements.addButton.addEventListener("click", () => elements.fileInput.click());
+    elements.emptyAddButton.addEventListener("click", () => elements.fileInput.click());
     elements.fileInput.addEventListener("change", () => addFiles(elements.fileInput.files));
 
     elements.selectAllButton.addEventListener("click", selectAll);
