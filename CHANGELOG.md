@@ -2,6 +2,7 @@
 
 ## 1.1.0 — 2026-08-03
 
+
 - Renamed the project to **Paper Playground**.
 - Added Parrondo's Paradox.
 - Added FPUT Recurrence.
@@ -15,6 +16,11 @@
 - Initial five simulations: Kac Ring, Yard-Sale Wealth Exchange, Axelrod Cultural Dissemination, El Farol Bar Problem, and Granovetter Threshold Model.
 
 ## Unreleased
+
+- Reduced the standalone HTML by about 13% by excluding PDF.js helper modules unused by this app and packing CMaps into small gzip chunks while preserving rendering support.
+- Tightened the default standalone-size regression guard from 6 MB to 4 MB.
+
+- Added password-protected PDF input support. Correct passwords are requested in-browser, and edited output is saved without password protection.
 
 - Smartphone page grid changed to three columns.
 - Added live card reflow while drag-reordering before drop.

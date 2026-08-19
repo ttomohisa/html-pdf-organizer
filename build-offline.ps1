@@ -1,7 +1,7 @@
 param(
   [switch]$ForceDownload,
   [string]$OutputPath = "",
-  [double]$MaxOutputSizeMb = 6.0
+  [double]$MaxOutputSizeMb = 4.0
 )
 
 $ErrorActionPreference = "Stop"
@@ -113,8 +113,16 @@ function Get-MinifiedJavaScript([string]$Path) {
   return $text
 }
 
-function Get-EmbeddedAssetMap([string]$PackageRoot, [object[]]$Directories) {
-  $map = [ordered]@{}
+function Get-EmbeddedAssetPack([string]$PackageRoot, [object[]]$Directories, [object[]]$ExcludedAssets) {
+  # Most support files stay independently gzip-compressed so PDF.js can decode them lazily.
+  # CMaps are small and highly repetitive, so packing them in groups improves compression
+  # without forcing the browser to inflate the whole support-asset set at once.
+  $entries = [ordered]@{}
+  $bundles = New-Object System.Collections.ArrayList
+  $excluded = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
+  foreach ($path in $ExcludedAssets) { [void]$excluded.Add(([string]$path).Replace([char]92, [char]47)) }
+
+  $files = New-Object System.Collections.ArrayList
   foreach ($directory in $Directories) {
     $directoryName = [string]$directory
     $fullDirectory = Join-Path $PackageRoot $directoryName
@@ -132,10 +140,45 @@ function Get-EmbeddedAssetMap([string]$PackageRoot, [object[]]$Directories) {
         throw "Asset path is outside the package root: $fileFull"
       }
       $relative = $fileFull.Substring($rootFull.Length).TrimStart($trimChars).Replace([char]92, [char]47)
-      $map[$relative] = Get-GzipBase64FromFile $_.FullName
+      if (-not $excluded.Contains($relative)) {
+        [void]$files.Add(@{ Path = $relative; FullName = $_.FullName })
+      }
     }
   }
-  return $map
+
+  $cmapFiles = @($files | Where-Object { $_.Path.StartsWith("cmaps/", [System.StringComparison]::OrdinalIgnoreCase) })
+  $chunkSize = 12
+  for ($start = 0; $start -lt $cmapFiles.Count; $start += $chunkSize) {
+    $memory = [System.IO.MemoryStream]::new()
+    try {
+      $chunkEnd = [Math]::Min($start + $chunkSize, $cmapFiles.Count)
+      $bundleIndex = $bundles.Count
+      for ($index = $start; $index -lt $chunkEnd; $index++) {
+        $item = $cmapFiles[$index]
+        $bytes = [System.IO.File]::ReadAllBytes([string]$item.FullName)
+        $offset = [int]$memory.Length
+        $memory.Write($bytes, 0, $bytes.Length)
+        $entries[[string]$item.Path] = @($bundleIndex, $offset, $bytes.Length)
+      }
+      [void]$bundles.Add((Get-GzipBase64FromBytes $memory.ToArray()))
+    } finally {
+      $memory.Dispose()
+    }
+  }
+
+  foreach ($item in $files) {
+    $relative = [string]$item.Path
+    if ($relative.StartsWith("cmaps/", [System.StringComparison]::OrdinalIgnoreCase)) { continue }
+    $entries[$relative] = Get-GzipBase64FromFile ([string]$item.FullName)
+  }
+
+  return @{
+    Entries = $entries
+    Bundles = $bundles.ToArray()
+    AssetCount = $entries.Count
+    BundleCount = $bundles.Count
+    CMapChunkSize = $chunkSize
+  }
 }
 
 
@@ -163,12 +206,15 @@ foreach ($candidate in @(@{ Name = "PDF.js"; Text = $pdfJsSource }, @{ Name = "P
 }
 
 Write-Step "Embedding PDF.js support files"
-$assetMap = Get-EmbeddedAssetMap $pdfJsPackage.Root $versions.pdfJs.assetDirectories
-if ($assetMap.Count -eq 0) { throw "No PDF.js support assets were found. Check versions.json and the npm package layout." }
-$assetJson = $assetMap | ConvertTo-Json -Compress -Depth 4
+$excludedAssets = @()
+if ($null -ne $versions.pdfJs.excludedAssets) { $excludedAssets = @($versions.pdfJs.excludedAssets) }
+$assetPack = Get-EmbeddedAssetPack $pdfJsPackage.Root $versions.pdfJs.assetDirectories $excludedAssets
+if ($assetPack.AssetCount -eq 0) { throw "No PDF.js support assets were found. Check versions.json and the npm package layout." }
+$assetEntriesJson = $assetPack.Entries | ConvertTo-Json -Compress -Depth 4
+$assetBundlesJson = $assetPack.Bundles | ConvertTo-Json -Compress -Depth 4
 
 $manifest = [ordered]@{
-  build = "offline-v1.1-gzip"
+  build = "offline-v1.2-compact"
   generatedAtUtc = [DateTime]::UtcNow.ToString("o")
   payloadCompression = "gzip"
   dependencies = [ordered]@{
@@ -185,8 +231,11 @@ $manifest = [ordered]@{
       tarballSha256 = $pdfJsPackage.ArchiveSha256
       embeddedEntry = [string]$versions.pdfJs.entry
       embeddedWorker = [string]$versions.pdfJs.worker
-      embeddedAssetCount = $assetMap.Count
-      embeddedAssetCompression = "gzip-per-file"
+      embeddedAssetCount = $assetPack.AssetCount
+      embeddedAssetCompression = "gzip-per-file+cmap-chunks"
+      embeddedAssetBundleCount = $assetPack.BundleCount
+      cMapChunkSize = $assetPack.CMapChunkSize
+      excludedAssets = @($excludedAssets)
       embeddedEntrySha256 = (Get-FileHash -Algorithm SHA256 -Path $pdfJsPath).Hash.ToLowerInvariant()
       embeddedWorkerSha256 = (Get-FileHash -Algorithm SHA256 -Path $pdfWorkerPath).Hash.ToLowerInvariant()
     }
@@ -200,7 +249,8 @@ $replacements = [ordered]@{
   "__PDF_LIB_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfLibSource
   "__PDF_JS_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfJsSource
   "__PDF_WORKER_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfWorkerSource
-  "__PDF_ASSETS_GZIP_JSON__" = $assetJson.Replace("<", "\u003c")
+  "__PDF_ASSET_ENTRIES_JSON__" = $assetEntriesJson.Replace("<", "\u003c")
+  "__PDF_ASSET_BUNDLES_JSON__" = $assetBundlesJson.Replace("<", "\u003c")
   "__DEPENDENCY_MANIFEST_JSON__" = $manifestJson.Replace("<", "\u003c")
 }
 foreach ($entry in $replacements.GetEnumerator()) {

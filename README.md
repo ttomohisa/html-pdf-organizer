@@ -120,10 +120,10 @@ build-offline.bat -ForceDownload
 The build process automatically:
 
 - Downloads pinned tarballs from the official npm registry
-- Gzip-compresses dependency libraries and stores PDF.js support assets as individually gzip-compressed entries inside the single HTML file
+- Gzip-compresses dependency libraries and embeds PDF.js support assets for lazy decompression; CMaps are grouped into small compressed chunks for better cross-file compression
 - Records SHA-256 hashes for the tarballs, PDF.js entry, and worker
 - Rejects remaining external script references and unresolved placeholders
-- Fails the build if the generated HTML exceeds 6 MB by default, catching size regressions
+- Fails the build if the generated HTML exceeds 4 MB by default, catching size regressions
 - Stops when an incompatible PDF.js package-layout change requires review
 - Generates `dist/dependency-manifest.json`
 
@@ -142,7 +142,7 @@ The GitHub Pages version requires an initial HTML request, but the PDF content s
 
 ## Limitations
 
-- Password-protected PDFs are not supported.
+- Password-protected PDFs can be opened with the correct password. Edited PDFs are exported without password protection.
 - Editing a digitally signed PDF invalidates its signature.
 - Bookmarks, attachments, forms, signatures, and other document-level data may not be preserved.
 - Large or image-heavy PDFs can consume substantial device memory.

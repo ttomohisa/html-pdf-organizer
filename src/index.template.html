@@ -923,6 +923,27 @@
     .dialog-body ul { margin: 8px 0 0; padding-left: 21px; }
     .dialog-body li + li { margin-top: 7px; }
     .dialog-body > :last-child { margin-bottom: 4px; }
+
+    .password-dialog { width: min(440px, calc(100% - 28px)); }
+    .password-dialog .dialog-body { max-height: none; padding-bottom: 20px; }
+    .password-file { margin: 0 0 16px; color: var(--text-muted); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+    .password-field { display: grid; gap: 7px; }
+    .password-field label { font-size: 13px; font-weight: 700; }
+    .password-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 9px 11px;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+    .password-input:focus { border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent); }
+    .password-error { margin: 8px 0 0; color: var(--danger); font-size: 12px; line-height: 1.5; }
+    .password-note { margin: 10px 0 0; color: var(--text-muted); font-size: 12px; line-height: 1.55; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--line); }
     kbd {
       display: inline-block;
       min-width: 26px;
@@ -1546,6 +1567,27 @@ body.is-sorting .page-card.drag-source {
 
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
 
+  <dialog class="password-dialog" id="passwordDialog" aria-labelledby="passwordDialogTitle">
+    <form id="passwordForm" method="dialog">
+      <div class="dialog-header">
+        <h2 id="passwordDialogTitle" data-i18n="passwordDialogTitle">PDFのパスワードを入力</h2>
+      </div>
+      <div class="dialog-body">
+        <p class="password-file" id="passwordFile"></p>
+        <div class="password-field">
+          <label for="passwordInput" data-i18n="passwordLabel">パスワード</label>
+          <input class="password-input" id="passwordInput" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <p class="password-error" id="passwordError" data-i18n="passwordIncorrect" hidden>パスワードが正しくありません。もう一度入力してください。</p>
+        <p class="password-note" data-i18n="passwordOutputNote">パスワードは保存されません。編集後のPDFはパスワードなしで保存されます。</p>
+      </div>
+      <div class="dialog-actions">
+        <button class="button ghost" id="passwordCancelButton" type="button" data-i18n="cancel">キャンセル</button>
+        <button class="button primary" type="submit" data-i18n="passwordOpen">開く</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog class="preview-dialog" id="previewDialog" aria-labelledby="previewTitle">
     <div class="dialog-header">
       <div class="preview-title">
@@ -1606,7 +1648,7 @@ body.is-sorting .page-card.drag-source {
 
       <h3 data-i18n="limitations">制限事項</h3>
       <ul>
-        <li data-i18n="limitPassword">パスワードで保護されたPDFには対応していません。</li>
+        <li data-i18n="limitPassword">パスワード付きPDFは、正しいパスワードを入力すると開けます。保存時はパスワードなしのPDFになります。</li>
         <li data-i18n="limitMetadata">保存時に、しおり、添付ファイル、電子署名、フォームなどの文書レベル情報が引き継がれない場合があります。</li>
         <li data-i18n="limitSignature">電子署名付きPDFを編集すると、署名は無効になります。</li>
         <li data-i18n="limitMemory">ページ数や画像量が多いPDFでは、端末のメモリを多く使用します。</li>
@@ -1617,15 +1659,48 @@ body.is-sorting .page-card.drag-source {
     </div>
   </dialog>
 
-  <!-- Build: offline-v1.1-gzip
+  <!-- Build: offline-v1.2-compact
        Runtime code and PDF.js assets are embedded as gzip-compressed Base64 by build-offline.ps1.
+       CMaps are grouped into small compressed chunks to reduce file size without sacrificing lazy loading.
        No network request is required or permitted while the app is running. -->
   <script type="application/octet-stream" id="vendorPdfLibGzipBase64">__PDF_LIB_GZIP_BASE64__</script>
   <script type="application/octet-stream" id="vendorPdfJsGzipBase64">__PDF_JS_GZIP_BASE64__</script>
   <script type="application/octet-stream" id="vendorPdfWorkerGzipBase64">__PDF_WORKER_GZIP_BASE64__</script>
-  <script type="application/json" id="vendorPdfAssetsGzipMap">__PDF_ASSETS_GZIP_JSON__</script>
+  <script type="application/json" id="vendorPdfAssetEntriesJson">__PDF_ASSET_ENTRIES_JSON__</script>
+  <script type="application/json" id="vendorPdfAssetBundlesJson">__PDF_ASSET_BUNDLES_JSON__</script>
   <script type="application/json" id="embeddedDependencyManifest">__DEPENDENCY_MANIFEST_JSON__</script>
   <script type="module">
+    if (typeof Map.prototype.getOrInsertComputed !== "function") {
+      Object.defineProperty(Map.prototype, "getOrInsertComputed", {
+        configurable: true,
+        writable: true,
+        value(key, callback) {
+          if (this.has(key)) return this.get(key);
+          const value = callback(key);
+          this.set(key, value);
+          return value;
+        }
+      });
+    }
+    if (typeof Math.sumPrecise !== "function") {
+      Object.defineProperty(Math, "sumPrecise", {
+        configurable: true,
+        writable: true,
+        value(values) {
+          let sum = 0;
+          let compensation = 0;
+          for (const value of values) {
+            const next = sum + value;
+            compensation += Math.abs(sum) >= Math.abs(value)
+              ? (sum - next) + value
+              : (value - next) + sum;
+            sum = next;
+          }
+          return sum + compensation;
+        }
+      });
+    }
+
     const decodeBase64Bytes = (value) => {
       const compact = String(value || "").replace(/\s+/g, "");
       const binary = atob(compact);
@@ -1656,8 +1731,10 @@ body.is-sorting .page-card.drag-source {
     if (!window.PDFLib) throw new Error("The embedded pdf-lib module did not expose window.PDFLib.");
 
     const PDFJS_BASE = "https://pdf-organizer.invalid/";
-    const embeddedAssets = JSON.parse(embeddedText("vendorPdfAssetsGzipMap") || "{}");
+    const embeddedAssetEntries = JSON.parse(embeddedText("vendorPdfAssetEntriesJson") || "{}");
+    const embeddedAssetBundles = JSON.parse(embeddedText("vendorPdfAssetBundlesJson") || "[]");
     const embeddedAssetCache = new Map();
+    const embeddedAssetBundleCache = new Map();
     const assetMimeType = (path) => {
       if (/\.wasm$/i.test(path)) return "application/wasm";
       if (/\.(mjs|js)$/i.test(path)) return "text/javascript";
@@ -1665,16 +1742,30 @@ body.is-sorting .page-card.drag-source {
       if (/\.(ttf|otf|pfb)$/i.test(path)) return "font/otf";
       return "application/octet-stream";
     };
-    const getEmbeddedAssetBytes = async (key, encoded) => {
-      if (!embeddedAssetCache.has(key)) embeddedAssetCache.set(key, gunzipBase64Bytes(encoded));
-      return embeddedAssetCache.get(key);
+    const getEmbeddedAssetBytes = async (key) => {
+      const entry = embeddedAssetEntries[key];
+      if (typeof entry === "string") {
+        if (!embeddedAssetCache.has(key)) embeddedAssetCache.set(key, gunzipBase64Bytes(entry));
+        return embeddedAssetCache.get(key);
+      }
+      if (Array.isArray(entry) && entry.length === 3) {
+        const [bundleIndex, offset, length] = entry;
+        if (!embeddedAssetBundleCache.has(bundleIndex)) {
+          const encodedBundle = embeddedAssetBundles[bundleIndex];
+          if (typeof encodedBundle !== "string") return null;
+          embeddedAssetBundleCache.set(bundleIndex, gunzipBase64Bytes(encodedBundle));
+        }
+        const bundle = await embeddedAssetBundleCache.get(bundleIndex);
+        return bundle.subarray(offset, offset + length);
+      }
+      return null;
     };
     const responseForEmbeddedAsset = async (url) => {
       if (typeof url !== "string" || !url.startsWith(PDFJS_BASE)) return null;
       const key = decodeURIComponent(url.slice(PDFJS_BASE.length));
-      const encoded = embeddedAssets[key];
-      if (typeof encoded !== "string") return new Response("Embedded PDF.js asset not found", { status: 404 });
-      return new Response(await getEmbeddedAssetBytes(key, encoded), {
+      const bytes = await getEmbeddedAssetBytes(key);
+      if (!bytes) return new Response("Embedded PDF.js asset not found", { status: 404 });
+      return new Response(bytes, {
         status: 200,
         headers: { "Content-Type": assetMimeType(key), "Cache-Control": "public, max-age=31536000, immutable" }
       });
@@ -1688,8 +1779,39 @@ body.is-sorting .page-card.drag-source {
     };
 
     const workerPrelude = `
+      if (typeof Map.prototype.getOrInsertComputed !== "function") {
+        Object.defineProperty(Map.prototype, "getOrInsertComputed", {
+          configurable: true,
+          writable: true,
+          value(key, callback) {
+            if (this.has(key)) return this.get(key);
+            const value = callback(key);
+            this.set(key, value);
+            return value;
+          }
+        });
+      }
+      if (typeof Math.sumPrecise !== "function") {
+        Object.defineProperty(Math, "sumPrecise", {
+          configurable: true,
+          writable: true,
+          value(values) {
+            let sum = 0;
+            let compensation = 0;
+            for (const value of values) {
+              const next = sum + value;
+              compensation += Math.abs(sum) >= Math.abs(value)
+                ? (sum - next) + value
+                : (value - next) + sum;
+              sum = next;
+            }
+            return sum + compensation;
+          }
+        });
+      }
       const __PDFJS_ASSET_BASE__ = ${JSON.stringify(PDFJS_BASE)};
-      const __PDFJS_ASSETS__ = ${JSON.stringify(embeddedAssets)};
+      const __PDFJS_ASSET_ENTRIES__ = ${JSON.stringify(embeddedAssetEntries)};
+      const __PDFJS_ASSET_BUNDLES__ = ${JSON.stringify(embeddedAssetBundles)};
       const __decodeBase64Bytes__ = (value) => {
         const binary = atob(String(value || ""));
         const bytes = new Uint8Array(binary.length);
@@ -1697,13 +1819,29 @@ body.is-sorting .page-card.drag-source {
         return bytes;
       };
       const __assetCache__ = new Map();
-      const __gunzipBase64Bytes__ = async (key, value) => {
-        if (!__assetCache__.has(key)) {
-          const compressed = __decodeBase64Bytes__(value);
-          const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
-          __assetCache__.set(key, new Response(stream).arrayBuffer().then(buffer => new Uint8Array(buffer)));
+      const __bundleCache__ = new Map();
+      const __gunzipBase64Bytes__ = async (value) => {
+        const compressed = __decodeBase64Bytes__(value);
+        const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
+        return new Uint8Array(await new Response(stream).arrayBuffer());
+      };
+      const __getAssetBytes__ = async (key) => {
+        const entry = __PDFJS_ASSET_ENTRIES__[key];
+        if (typeof entry === "string") {
+          if (!__assetCache__.has(key)) __assetCache__.set(key, __gunzipBase64Bytes__(entry));
+          return __assetCache__.get(key);
         }
-        return __assetCache__.get(key);
+        if (Array.isArray(entry) && entry.length === 3) {
+          const [bundleIndex, offset, length] = entry;
+          if (!__bundleCache__.has(bundleIndex)) {
+            const encodedBundle = __PDFJS_ASSET_BUNDLES__[bundleIndex];
+            if (typeof encodedBundle !== "string") return null;
+            __bundleCache__.set(bundleIndex, __gunzipBase64Bytes__(encodedBundle));
+          }
+          const bundle = await __bundleCache__.get(bundleIndex);
+          return bundle.subarray(offset, offset + length);
+        }
+        return null;
       };
       const __assetMimeType__ = (path) => {
         if (/\.wasm$/i.test(path)) return "application/wasm";
@@ -1716,9 +1854,9 @@ body.is-sorting .page-card.drag-source {
         const url = typeof input === "string" ? input : input?.url;
         if (typeof url === "string" && url.startsWith(__PDFJS_ASSET_BASE__)) {
           const key = decodeURIComponent(url.slice(__PDFJS_ASSET_BASE__.length));
-          const encoded = __PDFJS_ASSETS__[key];
-          if (typeof encoded !== "string") return new Response("Embedded PDF.js asset not found", { status: 404 });
-          return new Response(await __gunzipBase64Bytes__(key, encoded), {
+          const bytes = await __getAssetBytes__(key);
+          if (!bytes) return new Response("Embedded PDF.js asset not found", { status: 404 });
+          return new Response(bytes, {
             status: 200,
             headers: { "Content-Type": __assetMimeType__(key), "Cache-Control": "public, max-age=31536000, immutable" }
           });
@@ -1792,6 +1930,12 @@ body.is-sorting .page-card.drag-source {
       busyTitle: $("#busyTitle"),
       busyDetail: $("#busyDetail"),
       toastRegion: $("#toastRegion"),
+      passwordDialog: $("#passwordDialog"),
+      passwordForm: $("#passwordForm"),
+      passwordFile: $("#passwordFile"),
+      passwordInput: $("#passwordInput"),
+      passwordError: $("#passwordError"),
+      passwordCancelButton: $("#passwordCancelButton"),
       helpDialog: $("#helpDialog"),
       helpButton: $("#helpButton"),
       languageButton: $("#languageButton"),
@@ -1915,7 +2059,7 @@ body.is-sorting .page-card.drag-source {
         privacy: "プライバシー",
         helpPrivacy: "選択したPDFの読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。PDFファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。",
         limitations: "制限事項",
-        limitPassword: "パスワードで保護されたPDFには対応していません。",
+        limitPassword: "パスワード付きPDFは、正しいパスワードを入力すると開けます。保存時はパスワードなしのPDFになります。",
         limitMetadata: "保存時に、しおり、添付ファイル、電子署名、フォームなどの文書レベル情報が引き継がれない場合があります。",
         limitSignature: "電子署名付きPDFを編集すると、署名は無効になります。",
         limitMemory: "ページ数や画像量が多いPDFでは、端末のメモリを多く使用します。",
@@ -1947,7 +2091,16 @@ body.is-sorting .page-card.drag-source {
         fileCount: "{count}ファイル",
         fileProgress: "{current} / {total}：{name}",
         fileTooLarge: "ファイルサイズが大きすぎます（250MB超）",
-        passwordUnsupported: "パスワード保護されたPDFには対応していません",
+        passwordDialogTitle: "PDFのパスワードを入力",
+        passwordFilePrompt: "「{name}」はパスワードで保護されています。",
+        passwordLabel: "パスワード",
+        passwordIncorrect: "パスワードが正しくありません。もう一度入力してください。",
+        passwordOutputNote: "パスワードは保存されません。編集後のPDFはパスワードなしで保存されます。",
+        passwordOpen: "開く",
+        cancel: "キャンセル",
+        passwordCancelled: "パスワード入力をキャンセルしました",
+        unlockingPdf: "PDFの保護を解除しています",
+        unlockFailed: "PDFの保護を解除できませんでした",
         loadFailed: "読み込みに失敗しました",
         errorJoin: "{name}：{message}",
         addedFiles: "{files}ファイル、{pages}ページを追加しました",
@@ -1960,7 +2113,6 @@ body.is-sorting .page-card.drag-source {
         pageBuildFailed: "ページの生成に失敗しました",
         savedPdf: "{count}ページのPDFを保存しました",
         generationFailed: "PDFの生成に失敗しました",
-        passwordSaveFailed: "パスワード保護されたPDFは保存できません",
         clearedAll: "{count}ページを一覧から削除しました",
         libraryLoadFailed: "ライブラリの読み込みに失敗しました。インターネット接続を確認して再読み込みしてください。"
       },
@@ -2035,7 +2187,7 @@ body.is-sorting .page-card.drag-source {
         privacy: "Privacy",
         helpPrivacy: "PDF loading, preview, editing, and export all happen in your browser. PDF files and actions are never sent outside the device, and the required libraries and rendering assets are embedded in this HTML file.",
         limitations: "Limitations",
-        limitPassword: "Password-protected PDFs are not supported.",
+        limitPassword: "Password-protected PDFs can be opened with the correct password. Exported PDFs are saved without password protection.",
         limitMetadata: "Document-level data such as bookmarks, attachments, digital signatures, and forms may not be retained in the exported PDF.",
         limitSignature: "Editing a digitally signed PDF invalidates its signature.",
         limitMemory: "PDFs with many pages or large images may use a significant amount of device memory.",
@@ -2067,7 +2219,16 @@ body.is-sorting .page-card.drag-source {
         fileCount: "{count} files",
         fileProgress: "{current} / {total}: {name}",
         fileTooLarge: "The file is too large (over 250 MB)",
-        passwordUnsupported: "Password-protected PDFs are not supported",
+        passwordDialogTitle: "Enter PDF password",
+        passwordFilePrompt: "{name} is password-protected.",
+        passwordLabel: "Password",
+        passwordIncorrect: "The password is incorrect. Try again.",
+        passwordOutputNote: "The password is not stored. The edited PDF will be saved without password protection.",
+        passwordOpen: "Open",
+        cancel: "Cancel",
+        passwordCancelled: "Password entry was cancelled",
+        unlockingPdf: "Removing PDF protection",
+        unlockFailed: "Could not remove PDF protection",
         loadFailed: "Failed to load",
         errorJoin: "{name}: {message}",
         addedFiles: "Added {files} files and {pages} pages",
@@ -2080,7 +2241,6 @@ body.is-sorting .page-card.drag-source {
         pageBuildFailed: "Failed to generate a page",
         savedPdf: "Saved a {count}-page PDF",
         generationFailed: "Failed to generate the PDF",
-        passwordSaveFailed: "Password-protected PDFs cannot be saved",
         clearedAll: "Removed {count} pages from the list",
         libraryLoadFailed: "Libraries failed to load. Check your internet connection and reload the page."
       }
@@ -2571,6 +2731,161 @@ body.is-sorting .page-card.drag-source {
       if (elements.previewDialog.open) elements.previewDialog.close();
     }
 
+    class PasswordPromptCancelledError extends Error {
+      constructor() {
+        super(t("passwordCancelled"));
+        this.name = "PasswordPromptCancelledError";
+      }
+    }
+
+    function createPdfLoadingTask(buffer) {
+      return pdfjsLib.getDocument({
+        data: new Uint8Array(buffer.slice(0)),
+        cMapUrl: `${PDFJS_BASE}cmaps/`,
+        cMapPacked: true,
+        standardFontDataUrl: `${PDFJS_BASE}standard_fonts/`,
+        wasmUrl: `${PDFJS_BASE}wasm/`,
+        iccUrl: `${PDFJS_BASE}iccs/`,
+        useWorkerFetch: true,
+        useWasm: true
+      });
+    }
+
+    function requestPdfPassword(name, reason) {
+      return new Promise((resolve, reject) => {
+        const incorrect = reason === pdfjsLib.PasswordResponses?.INCORRECT_PASSWORD;
+        elements.passwordFile.textContent = t("passwordFilePrompt", { name });
+        elements.passwordError.hidden = !incorrect;
+        elements.passwordInput.value = "";
+        let settled = false;
+
+        const cleanup = () => {
+          elements.passwordForm.removeEventListener("submit", onSubmit);
+          elements.passwordCancelButton.removeEventListener("click", onCancelClick);
+          elements.passwordDialog.removeEventListener("cancel", onDialogCancel);
+        };
+        const finish = (fn, value) => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          if (elements.passwordDialog.open) elements.passwordDialog.close();
+          elements.passwordInput.value = "";
+          fn(value);
+        };
+        const onSubmit = (event) => {
+          event.preventDefault();
+          finish(resolve, elements.passwordInput.value);
+        };
+        const cancel = () => finish(reject, new PasswordPromptCancelledError());
+        const onCancelClick = () => cancel();
+        const onDialogCancel = (event) => {
+          event.preventDefault();
+          cancel();
+        };
+
+        elements.passwordForm.addEventListener("submit", onSubmit);
+        elements.passwordCancelButton.addEventListener("click", onCancelClick);
+        elements.passwordDialog.addEventListener("cancel", onDialogCancel);
+        if (!elements.passwordDialog.open) elements.passwordDialog.showModal();
+        requestAnimationFrame(() => elements.passwordInput.focus());
+      });
+    }
+
+    let unlockBridgeBytesPromise = null;
+    async function getUnlockBridgeBytes() {
+      if (!unlockBridgeBytesPromise) {
+        unlockBridgeBytesPromise = (async () => {
+          const bridge = await PDFDocument.create();
+          bridge.addPage([1, 1]);
+          return await bridge.save({ useObjectStreams: true });
+        })();
+      }
+      return unlockBridgeBytesPromise;
+    }
+
+    async function removePdfPassword(pdfjsDoc) {
+      // PDF.js intentionally keeps encryption when rebuilding a PDF from a
+      // single source document. Add one tiny unencrypted bridge page so the
+      // rebuild is treated as a merge, then remove that bridge page with
+      // pdf-lib. The result is an ordinary unencrypted PDF used by the rest of
+      // the app; the password itself is never stored in application state.
+      const bridgeBytes = await getUnlockBridgeBytes();
+      const pageIndices = Array.from({ length: pdfjsDoc.numPages }, (_, index) => index);
+      const rebuilt = await pdfjsDoc.extractPages([
+        { document: null, includePages: pageIndices, pageIndices },
+        { document: bridgeBytes.slice(), includePages: [0], pageIndices: [pdfjsDoc.numPages] }
+      ]);
+      if (!(rebuilt instanceof Uint8Array) || rebuilt.length === 0) {
+        throw new Error(t("unlockFailed"));
+      }
+
+      const unlocked = await PDFDocument.load(rebuilt);
+      if (unlocked.getPageCount() !== pdfjsDoc.numPages + 1) {
+        throw new Error(t("unlockFailed"));
+      }
+      unlocked.removePage(unlocked.getPageCount() - 1);
+      return await unlocked.save({ useObjectStreams: true });
+    }
+
+    async function isPdfEncrypted(buffer) {
+      try {
+        const probe = await PDFDocument.load(new Uint8Array(buffer.slice(0)), {
+          ignoreEncryption: true,
+          updateMetadata: false
+        });
+        return probe.isEncrypted === true;
+      } catch {
+        return false;
+      }
+    }
+
+    async function loadPdfForEditing(buffer, fileName) {
+      let passwordWasRequested = false;
+      let passwordPromptError = null;
+      const loadingTask = createPdfLoadingTask(buffer);
+      loadingTask.onPassword = (updatePassword, reason) => {
+        passwordWasRequested = true;
+        requestPdfPassword(fileName, reason)
+          .then((password) => updatePassword(password))
+          .catch((error) => {
+            passwordPromptError = error;
+            loadingTask.destroy();
+          });
+      };
+
+      let pdfjsDoc;
+      try {
+        pdfjsDoc = await loadingTask.promise;
+      } catch (error) {
+        if (passwordPromptError) throw passwordPromptError;
+        throw error;
+      }
+
+      const encryptedWithoutPrompt = !passwordWasRequested && await isPdfEncrypted(buffer);
+      if (!passwordWasRequested && !encryptedWithoutPrompt) {
+        return { buffer, pdfjsDoc };
+      }
+
+      elements.busyTitle.textContent = t("unlockingPdf");
+      elements.busyDetail.textContent = fileName;
+      try {
+        const unlockedBytes = await removePdfPassword(pdfjsDoc);
+        await loadingTask.destroy();
+        const unlockedBuffer = unlockedBytes.buffer.slice(
+          unlockedBytes.byteOffset,
+          unlockedBytes.byteOffset + unlockedBytes.byteLength
+        );
+        const unlockedTask = createPdfLoadingTask(unlockedBuffer);
+        const unlockedDoc = await unlockedTask.promise;
+        return { buffer: unlockedBuffer, pdfjsDoc: unlockedDoc };
+      } catch (error) {
+        try { await loadingTask.destroy(); } catch {}
+        if (error?.message === t("unlockFailed")) throw error;
+        console.error("Failed to remove PDF password", error);
+        throw new Error(t("unlockFailed"));
+      }
+    }
+
     async function addFiles(fileList) {
       const files = Array.from(fileList || []).filter(isPdfFile);
       const rejectedCount = Array.from(fileList || []).length - files.length;
@@ -2594,30 +2909,9 @@ body.is-sorting .page-card.drag-source {
           if (file.size > 250 * 1024 * 1024) {
             throw new Error(t("fileTooLarge"));
           }
-          const buffer = await file.arrayBuffer();
-          const bytesForPdfJs = new Uint8Array(buffer.slice(0));
-          const loadingTask = pdfjsLib.getDocument({
-            data: bytesForPdfJs,
-            cMapUrl: `${PDFJS_BASE}cmaps/`,
-            cMapPacked: true,
-            standardFontDataUrl: `${PDFJS_BASE}standard_fonts/`,
-            wasmUrl: `${PDFJS_BASE}wasm/`,
-            iccUrl: `${PDFJS_BASE}iccs/`,
-            useWorkerFetch: true,
-            useWasm: true
-          });
-          let passwordProtected = false;
-          loadingTask.onPassword = () => {
-            passwordProtected = true;
-            loadingTask.destroy();
-          };
-          let pdfjsDoc;
-          try {
-            pdfjsDoc = await loadingTask.promise;
-          } catch (error) {
-            if (passwordProtected) throw new Error(t("passwordUnsupported"));
-            throw error;
-          }
+          const originalBuffer = await file.arrayBuffer();
+          elements.busyTitle.textContent = t("readingPdf");
+          const { buffer, pdfjsDoc } = await loadPdfForEditing(originalBuffer, file.name);
 
           const docId = makeId();
           state.documents.set(docId, {
@@ -2719,8 +3013,7 @@ body.is-sorting .page-card.drag-source {
         showToast(t("savedPdf", { count: targetPages.length }));
       } catch (error) {
         console.error(error);
-        let message = error?.message || t("generationFailed");
-        if (/encrypted/i.test(message)) message = t("passwordSaveFailed");
+        const message = error?.message || t("generationFailed");
         showToast(message, "error", 0);
       } finally {
         setBusy(false);
