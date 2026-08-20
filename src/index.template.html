@@ -17,6 +17,7 @@
     This application uses:
     - PDF.js (Apache-2.0) https://github.com/mozilla/pdf.js
     - pdf-lib (MIT) https://github.com/Hopding/pdf-lib
+    - @pdfsmaller/pdf-encrypt (MIT) https://github.com/smither777/pdf-encrypt
 
     The PDF data selected by the user is processed locally in the browser.
   -->
@@ -845,11 +846,11 @@
       backdrop-filter: blur(18px);
     }
     .export-bar[hidden] { display: none; }
-    .filename-wrap { flex: 1; min-width: 120px; }
+    .filename-wrap { position: relative; flex: 1; min-width: 120px; }
     .filename-input {
       width: 100%;
       min-height: 40px;
-      padding: 8px 11px;
+      padding: 8px 46px 8px 11px;
       border: 1px solid var(--line);
       border-radius: 10px;
       background: var(--surface-muted);
@@ -857,6 +858,25 @@
     }
     .filename-input:hover { border-color: var(--line-strong); }
     .filename-input:focus { border-color: var(--focus); background: var(--surface); }
+    .output-password-button {
+      position: absolute;
+      top: 50%;
+      right: 5px;
+      width: 32px;
+      min-width: 32px;
+      min-height: 32px;
+      padding: 0;
+      transform: translateY(-50%);
+      border-radius: 8px;
+      color: var(--text-muted);
+    }
+    .output-password-button:hover { color: var(--text); background: var(--surface-hover); }
+    .output-password-button.is-active {
+      color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
+    }
+    .output-password-button svg { width: 17px; height: 17px; }
 
     .busy-overlay {
       position: fixed;
@@ -986,8 +1006,47 @@
       outline: none;
     }
     .password-input:focus { border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent); }
+    .password-input-wrap { position: relative; }
+    .password-input-wrap .password-input { padding-right: 46px; }
+    .password-visibility-button {
+      position: absolute;
+      top: 50%;
+      right: 5px;
+      transform: translateY(-50%);
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .password-visibility-button:hover { background: var(--surface-hover); color: var(--text); }
+    .password-visibility-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+    .password-visibility-button svg { width: 18px; height: 18px; pointer-events: none; }
     .password-error { margin: 8px 0 0; color: var(--danger); font-size: 12px; line-height: 1.5; }
     .password-note { margin: 10px 0 0; color: var(--text-muted); font-size: 12px; line-height: 1.55; }
+    .output-protect-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-muted);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .output-protect-toggle input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+    .output-password-fields { display: grid; gap: 14px; margin-top: 14px; }
+    .output-password-fields[hidden] { display: none; }
     .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--line); }
     kbd {
       display: inline-block;
@@ -1393,13 +1452,15 @@ body.is-sorting .page-card.drag-source {
   .filename-input {
     min-width: 0;
     min-height: 38px;
-    padding-inline: 9px;
+    padding: 8px 42px 8px 9px;
     font-size: 12px;
   }
+  .output-password-button { right: 4px; width: 30px; min-width: 30px; min-height: 30px; }
   .export-bar .button {
     min-height: 38px;
     padding-inline: 9px;
   }
+  .export-bar .output-password-button { min-height: 30px; height: 30px; padding: 0; }
   .export-bar #saveSelectedButton {
     display: none;
     flex: 0 0 auto;
@@ -1653,6 +1714,7 @@ body.is-sorting .page-card.drag-source {
     <div class="filename-wrap">
       <label class="sr-only" for="filenameInput" data-i18n="filenameLabel">保存ファイル名</label>
       <input class="filename-input" id="filenameInput" type="text" value="organized.pdf" maxlength="180" autocomplete="off" spellcheck="false">
+      <button class="button icon-only ghost output-password-button" id="outputPasswordButton" type="button" aria-label="出力PDFにパスワードを設定" title="出力PDFにパスワードを設定"><span id="outputPasswordIcon" aria-hidden="true"></span></button>
     </div>
     <button class="button" id="saveSelectedButton" type="button"><span id="saveSelectedIcon"></span><span class="button-label" data-i18n="saveSelected">選択ページを保存</span></button>
     <button class="button primary" id="saveAllButton" type="button"><span id="saveAllIcon"></span><span class="button-label" data-i18n="saveAll">すべて保存</span></button>
@@ -1682,11 +1744,48 @@ body.is-sorting .page-card.drag-source {
           <input class="password-input" id="passwordInput" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
         </div>
         <p class="password-error" id="passwordError" data-i18n="passwordIncorrect" hidden>パスワードが正しくありません。もう一度入力してください。</p>
-        <p class="password-note" data-i18n="passwordOutputNote">パスワードは保存されません。編集後のPDFはパスワードなしで保存されます。</p>
+        <p class="password-note" data-i18n="passwordOutputNote">入力パスワードは保存されません。出力パスワードを設定しない場合、編集後のPDFはパスワードなしで保存されます。</p>
       </div>
       <div class="dialog-actions">
         <button class="button ghost" id="passwordCancelButton" type="button" data-i18n="cancel">キャンセル</button>
         <button class="button primary" type="submit" data-i18n="passwordOpen">開く</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="password-dialog" id="outputPasswordDialog" aria-labelledby="outputPasswordDialogTitle">
+    <form id="outputPasswordForm">
+      <div class="dialog-header">
+        <h2 id="outputPasswordDialogTitle" data-i18n="outputPasswordDialogTitle">出力PDFをパスワードで保護</h2>
+      </div>
+      <div class="dialog-body">
+        <label class="output-protect-toggle" for="outputPasswordEnabled">
+          <input id="outputPasswordEnabled" type="checkbox">
+          <span data-i18n="outputPasswordEnabled">保存時にパスワードを設定する</span>
+        </label>
+        <div class="output-password-fields" id="outputPasswordFields" hidden>
+          <div class="password-field">
+            <label for="outputPasswordInput" data-i18n="outputPasswordLabel">パスワード</label>
+            <div class="password-input-wrap">
+              <input class="password-input" id="outputPasswordInput" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false">
+              <button class="password-visibility-button" id="outputPasswordVisibilityButton" type="button" aria-pressed="false"><span id="outputPasswordVisibilityIcon" aria-hidden="true"></span></button>
+            </div>
+          </div>
+          <div class="password-field">
+            <label for="outputPasswordConfirmInput" data-i18n="outputPasswordConfirmLabel">パスワード（確認）</label>
+            <div class="password-input-wrap">
+              <input class="password-input" id="outputPasswordConfirmInput" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false">
+              <button class="password-visibility-button" id="outputPasswordConfirmVisibilityButton" type="button" aria-pressed="false"><span id="outputPasswordConfirmVisibilityIcon" aria-hidden="true"></span></button>
+            </div>
+          </div>
+        </div>
+        <p class="password-error" id="outputPasswordError" hidden></p>
+        <p class="password-error" id="outputPasswordUnavailable" data-i18n="outputPasswordUnavailable" hidden>この環境ではAES-256暗号化に必要なWeb Crypto APIを利用できません。</p>
+        <p class="password-note" data-i18n="outputPasswordNote">AES-256で保護します。パスワードはブラウザのメモリ上だけに保持され、再読み込みすると消えます。</p>
+      </div>
+      <div class="dialog-actions">
+        <button class="button ghost" id="outputPasswordCancelButton" type="button" data-i18n="cancel">キャンセル</button>
+        <button class="button primary" type="submit" data-i18n="outputPasswordApply">設定を反映</button>
       </div>
     </form>
   </dialog>
@@ -1752,14 +1851,14 @@ body.is-sorting .page-card.drag-source {
 
       <h3 data-i18n="limitations">制限事項</h3>
       <ul>
-        <li data-i18n="limitPassword">パスワード付きPDFは、正しいパスワードを入力すると開けます。保存時はパスワードなしのPDFになります。</li>
+        <li data-i18n="limitPassword">パスワード付きPDFは正しいパスワードで開けます。出力PDFにも必要に応じてAES-256のパスワードを設定できます。</li>
         <li data-i18n="limitMetadata">保存時に、しおり、添付ファイル、電子署名、フォームなどの文書レベル情報が引き継がれない場合があります。</li>
         <li data-i18n="limitSignature">電子署名付きPDFを編集すると、署名は無効になります。</li>
         <li data-i18n="limitMemory">ページ数や画像量が多いPDFでは、端末のメモリを多く使用します。</li>
       </ul>
 
       <h3 data-i18n="openSource">オープンソース</h3>
-      <p data-i18n="helpOpenSource">このHTMLはMIT Licenseで利用できます。PDF.js（Apache-2.0）、pdf-lib（MIT）を使用しています。</p>
+      <p data-i18n="helpOpenSource">このHTMLはMIT Licenseで利用できます。PDF.js（Apache-2.0）、pdf-lib（MIT）、@pdfsmaller/pdf-encrypt（MIT）を使用しています。</p>
     </div>
   </dialog>
 
@@ -1767,6 +1866,7 @@ body.is-sorting .page-card.drag-source {
        Runtime code and PDF.js assets are embedded as gzip-compressed Base64 by build-offline.ps1.
        CMaps are grouped into small compressed chunks to reduce file size without sacrificing lazy loading.
        No network request is required or permitted while the app is running. -->
+  <script type="application/octet-stream" id="vendorPdfEncryptGzipBase64">__PDF_ENCRYPT_GZIP_BASE64__</script>
   <script type="application/octet-stream" id="vendorPdfLibGzipBase64">__PDF_LIB_GZIP_BASE64__</script>
   <script type="application/octet-stream" id="vendorPdfJsGzipBase64">__PDF_JS_GZIP_BASE64__</script>
   <script type="application/octet-stream" id="vendorPdfWorkerGzipBase64">__PDF_WORKER_GZIP_BASE64__</script>
@@ -1833,6 +1933,32 @@ body.is-sorting .page-card.drag-source {
       document.head.append(pdfLibScript);
     });
     if (!window.PDFLib) throw new Error("The embedded pdf-lib module did not expose window.PDFLib.");
+
+    let pdfEncryptLoadPromise = null;
+    async function ensurePdfEncrypt() {
+      if (window.PDFEncrypt?.encryptPDF) return window.PDFEncrypt;
+      if (!globalThis.crypto?.subtle) throw new Error(t("outputPasswordUnavailable"));
+      if (!pdfEncryptLoadPromise) {
+        pdfEncryptLoadPromise = (async () => {
+          const source = await gunzipBase64Text(embeddedText("vendorPdfEncryptGzipBase64"));
+          const blobUrl = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
+          try {
+            await new Promise((resolve, reject) => {
+              const script = document.createElement("script");
+              script.src = blobUrl;
+              script.onload = () => { script.remove(); resolve(); };
+              script.onerror = () => { script.remove(); reject(new Error("Failed to initialize the embedded PDF encryption module.")); };
+              document.head.append(script);
+            });
+          } finally {
+            URL.revokeObjectURL(blobUrl);
+          }
+          if (!window.PDFEncrypt?.encryptPDF) throw new Error("The embedded PDF encryption module did not expose window.PDFEncrypt.");
+          return window.PDFEncrypt;
+        })().catch((error) => { pdfEncryptLoadPromise = null; throw error; });
+      }
+      return pdfEncryptLoadPromise;
+    }
 
     const PDFJS_BASE = "https://pdf-organizer.invalid/";
     const embeddedAssetEntries = JSON.parse(embeddedText("vendorPdfAssetEntriesJson") || "{}");
@@ -1993,6 +2119,10 @@ body.is-sorting .page-card.drag-source {
       zoomSmall: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="6" y="5" width="12" height="14" rx="1.5"/></svg>`,
       zoomLarge: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="1.5"/></svg>`,
       download: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7.5 11 4.5 4.5 4.5-4.5"/><path d="M5 20h14"/></svg>`,
+      lock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v2"/></svg>`,
+      lockOpen: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.4-2.1"/><path d="M12 14v2"/></svg>`,
+      eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>`,
+      eyeOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 18 18"/><path d="M10.6 6.15A9.7 9.7 0 0 1 12 6c6 0 9.5 6 9.5 6a15.2 15.2 0 0 1-2.15 2.8M6.35 6.35C3.9 8.1 2.5 12 2.5 12s3.5 6 9.5 6a9.4 9.4 0 0 0 3.15-.52"/><path d="M10.2 10.2a2.55 2.55 0 0 0 3.6 3.6"/></svg>`,
       check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 12 3.4 3.4 7.6-7.6"/></svg>`,
       preview: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>`,
       previous: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
@@ -2029,6 +2159,18 @@ body.is-sorting .page-card.drag-source {
       clearAllButton: $("#clearAllButton"),
       zoomSlider: $("#zoomSlider"),
       filenameInput: $("#filenameInput"),
+      outputPasswordButton: $("#outputPasswordButton"),
+      outputPasswordDialog: $("#outputPasswordDialog"),
+      outputPasswordForm: $("#outputPasswordForm"),
+      outputPasswordEnabled: $("#outputPasswordEnabled"),
+      outputPasswordFields: $("#outputPasswordFields"),
+      outputPasswordInput: $("#outputPasswordInput"),
+      outputPasswordVisibilityButton: $("#outputPasswordVisibilityButton"),
+      outputPasswordConfirmInput: $("#outputPasswordConfirmInput"),
+      outputPasswordConfirmVisibilityButton: $("#outputPasswordConfirmVisibilityButton"),
+      outputPasswordError: $("#outputPasswordError"),
+      outputPasswordUnavailable: $("#outputPasswordUnavailable"),
+      outputPasswordCancelButton: $("#outputPasswordCancelButton"),
       saveSelectedButton: $("#saveSelectedButton"),
       saveAllButton: $("#saveAllButton"),
       busyOverlay: $("#busyOverlay"),
@@ -2076,6 +2218,8 @@ body.is-sorting .page-card.drag-source {
       isBusy: false
     };
 
+    const outputProtection = { enabled: false, password: "" };
+
     function setIcon(id, name) {
       const el = document.getElementById(id);
       if (el) el.innerHTML = icons[name];
@@ -2087,7 +2231,8 @@ body.is-sorting .page-card.drag-source {
       ["clearSelectionIcon", "clearSelection"], ["rotateLeftIcon", "rotateLeft"], ["rotateRightIcon", "rotateRight"],
       ["deleteIcon", "trash"], ["undoButton", "undo"], ["redoButton", "redo"], ["zoomSmallIcon", "zoomSmall"],
       ["zoomLargeIcon", "zoomLarge"], ["clearAllIcon", "trash"], ["emptyIcon", "file"], ["emptyAddIcon", "addFile"],
-      ["saveSelectedIcon", "download"], ["saveAllIcon", "download"], ["closeHelpButton", "close"],
+      ["saveSelectedIcon", "download"], ["saveAllIcon", "download"], ["outputPasswordIcon", "lockOpen"],
+      ["outputPasswordVisibilityIcon", "eye"], ["outputPasswordConfirmVisibilityIcon", "eye"], ["closeHelpButton", "close"],
       ["previewPreviousButton", "previous"], ["previewNextButton", "next"], ["closePreviewButton", "close"],
       ["workspaceGuideIcon", "dragGroup"]
     ].forEach(([id, name]) => setIcon(id, name));
@@ -2139,6 +2284,25 @@ body.is-sorting .page-card.drag-source {
         saveSelectedCount: "選択 {count}ページを保存",
         saveSelectedCompact: "選択 {count}P 保存",
         saveAll: "すべて保存",
+        outputPasswordButtonInactive: "出力PDFにパスワードを設定",
+        outputPasswordButtonActive: "出力パスワード設定済み",
+        outputPasswordDialogTitle: "出力PDFをパスワードで保護",
+        outputPasswordEnabled: "保存時にパスワードを設定する",
+        outputPasswordLabel: "パスワード",
+        outputPasswordConfirmLabel: "パスワード（確認）",
+        showPassword: "パスワードを表示",
+        hidePassword: "パスワードを隠す",
+        outputPasswordUnavailable: "この環境ではAES-256暗号化に必要なWeb Crypto APIを利用できません。",
+        outputPasswordNote: "AES-256で保護します。パスワードはブラウザのメモリ上だけに保持され、再読み込みすると消えます。",
+        outputPasswordApply: "設定を反映",
+        outputPasswordRequired: "パスワードを入力してください。",
+        outputPasswordMismatch: "パスワードが一致しません。",
+        outputPasswordSet: "出力PDFのパスワードを設定しました",
+        outputPasswordCleared: "出力PDFのパスワード設定を解除しました",
+        protectingPdf: "PDFをパスワードで保護しています",
+        protectingPdfDetail: "AES-256で暗号化しています",
+        savedProtectedPdf: "{count}ページのパスワード付きPDFを保存しました",
+        outputPasswordProtectionFailed: "PDFのパスワード保護に失敗しました",
         busyDefault: "処理しています",
         previewHeading: "ページプレビュー",
         previousPage: "前のページ",
@@ -2167,12 +2331,12 @@ body.is-sorting .page-card.drag-source {
         privacy: "プライバシー",
         helpPrivacy: "選択したPDF・画像の読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。",
         limitations: "制限事項",
-        limitPassword: "パスワード付きPDFは、正しいパスワードを入力すると開けます。保存時はパスワードなしのPDFになります。",
+        limitPassword: "パスワード付きPDFは正しいパスワードで開けます。出力PDFにも必要に応じてAES-256のパスワードを設定できます。",
         limitMetadata: "保存時に、しおり、添付ファイル、電子署名、フォームなどの文書レベル情報が引き継がれない場合があります。",
         limitSignature: "電子署名付きPDFを編集すると、署名は無効になります。",
         limitMemory: "ページ数が多いPDFや高解像度の画像を多数追加すると、端末のメモリを多く使用します。",
         openSource: "オープンソース",
-        helpOpenSource: "このHTMLはMIT Licenseで利用できます。PDF.js（Apache-2.0）、pdf-lib（MIT）を使用しています。",
+        helpOpenSource: "このHTMLはMIT Licenseで利用できます。PDF.js（Apache-2.0）、pdf-lib（MIT）、@pdfsmaller/pdf-encrypt（MIT）を使用しています。",
         toastClose: "通知を閉じる",
         undoDone: "元に戻しました",
         redoDone: "やり直しました",
@@ -2209,7 +2373,7 @@ body.is-sorting .page-card.drag-source {
         passwordFilePrompt: "「{name}」はパスワードで保護されています。",
         passwordLabel: "パスワード",
         passwordIncorrect: "パスワードが正しくありません。もう一度入力してください。",
-        passwordOutputNote: "パスワードは保存されません。編集後のPDFはパスワードなしで保存されます。",
+        passwordOutputNote: "入力パスワードは保存されません。出力パスワードを設定しない場合、編集後のPDFはパスワードなしで保存されます。",
         passwordOpen: "開く",
         cancel: "キャンセル",
         passwordCancelled: "パスワード入力をキャンセルしました",
@@ -2276,6 +2440,25 @@ body.is-sorting .page-card.drag-source {
         saveSelectedCount: "Save {count} selected",
         saveSelectedCompact: "Save {count}",
         saveAll: "Save all",
+        outputPasswordButtonInactive: "Set an output PDF password",
+        outputPasswordButtonActive: "Output password is set",
+        outputPasswordDialogTitle: "Password-protect output PDF",
+        outputPasswordEnabled: "Require a password when opening the saved PDF",
+        outputPasswordLabel: "Password",
+        outputPasswordConfirmLabel: "Confirm password",
+        showPassword: "Show password",
+        hidePassword: "Hide password",
+        outputPasswordUnavailable: "AES-256 encryption is unavailable because Web Crypto is not available in this environment.",
+        outputPasswordNote: "The PDF is protected with AES-256. The password is kept only in browser memory and is cleared when the page reloads.",
+        outputPasswordApply: "Apply",
+        outputPasswordRequired: "Enter a password.",
+        outputPasswordMismatch: "The passwords do not match.",
+        outputPasswordSet: "Output PDF password set",
+        outputPasswordCleared: "Output PDF password removed",
+        protectingPdf: "Password-protecting PDF",
+        protectingPdfDetail: "Encrypting with AES-256",
+        savedProtectedPdf: "Saved a password-protected {count}-page PDF",
+        outputPasswordProtectionFailed: "Failed to password-protect the PDF",
         busyDefault: "Working",
         previewHeading: "Page preview",
         previousPage: "Previous page",
@@ -2304,12 +2487,12 @@ body.is-sorting .page-card.drag-source {
         privacy: "Privacy",
         helpPrivacy: "PDF and image loading, preview, editing, and export all happen in your browser. Files and actions are never sent outside the device, and the required libraries and rendering assets are embedded in this HTML file.",
         limitations: "Limitations",
-        limitPassword: "Password-protected PDFs can be opened with the correct password. Exported PDFs are saved without password protection.",
+        limitPassword: "Password-protected PDFs can be opened with the correct password. You can optionally protect the exported PDF with an AES-256 password.",
         limitMetadata: "Document-level data such as bookmarks, attachments, digital signatures, and forms may not be retained in the exported PDF.",
         limitSignature: "Editing a digitally signed PDF invalidates its signature.",
         limitMemory: "PDFs with many pages or many high-resolution images may use a significant amount of device memory.",
         openSource: "Open source",
-        helpOpenSource: "This HTML is available under the MIT License. It uses PDF.js (Apache-2.0) and pdf-lib (MIT).",
+        helpOpenSource: "This HTML is available under the MIT License. It uses PDF.js (Apache-2.0), pdf-lib (MIT), and @pdfsmaller/pdf-encrypt (MIT).",
         toastClose: "Close notification",
         undoDone: "Undone",
         redoDone: "Redone",
@@ -2346,7 +2529,7 @@ body.is-sorting .page-card.drag-source {
         passwordFilePrompt: "{name} is password-protected.",
         passwordLabel: "Password",
         passwordIncorrect: "The password is incorrect. Try again.",
-        passwordOutputNote: "The password is not stored. The edited PDF will be saved without password protection.",
+        passwordOutputNote: "The input password is not stored. If no output password is set, the edited PDF is saved without password protection.",
         passwordOpen: "Open",
         cancel: "Cancel",
         passwordCancelled: "Password entry was cancelled",
@@ -2398,6 +2581,7 @@ body.is-sorting .page-card.drag-source {
       try { localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLanguage); } catch {}
       if (rerender && state.pages.length) renderGrid();
       else updateUiState();
+      updatePasswordVisibilityUi();
       if (elements.previewDialog.open && state.previewPageId) updatePreviewUi();
     }
 
@@ -2743,6 +2927,121 @@ body.is-sorting .page-card.drag-source {
       elements.saveAllButton.disabled = !hasPages;
       elements.undoButton.disabled = state.history.length === 0;
       elements.redoButton.disabled = state.future.length === 0;
+      updateOutputPasswordUi();
+    }
+
+    function updatePasswordVisibilityButton(input, button, iconId) {
+      if (!input || !button) return;
+      const visible = input.type === "text";
+      setIcon(iconId, visible ? "eyeOff" : "eye");
+      button.setAttribute("aria-pressed", String(visible));
+      const label = t(visible ? "hidePassword" : "showPassword");
+      button.title = label;
+      button.setAttribute("aria-label", label);
+    }
+
+    function updatePasswordVisibilityUi() {
+      updatePasswordVisibilityButton(elements.outputPasswordInput, elements.outputPasswordVisibilityButton, "outputPasswordVisibilityIcon");
+      updatePasswordVisibilityButton(elements.outputPasswordConfirmInput, elements.outputPasswordConfirmVisibilityButton, "outputPasswordConfirmVisibilityIcon");
+    }
+
+    function setPasswordVisibility(input, button, iconId, visible) {
+      input.type = visible ? "text" : "password";
+      updatePasswordVisibilityButton(input, button, iconId);
+    }
+
+    function togglePasswordVisibility(input, button, iconId) {
+      setPasswordVisibility(input, button, iconId, input.type !== "text");
+      input.focus({ preventScroll: true });
+      const end = input.value.length;
+      input.setSelectionRange?.(end, end);
+    }
+
+    function resetOutputPasswordVisibility() {
+      setPasswordVisibility(elements.outputPasswordInput, elements.outputPasswordVisibilityButton, "outputPasswordVisibilityIcon", false);
+      setPasswordVisibility(elements.outputPasswordConfirmInput, elements.outputPasswordConfirmVisibilityButton, "outputPasswordConfirmVisibilityIcon", false);
+    }
+
+    function updateOutputPasswordUi() {
+      const active = outputProtection.enabled && !!outputProtection.password;
+      elements.outputPasswordButton.classList.toggle("is-active", active);
+      setIcon("outputPasswordIcon", active ? "lock" : "lockOpen");
+      const label = t(active ? "outputPasswordButtonActive" : "outputPasswordButtonInactive");
+      elements.outputPasswordButton.title = label;
+      elements.outputPasswordButton.setAttribute("aria-label", label);
+    }
+
+    function updateOutputPasswordFields() {
+      const enabled = elements.outputPasswordEnabled.checked && !elements.outputPasswordEnabled.disabled;
+      elements.outputPasswordFields.hidden = !enabled;
+      if (!enabled) {
+        elements.outputPasswordError.hidden = true;
+        resetOutputPasswordVisibility();
+      }
+    }
+
+    function showOutputPasswordError(message) {
+      elements.outputPasswordError.textContent = message;
+      elements.outputPasswordError.hidden = !message;
+    }
+
+    function openOutputPasswordDialog() {
+      resetOutputPasswordVisibility();
+      const available = !!globalThis.crypto?.subtle;
+      elements.outputPasswordUnavailable.hidden = available;
+      elements.outputPasswordEnabled.disabled = !available;
+      elements.outputPasswordEnabled.checked = available && outputProtection.enabled;
+      elements.outputPasswordInput.value = outputProtection.enabled ? outputProtection.password : "";
+      elements.outputPasswordConfirmInput.value = outputProtection.enabled ? outputProtection.password : "";
+      showOutputPasswordError("");
+      updateOutputPasswordFields();
+      if (!elements.outputPasswordDialog.open) elements.outputPasswordDialog.showModal();
+      requestAnimationFrame(() => {
+        if (elements.outputPasswordEnabled.checked) elements.outputPasswordInput.focus();
+        else elements.outputPasswordEnabled.focus();
+      });
+    }
+
+    async function applyOutputPasswordSettings(event) {
+      event.preventDefault();
+      const enabled = elements.outputPasswordEnabled.checked && !elements.outputPasswordEnabled.disabled;
+      if (!enabled) {
+        const hadPassword = outputProtection.enabled;
+        outputProtection.enabled = false;
+        outputProtection.password = "";
+        elements.outputPasswordDialog.close();
+        updateOutputPasswordUi();
+        if (hadPassword) showToast(t("outputPasswordCleared"));
+        return;
+      }
+      if (!globalThis.crypto?.subtle) {
+        showOutputPasswordError(t("outputPasswordUnavailable"));
+        return;
+      }
+      const password = elements.outputPasswordInput.value;
+      if (!password) {
+        showOutputPasswordError(t("outputPasswordRequired"));
+        elements.outputPasswordInput.focus();
+        return;
+      }
+      if (password !== elements.outputPasswordConfirmInput.value) {
+        showOutputPasswordError(t("outputPasswordMismatch"));
+        elements.outputPasswordConfirmInput.focus();
+        elements.outputPasswordConfirmInput.select();
+        return;
+      }
+      try {
+        await ensurePdfEncrypt();
+      } catch (error) {
+        console.error(error);
+        showOutputPasswordError(error?.message || t("outputPasswordProtectionFailed"));
+        return;
+      }
+      outputProtection.enabled = true;
+      outputProtection.password = password;
+      elements.outputPasswordDialog.close();
+      updateOutputPasswordUi();
+      showToast(t("outputPasswordSet"));
     }
 
     function createPageCard(item, index) {
@@ -3471,7 +3770,19 @@ body.is-sorting .page-card.drag-source {
         output.setCreator("PDF Organizer");
         output.setModificationDate(new Date());
 
-        const bytes = await output.save({ useObjectStreams: true });
+        let bytes = await output.save({ useObjectStreams: true });
+        const protectOutput = outputProtection.enabled && !!outputProtection.password;
+        if (protectOutput) {
+          elements.busyTitle.textContent = t("protectingPdf");
+          elements.busyDetail.textContent = t("protectingPdfDetail");
+          try {
+            const encryptor = await ensurePdfEncrypt();
+            bytes = await encryptor.encryptPDF(new Uint8Array(bytes), outputProtection.password, { algorithm: "AES-256" });
+          } catch (error) {
+            console.error(error);
+            throw new Error(`${t("outputPasswordProtectionFailed")}: ${error?.message || ""}`.replace(/:\s*$/, ""));
+          }
+        }
         const blob = new Blob([bytes], { type: "application/pdf" });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
@@ -3481,7 +3792,7 @@ body.is-sorting .page-card.drag-source {
         anchor.click();
         anchor.remove();
         setTimeout(() => URL.revokeObjectURL(url), 30_000);
-        showToast(t("savedPdf", { count: targetPages.length }));
+        showToast(t(protectOutput ? "savedProtectedPdf" : "savedPdf", { count: targetPages.length }));
       } catch (error) {
         console.error(error);
         const message = error?.message || t("generationFailed");
@@ -3957,6 +4268,16 @@ body.is-sorting .page-card.drag-source {
     elements.redoButton.addEventListener("click", redo);
     elements.saveSelectedButton.addEventListener("click", () => exportPdf(true));
     elements.saveAllButton.addEventListener("click", () => exportPdf(false));
+    elements.outputPasswordButton.addEventListener("click", openOutputPasswordDialog);
+    elements.outputPasswordEnabled.addEventListener("change", () => { updateOutputPasswordFields(); showOutputPasswordError(""); });
+    elements.outputPasswordInput.addEventListener("input", () => showOutputPasswordError(""));
+    elements.outputPasswordVisibilityButton.addEventListener("click", () => togglePasswordVisibility(elements.outputPasswordInput, elements.outputPasswordVisibilityButton, "outputPasswordVisibilityIcon"));
+    elements.outputPasswordConfirmInput.addEventListener("input", () => showOutputPasswordError(""));
+    elements.outputPasswordConfirmVisibilityButton.addEventListener("click", () => togglePasswordVisibility(elements.outputPasswordConfirmInput, elements.outputPasswordConfirmVisibilityButton, "outputPasswordConfirmVisibilityIcon"));
+    elements.outputPasswordForm.addEventListener("submit", applyOutputPasswordSettings);
+    elements.outputPasswordCancelButton.addEventListener("click", () => { resetOutputPasswordVisibility(); elements.outputPasswordDialog.close(); });
+    elements.outputPasswordDialog.addEventListener("cancel", () => { resetOutputPasswordVisibility(); showOutputPasswordError(""); });
+    elements.outputPasswordDialog.addEventListener("close", resetOutputPasswordVisibility);
 
     elements.clearAllButton.addEventListener("click", () => {
       if (!state.pages.length) return;

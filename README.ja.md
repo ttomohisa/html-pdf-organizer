@@ -170,3 +170,8 @@ HTML内の `html-pdf-organizer.invalid` は仮想アセット識別用の内部�
 Copyright © 2026 ttomohisa
 
 このプロジェクトは [MIT License](LICENSE) で公開されています。
+
+
+### 出力パスワード
+
+保存バーの鍵アイコンから、出力PDFにAES-256のパスワードを設定できます。パスワードはブラウザのメモリ上だけに保持され、ページを再読み込みすると消えます。通常保存は従来どおりパスワードなしです。暗号化には `@pdfsmaller/pdf-encrypt` (MIT) を使用します。

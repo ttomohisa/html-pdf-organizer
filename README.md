@@ -169,3 +169,8 @@ Bug reports and feature proposals are welcome through GitHub Issues. See [CONTRI
 Copyright © 2026 ttomohisa
 
 Licensed under the [MIT License](LICENSE).
+
+
+### Output password
+
+Use the lock button in the export bar to optionally protect the exported PDF with an AES-256 open password. The password is kept only in browser memory and is cleared on reload. Normal export remains unprotected. Encryption uses `@pdfsmaller/pdf-encrypt` (MIT).

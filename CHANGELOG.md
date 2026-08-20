@@ -2,7 +2,8 @@
 
 ## 1.1.0 — 2026-08-20
 
-- Added password-protected PDF input. Correct passwords are requested in-browser, and edited output is saved without password protection.
+- Added password-protected PDF input and optional AES-256 password protection for exported PDFs.
+- Added show/hide controls to output password fields for easier password entry and confirmation.
 - Added JPG / PNG / WebP files as single pages alongside PDFs.
 - Added per-image `Fit` / `Fill` / `Original Size` placement.
 - Improved image-card placement controls so PDF and image cards stay aligned.

@@ -189,14 +189,17 @@ if (-not (Get-Command tar.exe -ErrorAction SilentlyContinue)) {
 $versions = Get-Content -Raw -Encoding UTF8 $VersionsPath | ConvertFrom-Json
 $pdfLibPackage = Expand-NpmPackage $versions.pdfLib.package $versions.pdfLib.version
 $pdfJsPackage = Expand-NpmPackage $versions.pdfJs.package $versions.pdfJs.version
+$pdfEncryptPackage = Expand-NpmPackage $versions.pdfEncrypt.package $versions.pdfEncrypt.version
 
 $pdfLibPath = Join-Path $pdfLibPackage.Root ([string]$versions.pdfLib.entry)
 $pdfJsPath = Join-Path $pdfJsPackage.Root ([string]$versions.pdfJs.entry)
 $pdfWorkerPath = Join-Path $pdfJsPackage.Root ([string]$versions.pdfJs.worker)
+$pdfEncryptPath = Join-Path $pdfEncryptPackage.Root ([string]$versions.pdfEncrypt.entry)
 
 $pdfLibSource = Get-MinifiedJavaScript $pdfLibPath
 $pdfJsSource = Get-MinifiedJavaScript $pdfJsPath
 $pdfWorkerSource = Get-MinifiedJavaScript $pdfWorkerPath
+$pdfEncryptSource = Get-MinifiedJavaScript $pdfEncryptPath
 
 # The distributed browser builds should be self-contained modules. Abort on version changes that introduce relative imports.
 foreach ($candidate in @(@{ Name = "PDF.js"; Text = $pdfJsSource }, @{ Name = "PDF.js worker"; Text = $pdfWorkerSource })) {
@@ -225,6 +228,13 @@ $manifest = [ordered]@{
       embeddedEntry = [string]$versions.pdfLib.entry
       embeddedEntrySha256 = (Get-FileHash -Algorithm SHA256 -Path $pdfLibPath).Hash.ToLowerInvariant()
     }
+    pdfEncrypt = [ordered]@{
+      package = [string]$versions.pdfEncrypt.package
+      version = [string]$versions.pdfEncrypt.version
+      tarballSha256 = $pdfEncryptPackage.ArchiveSha256
+      embeddedEntry = [string]$versions.pdfEncrypt.entry
+      embeddedEntrySha256 = (Get-FileHash -Algorithm SHA256 -Path $pdfEncryptPath).Hash.ToLowerInvariant()
+    }
     pdfJs = [ordered]@{
       package = [string]$versions.pdfJs.package
       version = [string]$versions.pdfJs.version
@@ -246,6 +256,7 @@ $manifestJson = $manifest | ConvertTo-Json -Compress -Depth 8
 Write-Step "Generating standalone HTML"
 $template = [System.IO.File]::ReadAllText($TemplatePath, [System.Text.Encoding]::UTF8)
 $replacements = [ordered]@{
+  "__PDF_ENCRYPT_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfEncryptSource
   "__PDF_LIB_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfLibSource
   "__PDF_JS_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfJsSource
   "__PDF_WORKER_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfWorkerSource
