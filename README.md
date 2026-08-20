@@ -6,7 +6,7 @@
 
 [日本語版 README](README.ja.md)
 
-A privacy-focused, single-HTML app for reorganizing PDF pages without uploading the selected files to a server.
+A privacy-focused, single-HTML app for organizing PDF pages together with JPG/PNG/WebP images without uploading the selected files to a server.
 
 ## 🚀 Live demo
 
@@ -25,7 +25,9 @@ GitHub Pages delivers the initial HTML. After it loads, PDF parsing, thumbnails,
 - Rotate or delete one or more pages
 - Preview pages by double-clicking or using the preview button
 - Merge pages from multiple PDFs
-- Export all pages or selected pages only
+- Add JPG / PNG / WebP files as single pages alongside PDFs
+- Choose `Fit`, `Fill`, or `Original Size` for each image
+- Export all pages or selected pages only; on mobile, a contextual selected-page save button appears within the same single-row bar
 - Undo and redo
 - Japanese and English UI in the same HTML
 - Responsive light and dark layouts
@@ -55,12 +57,12 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 
 ## Usage
 
-1. Add one or more PDFs.
-2. Drag cards to change the page order.
+1. Add one or more PDF, JPG, PNG, or WebP files. You can drag and drop them together in one batch.
+2. PDF pages and images appear in the same card list. Drag cards to change the page order.
 3. Select multiple pages and drag one selected card to move the group together.
 4. On mobile, briefly hold a card before moving it. A normal vertical swipe scrolls the page.
-5. Rotate, preview, or delete pages from the toolbar or card controls.
-6. Enter an output filename and export all pages or only the selection.
+5. Rotate, preview, or delete pages from the toolbar or card controls. Image cards also let you choose `Fit`, `Fill`, or `Original Size`.
+6. Enter an output filename and export all pages or only the selection. On mobile, selecting pages reveals a compact `Save n` action in the same single-row export bar.
 
 ### Selecting pages
 
@@ -143,9 +145,10 @@ The GitHub Pages version requires an initial HTML request, but the PDF content s
 ## Limitations
 
 - Password-protected PDFs can be opened with the correct password. Edited PDFs are exported without password protection.
+- PDF has no standard native WebP image filter, so WebP is converted locally before embedding. Alpha/lossless WebP uses PNG; opaque lossy WebP uses high-quality JPEG.
 - Editing a digitally signed PDF invalidates its signature.
 - Bookmarks, attachments, forms, signatures, and other document-level data may not be preserved.
-- Large or image-heavy PDFs can consume substantial device memory.
+- PDFs with many pages or many high-resolution images can consume substantial device memory.
 - The current UI accepts files up to 250 MB each.
 
 ## Dependencies

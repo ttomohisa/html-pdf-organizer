@@ -214,7 +214,7 @@ $assetEntriesJson = $assetPack.Entries | ConvertTo-Json -Compress -Depth 4
 $assetBundlesJson = $assetPack.Bundles | ConvertTo-Json -Compress -Depth 4
 
 $manifest = [ordered]@{
-  build = "offline-v1.2-compact"
+  build = "offline-v1.1-compact"
   generatedAtUtc = [DateTime]::UtcNow.ToString("o")
   payloadCompression = "gzip"
   dependencies = [ordered]@{
