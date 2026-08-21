@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja" data-build="offline-v1.1-compact">
+<html lang="ja" data-build="offline-v1.2-compact">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; form-action 'none'; connect-src 'none'; img-src data: blob:; media-src blob:; style-src 'unsafe-inline'; script-src 'unsafe-inline' blob:; worker-src blob:; font-src data: blob:">
@@ -1129,6 +1129,37 @@
       border: 0 !important;
     }
 
+
+    .pptx-slide-shell {
+      position: relative;
+      overflow: hidden;
+      flex: 0 0 auto;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(15, 23, 42, .08);
+    }
+    .pptx-slide-shell > .pptx-slide-content {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-origin: center center;
+      pointer-events: none;
+      user-select: none;
+    }
+    .preview-canvas-host .pptx-slide-shell > .pptx-slide-content {
+      pointer-events: auto;
+      user-select: text;
+    }
+    #pptxExportSandbox {
+      position: fixed;
+      left: -100000px;
+      top: 0;
+      z-index: -1;
+      pointer-events: none;
+      width: max-content;
+      height: max-content;
+      overflow: visible;
+    }
+
     @media (max-width: 760px) {
       :root { --header-height: 58px; --thumb-width: 142px; }
       .header-inner { padding-block: 8px; }
@@ -1624,7 +1655,7 @@ body.is-sorting .page-card.drag-source {
           </svg>
         </div>
         <div class="brand-copy">
-          <h1>PDF Organizer <span class="version-badge" title="Version 1.1">v1.1</span></h1>
+          <h1>PDF Organizer <span class="version-badge" title="Version 1.2">v1.2</span></h1>
           <p data-i18n="brandSubtitle">PDF・画像ページの並び替え・回転・削除・結合</p>
         </div>
       </div>
@@ -1662,7 +1693,7 @@ body.is-sorting .page-card.drag-source {
       </ul>
     </section>
 
-    <section class="drop-zone" id="initialDropZone" tabindex="0" role="button" data-i18n-aria-label="addPdfAria" aria-label="PDF・JPG・PNG・WebPファイルを追加">
+    <section class="drop-zone" id="initialDropZone" tabindex="0" role="button" data-i18n-aria-label="addPdfAria" aria-label="PDF・JPG・PNG・WebP・PowerPointファイルを追加">
       <div class="drop-content">
         <div class="drop-icon" id="initialDropIcon" aria-hidden="true"></div>
         <h2 data-i18n="dropHeading">PDF・画像を追加して始める</h2>
@@ -1745,7 +1776,9 @@ body.is-sorting .page-card.drag-source {
     <button class="button primary" id="saveAllButton" type="button"><span id="saveAllIcon"></span><span class="button-label" data-i18n="saveAll">すべて保存</span></button>
   </div>
 
-  <input class="sr-only" id="fileInput" type="file" accept="application/pdf,image/jpeg,image/png,image/webp,.pdf,.jpg,.jpeg,.png,.webp" multiple>
+  <div id="pptxExportSandbox" aria-hidden="true"></div>
+
+  <input class="sr-only" id="fileInput" type="file" accept="application/pdf,image/jpeg,image/png,image/webp,application/vnd.openxmlformats-officedocument.presentationml.presentation,.pdf,.jpg,.jpeg,.png,.webp,.pptx" multiple>
 
   <div class="busy-overlay" id="busyOverlay" hidden role="status" aria-live="assertive">
     <div class="busy-card">
@@ -1883,17 +1916,18 @@ body.is-sorting .page-card.drag-source {
       </ul>
 
       <h3 data-i18n="openSource">オープンソース</h3>
-      <p data-i18n="helpOpenSource">このHTMLはMIT Licenseで利用できます。PDF.js（Apache-2.0）、pdf-lib（MIT）、@pdfsmaller/pdf-encrypt（MIT）を使用しています。</p>
+      <p data-i18n="helpOpenSource">このHTMLはMIT Licenseで利用できます。PDF.js（Apache-2.0）、pdf-lib（MIT）、@pdfsmaller/pdf-encrypt（MIT）、@aiden0z/pptx-renderer（Apache-2.0）を使用しています。</p>
     </div>
   </dialog>
 
-  <!-- Build: offline-v1.1-compact
+  <!-- Build: offline-v1.2-compact
        Runtime code and PDF.js assets are embedded as gzip-compressed Base64 by build-offline.ps1.
        CMaps are grouped into small compressed chunks to reduce file size without sacrificing lazy loading.
        No network request is required or permitted while the app is running. -->
   <script type="application/octet-stream" id="vendorPdfEncryptGzipBase64">__PDF_ENCRYPT_GZIP_BASE64__</script>
   <script type="application/octet-stream" id="vendorPdfLibGzipBase64">__PDF_LIB_GZIP_BASE64__</script>
   <script type="application/octet-stream" id="vendorPdfJsGzipBase64">__PDF_JS_GZIP_BASE64__</script>
+  <script type="application/octet-stream" id="vendorPptxRendererGzipBase64">__PPTX_RENDERER_GZIP_BASE64__</script>
   <script type="application/octet-stream" id="vendorPdfWorkerGzipBase64">__PDF_WORKER_GZIP_BASE64__</script>
   <script type="application/json" id="vendorPdfAssetEntriesJson">__PDF_ASSET_ENTRIES_JSON__</script>
   <script type="application/json" id="vendorPdfAssetBundlesJson">__PDF_ASSET_BUNDLES_JSON__</script>
@@ -1983,6 +2017,29 @@ body.is-sorting .page-card.drag-source {
         })().catch((error) => { pdfEncryptLoadPromise = null; throw error; });
       }
       return pdfEncryptLoadPromise;
+    }
+
+
+    const nativeFetch = globalThis.fetch?.bind(globalThis);
+    let pptxRendererLoadPromise = null;
+    async function ensurePptxRenderer() {
+      if (!pptxRendererLoadPromise) {
+        pptxRendererLoadPromise = (async () => {
+          const source = await gunzipBase64Text(embeddedText("vendorPptxRendererGzipBase64"));
+          if (!source) throw new Error(t("pptxLibraryMissing"));
+          const blobUrl = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
+          try {
+            const module = await import(blobUrl);
+            if (!module?.parseZip || !module?.buildPresentation || !module?.renderSlide) {
+              throw new Error(t("pptxLibraryMissing"));
+            }
+            return module;
+          } finally {
+            URL.revokeObjectURL(blobUrl);
+          }
+        })().catch((error) => { pptxRendererLoadPromise = null; throw error; });
+      }
+      return pptxRendererLoadPromise;
     }
 
     const PDFJS_BASE = "https://pdf-organizer.invalid/";
@@ -2127,7 +2184,7 @@ body.is-sorting .page-card.drag-source {
     const pdfjsLib = await import(pdfJsBlobUrl);
     pdfjsLib.GlobalWorkerOptions.workerSrc = workerBlobUrl;
 
-    const { PDFDocument, degrees } = window.PDFLib || {};
+    const { PDFDocument, degrees, rgb } = window.PDFLib || {};
 
     const icons = {
       help: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.3 2.3 0 1 1 3.75 1.78c-.91.69-1.55 1.16-1.55 2.22"/><path d="M12 17h.01"/></svg>`,
@@ -2222,7 +2279,8 @@ body.is-sorting .page-card.drag-source {
       previewCounter: $("#previewCounter"),
       previewPreviousButton: $("#previewPreviousButton"),
       previewNextButton: $("#previewNextButton"),
-      closePreviewButton: $("#closePreviewButton")
+      closePreviewButton: $("#closePreviewButton"),
+      pptxExportSandbox: $("#pptxExportSandbox")
     };
 
     const state = {
@@ -2240,6 +2298,8 @@ body.is-sorting .page-card.drag-source {
       previewPageId: null,
       previewRenderToken: 0,
       previewRenderTask: null,
+      pptxThumbnailHandles: new Map(),
+      pptxPreviewHandle: null,
       isBusy: false
     };
 
@@ -2269,27 +2329,27 @@ body.is-sorting .page-card.drag-source {
         brandSubtitle: "PDF・画像ページの並び替え・回転・削除・結合",
         switchLanguage: "Switch to English",
         helpTitle: "使い方と注意事項",
-        addPdfAria: "PDF・JPG・PNG・WebPファイルを追加",
+        addPdfAria: "PDF・JPG・PNG・WebP・PowerPointファイルを追加",
         overviewLabel: "PDF Organizerでできること",
         overviewHeading: "ページを見ながら、整理・結合・保存",
         overviewReorder: "並べ替え",
         overviewReorderNote: "ドラッグで順番変更",
         overviewEdit: "回転・削除",
         overviewEditNote: "不要ページも整理",
-        overviewMerge: "PDF・画像を結合",
-        overviewMergeNote: "PDF・画像をひとつに",
+        overviewMerge: "PDF・画像・PowerPointを結合",
+        overviewMergeNote: "PDF・画像・スライドをひとつに",
         overviewExport: "必要なページを保存",
         overviewExportNote: "全部・選択だけ両対応",
-        dropHeading: "PDF・画像を追加して始める",
-        dropDescription: "PDF・JPG・PNG・WebPをまとめて、そのまま追加できます。",
-        dropHint: "または、この枠内にPDF・JPG・PNG・WebPをドラッグ＆ドロップ",
-        choosePdf: "PDF・画像を選択",
+        dropHeading: "PDF・画像・PowerPointを追加して始める",
+        dropDescription: "PDF・JPG・PNG・WebP・PowerPointをまとめて、そのまま追加できます。",
+        dropHint: "または、この枠内にPDF・画像・PowerPointをドラッグ＆ドロップ",
+        choosePdf: "PDF・画像・PowerPointを選択",
         privacyNote: "すべての処理はこの端末内で完結",
         pageListHeading: "ページ一覧",
         workspaceGuideBody: "カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。",
         workspaceGuideBodyMobile: "ドラッグで並び替え。複数選択はまとめて移動できます。",
-        dropMorePdf: "ここにPDF・画像を追加ドロップ",
-        addPdf: "PDF・画像を追加",
+        dropMorePdf: "ここにPDF・画像・PowerPointを追加ドロップ",
+        addPdf: "PDF・画像・PowerPointを追加",
         pageEditing: "ページ編集",
         selectAll: "すべて選択",
         clearSelection: "選択解除",
@@ -2302,9 +2362,9 @@ body.is-sorting .page-card.drag-source {
         undoTitle: "元に戻す (Ctrl/⌘ + Z)",
         redoTitle: "やり直す (Ctrl/⌘ + Shift + Z)",
         thumbnailSize: "サムネイルの大きさ",
-        pdfPageList: "PDF・画像ページ一覧",
+        pdfPageList: "PDF・画像・PowerPointページ一覧",
         noPagesHeading: "ページがありません",
-        noPagesBody: "PDF・画像を追加するか、元に戻してください。",
+        noPagesBody: "PDF・画像・PowerPointを追加するか、元に戻してください。",
         filenameLabel: "保存ファイル名",
         saveSelected: "選択ページを保存",
         saveSelectedCount: "選択 {count}ページを保存",
@@ -2341,12 +2401,12 @@ body.is-sorting .page-card.drag-source {
         previewFooterKeys: "← → でページ移動・Escで閉じる",
         close: "閉じる",
         basicOperations: "基本操作",
-        helpAdd: "PDF・JPG・PNG・WebPを追加すると、PDFの各ページと画像が同じ一覧にサムネイルで表示されます。",
+        helpAdd: "PDF・JPG・PNG・WebP・PowerPointを追加すると、PDFの各ページ、画像、PowerPointの各スライドが同じ一覧に表示されます。",
         helpDrag: "カードのどこをつかんでもドラッグでき、ページ順をすばやく変更できます。",
         helpGroupDrag: "複数ページを選択してから選択中のカードをドラッグすると、まとめて順番を移動できます。",
         helpEdit: "カードをクリックして選択し、複数ページをまとめて回転・削除できます。",
         helpPreview: "カードの拡大ボタン、またはカードをダブルクリックするとページを大きくプレビューできます。",
-        helpMerge: "PDFと画像を好きな順に並べて、1つのPDFとして結合保存できます。画像は Fit / Fill / Original Size を選べます。",
+        helpMerge: "PDF・画像・PowerPointスライドを好きな順に並べて、1つのPDFとして結合保存できます。PowerPointは文字選択を残し、対応できる基本図形はベクターとして重ねて出力します。",
         helpImageLayout: "画像の Fit は全体をA4内に収め、Fill はA4いっぱいに中央配置してはみ出しを切り取り、Original Size は画像自体の大きさに合わせたページを作ります。",
         multipleSelection: "複数選択",
         helpSelection: "カード右上のチェックをクリックすると、<kbd>Ctrl</kbd> / <kbd>⌘</kbd> クリックと同様に現在の選択を残したまま追加・解除できます。<kbd>Shift</kbd> を押しながらカードをクリックすると範囲選択できます。",
@@ -2355,14 +2415,14 @@ body.is-sorting .page-card.drag-source {
         shortcutDelete: "選択ページを削除",
         shortcutClear: "選択を解除",
         privacy: "プライバシー",
-        helpPrivacy: "選択したPDF・画像の読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。",
+        helpPrivacy: "選択したPDF・画像・PowerPointの読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。",
         limitations: "制限事項",
         limitPassword: "パスワード付きPDFは正しいパスワードで開けます。出力PDFにも必要に応じてAES-256のパスワードを設定できます。",
         limitMetadata: "保存時に、しおり、添付ファイル、電子署名、フォームなどの文書レベル情報が引き継がれない場合があります。",
         limitSignature: "電子署名付きPDFを編集すると、署名は無効になります。",
-        limitMemory: "ページ数が多いPDFや高解像度の画像を多数追加すると、端末のメモリを多く使用します。",
+        limitMemory: "ページ数が多いPDF、高解像度画像、スライド数や図表が多いPowerPointでは、端末のメモリを多く使用します。",
         openSource: "オープンソース",
-        helpOpenSource: "このHTMLはMIT Licenseで利用できます。PDF.js（Apache-2.0）、pdf-lib（MIT）、@pdfsmaller/pdf-encrypt（MIT）を使用しています。",
+        helpOpenSource: "このHTMLはMIT Licenseで利用できます。PDF.js（Apache-2.0）、pdf-lib（MIT）、@pdfsmaller/pdf-encrypt（MIT）、@aiden0z/pptx-renderer（Apache-2.0）を使用しています。",
         toastClose: "通知を閉じる",
         undoDone: "元に戻しました",
         redoDone: "やり直しました",
@@ -2379,19 +2439,25 @@ body.is-sorting .page-card.drag-source {
         rotateRight90: "右に90度回転",
         sourcePage: "元のページ {page}{rotation}",
         sourceImage: "画像{rotation}",
+        sourceSlide: "スライド {slide}{rotation}",
         imageLayoutLabel: "画像の配置",
         layoutFit: "Fit",
         layoutFill: "Fill",
         layoutOriginal: "Original Size",
         previewSubtitleImage: "{name} ・ 画像 ・ {layout}{rotation}",
+        previewSubtitlePptx: "{name} ・ スライド {slide}{rotation}",
         rotationSuffix: " ・ {rotation}°回転",
         deletedPages: "{count}ページを削除しました",
         previewPageTitle: "{position}ページ目",
         previewSubtitle: "{name} ・ 元のページ {sourcePage}{rotation}",
         previewError: "プレビューを表示できませんでした。",
-        rejectedNonPdf: "PDF・JPG・PNG・WebP以外のファイルは読み込みませんでした",
-        librariesMissing: "必要なライブラリを読み込めませんでした。ネットワーク接続を確認してください。",
+        rejectedNonPdf: "PDF・JPG・PNG・WebP・PowerPoint以外のファイルは読み込みませんでした",
+        librariesMissing: "必要な内蔵ライブラリを初期化できませんでした。ページを再読み込みしてください。",
         readingPdf: "ファイルを読み込んでいます",
+        readingPptx: "PowerPointを読み込んでいます",
+        pptxLibraryMissing: "PowerPoint表示ライブラリを初期化できませんでした",
+        pptxLoadFailed: "PowerPointの読み込みに失敗しました",
+        pptxExportFailed: "PowerPointスライドのPDF変換に失敗しました",
         fileCount: "{count}ファイル",
         fileProgress: "{current} / {total}：{name}",
         fileTooLarge: "ファイルサイズが大きすぎます（250MB超）",
@@ -2418,35 +2484,35 @@ body.is-sorting .page-card.drag-source {
         savedPdf: "{count}ページのPDFを保存しました",
         generationFailed: "PDFの生成に失敗しました",
         clearedAll: "{count}ページを一覧から削除しました",
-        libraryLoadFailed: "ライブラリの読み込みに失敗しました。インターネット接続を確認して再読み込みしてください。"
+        libraryLoadFailed: "内蔵ライブラリの読み込みに失敗しました。ページを再読み込みしてください。"
       },
       en: {
-        documentTitle: "PDF Organizer — Organize PDF & Image Pages",
-        metaDescription: "Reorder, rotate, merge, and export PDF, JPG, PNG, and WebP pages entirely in your browser.",
-        brandSubtitle: "Reorder, rotate, delete, and merge PDF & image pages",
+        documentTitle: "PDF Organizer — Organize PDF, Image & PowerPoint Pages",
+        metaDescription: "Reorder, rotate, merge, and export PDF, image, and PowerPoint pages entirely in your browser.",
+        brandSubtitle: "Reorder, rotate, delete, and merge PDF, image & PowerPoint pages",
         switchLanguage: "日本語に切り替え",
         helpTitle: "How to use & notes",
-        addPdfAria: "Add PDF, JPG, PNG, or WebP files",
+        addPdfAria: "Add PDF, JPG, PNG, WebP, or PowerPoint files",
         overviewLabel: "What PDF Organizer can do",
         overviewHeading: "Review pages, organize, merge, and save",
         overviewReorder: "Reorder",
         overviewReorderNote: "Drag pages into place",
         overviewEdit: "Rotate & delete",
         overviewEditNote: "Clean up unwanted pages",
-        overviewMerge: "Merge PDFs & images",
-        overviewMergeNote: "Combine PDFs and images",
+        overviewMerge: "Merge PDFs, images & PowerPoint",
+        overviewMergeNote: "Combine pages and slides",
         overviewExport: "Save the pages you need",
         overviewExportNote: "All pages or selected only",
-        dropHeading: "Add PDFs & images to get started",
-        dropDescription: "Add PDFs, JPGs, and PNGs together in one drop.",
-        dropHint: "Or drag and drop PDFs, JPGs, and PNGs anywhere in this box",
-        choosePdf: "Choose PDFs & images",
+        dropHeading: "Add PDFs, images & PowerPoint to get started",
+        dropDescription: "Add PDFs, JPGs, PNGs, WebP images, and PowerPoint files together.",
+        dropHint: "Or drag and drop PDFs, images, and PowerPoint files anywhere in this box",
+        choosePdf: "Choose PDFs, images & PowerPoint",
         privacyNote: "Everything is processed on this device",
         pageListHeading: "Pages",
         workspaceGuideBody: "Drag any card to reorder. Selected pages move together as one group.",
         workspaceGuideBodyMobile: "Drag to reorder. Multiple selections move together.",
-        dropMorePdf: "Drop more PDFs & images here",
-        addPdf: "Add PDFs & images",
+        dropMorePdf: "Drop more PDFs, images & PowerPoint here",
+        addPdf: "Add PDFs, images & PowerPoint",
         pageEditing: "Page editing",
         selectAll: "Select all",
         clearSelection: "Clear selection",
@@ -2459,9 +2525,9 @@ body.is-sorting .page-card.drag-source {
         undoTitle: "Undo (Ctrl/⌘ + Z)",
         redoTitle: "Redo (Ctrl/⌘ + Shift + Z)",
         thumbnailSize: "Thumbnail size",
-        pdfPageList: "PDF and image page list",
+        pdfPageList: "PDF, image, and PowerPoint page list",
         noPagesHeading: "No pages",
-        noPagesBody: "Add a PDF or image, or undo your last change.",
+        noPagesBody: "Add a PDF, image, or PowerPoint file, or undo your last change.",
         filenameLabel: "Output filename",
         saveSelected: "Save selected",
         saveSelectedCount: "Save {count} selected",
@@ -2498,12 +2564,12 @@ body.is-sorting .page-card.drag-source {
         previewFooterKeys: "Use ← → to move · Esc to close",
         close: "Close",
         basicOperations: "Basics",
-        helpAdd: "Add PDFs, JPGs, PNGs, or WebP images to display PDF pages and images together as thumbnails.",
+        helpAdd: "Add PDFs, JPGs, PNGs, WebP images, or PowerPoint files to display PDF pages, images, and slides together.",
         helpDrag: "Grab anywhere on a card and drag to reorder pages quickly.",
         helpGroupDrag: "Select multiple pages, then drag any selected card to move the whole selection together.",
         helpEdit: "Select cards to rotate or delete multiple pages at once.",
         helpPreview: "Use the preview button or double-click a card to inspect a page at a larger size.",
-        helpMerge: "Mix PDF pages and images in any order and save them as one PDF. Images support Fit, Fill, and Original Size.",
+        helpMerge: "Mix PDF pages, images, and PowerPoint slides in any order and save them as one PDF. PowerPoint export keeps selectable text and overlays supported basic shapes as vectors.",
         helpImageLayout: "Fit keeps the whole image inside an automatically oriented A4 page. Fill covers the A4 page and center-crops overflow. Original Size creates a page that follows the image size.",
         multipleSelection: "Multiple selection",
         helpSelection: "Click the check button to add or remove a page without clearing the current selection, just like <kbd>Ctrl</kbd> / <kbd>⌘</kbd> click. Hold <kbd>Shift</kbd> while clicking a card to select a range.",
@@ -2512,14 +2578,14 @@ body.is-sorting .page-card.drag-source {
         shortcutDelete: "Delete selected pages",
         shortcutClear: "Clear selection",
         privacy: "Privacy",
-        helpPrivacy: "PDF and image loading, preview, editing, and export all happen in your browser. Files and actions are never sent outside the device, and the required libraries and rendering assets are embedded in this HTML file.",
+        helpPrivacy: "PDF, image, and PowerPoint loading, preview, editing, and export all happen in your browser. Files and actions are never sent outside the device, and the required libraries and rendering assets are embedded in this HTML file.",
         limitations: "Limitations",
         limitPassword: "Password-protected PDFs can be opened with the correct password. You can optionally protect the exported PDF with an AES-256 password.",
         limitMetadata: "Document-level data such as bookmarks, attachments, digital signatures, and forms may not be retained in the exported PDF.",
         limitSignature: "Editing a digitally signed PDF invalidates its signature.",
-        limitMemory: "PDFs with many pages or many high-resolution images may use a significant amount of device memory.",
+        limitMemory: "Large PDFs, high-resolution images, and PowerPoint decks with many slides or charts may use significant device memory.",
         openSource: "Open source",
-        helpOpenSource: "This HTML is available under the MIT License. It uses PDF.js (Apache-2.0), pdf-lib (MIT), and @pdfsmaller/pdf-encrypt (MIT).",
+        helpOpenSource: "This HTML is available under the MIT License. It uses PDF.js (Apache-2.0), pdf-lib (MIT), @pdfsmaller/pdf-encrypt (MIT), and @aiden0z/pptx-renderer (Apache-2.0).",
         toastClose: "Close notification",
         undoDone: "Undone",
         redoDone: "Redone",
@@ -2536,19 +2602,25 @@ body.is-sorting .page-card.drag-source {
         rotateRight90: "Rotate 90° right",
         sourcePage: "Source page {page}{rotation}",
         sourceImage: "Image{rotation}",
+        sourceSlide: "Slide {slide}{rotation}",
         imageLayoutLabel: "Image placement",
         layoutFit: "Fit",
         layoutFill: "Fill",
         layoutOriginal: "Original Size",
         previewSubtitleImage: "{name} · image · {layout}{rotation}",
+        previewSubtitlePptx: "{name} · slide {slide}{rotation}",
         rotationSuffix: " · rotated {rotation}°",
         deletedPages: "Deleted {count} pages",
         previewPageTitle: "Page {position}",
         previewSubtitle: "{name} · source page {sourcePage}{rotation}",
         previewError: "Could not display the preview.",
-        rejectedNonPdf: "Files other than PDF, JPG, PNG, and WebP were skipped",
-        librariesMissing: "Required libraries could not be loaded. Check your network connection.",
+        rejectedNonPdf: "Files other than PDF, JPG, PNG, WebP, and PowerPoint were skipped",
+        librariesMissing: "Required embedded libraries could not be initialized. Reload the page.",
         readingPdf: "Loading files",
+        readingPptx: "Loading PowerPoint",
+        pptxLibraryMissing: "Could not initialize the PowerPoint renderer",
+        pptxLoadFailed: "Failed to load PowerPoint",
+        pptxExportFailed: "Failed to convert the PowerPoint slide to PDF",
         fileCount: "{count} files",
         fileProgress: "{current} / {total}: {name}",
         fileTooLarge: "The file is too large (over 250 MB)",
@@ -2620,7 +2692,11 @@ body.is-sorting .page-card.drag-source {
       const name = file.name.toLowerCase();
       return file.type === "image/jpeg" || file.type === "image/png" || file.type === "image/webp" || /\.(jpe?g|png|webp)$/.test(name);
     };
-    const isSupportedFile = (file) => isPdfFile(file) || isImageFile(file);
+    const isPptxFile = (file) => {
+      if (!file) return false;
+      return file.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" || file.name.toLowerCase().endsWith(".pptx");
+    };
+    const isSupportedFile = (file) => isPdfFile(file) || isImageFile(file) || isPptxFile(file);
     const clonePages = () => state.pages.map((page) => ({ ...page }));
     const IMAGE_LAYOUTS = new Set(["fit", "fill", "original"]);
     const A4_WIDTH = 595.28;
@@ -3071,6 +3147,64 @@ body.is-sorting .page-card.drag-source {
       showToast(t("outputPasswordSet"));
     }
 
+    function disposePptxHandle(handle) {
+      try { handle?.dispose?.(); } catch (error) { console.warn("PPTX dispose failed", error); }
+    }
+
+    function disposeThumbnailPptxHandles() {
+      for (const handle of state.pptxThumbnailHandles.values()) disposePptxHandle(handle);
+      state.pptxThumbnailHandles.clear();
+    }
+
+    function disposePreviewPptxHandle() {
+      disposePptxHandle(state.pptxPreviewHandle);
+      state.pptxPreviewHandle = null;
+    }
+
+    function createPptxScaledShell(slideElement, source, maxWidth, maxHeight, rotation = 0) {
+      const sourceWidth = Math.max(1, Number(source.presentation?.width) || 960);
+      const sourceHeight = Math.max(1, Number(source.presentation?.height) || 540);
+      const normalized = normalizeRotation(rotation);
+      const swapped = normalized === 90 || normalized === 270;
+      const rotatedWidth = swapped ? sourceHeight : sourceWidth;
+      const rotatedHeight = swapped ? sourceWidth : sourceHeight;
+      const scale = Math.min(maxWidth / rotatedWidth, maxHeight / rotatedHeight, 4);
+      const shell = document.createElement("div");
+      shell.className = "pptx-slide-shell";
+      shell.style.width = `${Math.max(1, rotatedWidth * scale)}px`;
+      shell.style.height = `${Math.max(1, rotatedHeight * scale)}px`;
+      slideElement.classList.add("pptx-slide-content");
+      slideElement.style.width = `${sourceWidth}px`;
+      slideElement.style.height = `${sourceHeight}px`;
+      slideElement.style.transform = `translate(-50%, -50%) rotate(${normalized}deg) scale(${scale})`;
+      shell.append(slideElement);
+      return shell;
+    }
+
+    async function createPptxSlideHandle(source, pageIndex) {
+      const pptx = await ensurePptxRenderer();
+      const slide = source.presentation?.slides?.[pageIndex];
+      if (!slide) throw new Error(t("pptxLoadFailed"));
+      const handle = pptx.renderSlide(source.presentation, slide, { pdfjs: false });
+      return handle;
+    }
+
+    async function mountPptxSlide(source, item, host, maxWidth, maxHeight, mode = "thumbnail") {
+      const handle = await createPptxSlideHandle(source, item.pageIndex);
+      const shell = createPptxScaledShell(handle.element, source, maxWidth, maxHeight, item.rotation);
+      host.replaceChildren(shell);
+      await handle.ready;
+      if (mode === "thumbnail") {
+        const previous = state.pptxThumbnailHandles.get(item.id);
+        if (previous && previous !== handle) disposePptxHandle(previous);
+        state.pptxThumbnailHandles.set(item.id, handle);
+      } else if (mode === "preview") {
+        disposePreviewPptxHandle();
+        state.pptxPreviewHandle = handle;
+      }
+      return handle;
+    }
+
     function createPageCard(item, index) {
       const doc = state.documents.get(item.docId);
       const card = document.createElement("article");
@@ -3080,7 +3214,7 @@ body.is-sorting .page-card.drag-source {
       card.title = t("cardDragTitle");
       card.setAttribute("role", "option");
       card.setAttribute("aria-selected", String(state.selected.has(item.id)));
-      const sourceDescriptor = doc?.kind === "image" ? t("sourceImage", { rotation: "" }) : String(item.pageIndex + 1);
+      const sourceDescriptor = doc?.kind === "image" ? t("sourceImage", { rotation: "" }) : doc?.kind === "pptx" ? t("sourceSlide", { slide: item.pageIndex + 1, rotation: "" }) : String(item.pageIndex + 1);
       card.setAttribute("aria-label", t("cardAria", { position: index + 1, name: doc?.name || "PDF", sourcePage: sourceDescriptor }));
 
       const frame = document.createElement("div");
@@ -3128,7 +3262,9 @@ body.is-sorting .page-card.drag-source {
       const rotation = item.rotation ? t("rotationSuffix", { rotation: normalizeRotation(item.rotation) }) : "";
       sourcePage.textContent = doc?.kind === "image"
         ? t("sourceImage", { rotation })
-        : t("sourcePage", { page: item.pageIndex + 1, rotation });
+        : doc?.kind === "pptx"
+          ? t("sourceSlide", { slide: item.pageIndex + 1, rotation })
+          : t("sourcePage", { page: item.pageIndex + 1, rotation });
       details.append(sourceName);
       if (doc?.kind === "image") {
         const layoutControl = document.createElement("label");
@@ -3187,6 +3323,7 @@ body.is-sorting .page-card.drag-source {
 
     function renderGrid() {
       if (thumbnailObserver) thumbnailObserver.disconnect();
+      disposeThumbnailPptxHandles();
       state.renderQueue.length = 0;
       const children = state.pages.map(createPageCard);
       if (state.pages.length) children.push(createAddPdfCard());
@@ -3324,6 +3461,18 @@ body.is-sorting .page-card.drag-source {
         frame.dataset.rendered = "true";
         return;
       }
+      if (doc.kind === "pptx") {
+        const frameWidth = Math.max(80, frame.clientWidth - 14);
+        const frameHeight = Math.max(100, frame.clientHeight - 14);
+        await mountPptxSlide(doc, item, frame, frameWidth, frameHeight, "thumbnail");
+        if (!frame.isConnected || !state.pages.some((page) => page.id === pageId)) {
+          disposePptxHandle(state.pptxThumbnailHandles.get(item.id));
+          state.pptxThumbnailHandles.delete(item.id);
+          return;
+        }
+        frame.dataset.rendered = "true";
+        return;
+      }
       if (!doc.pdfjsDoc) return;
       const pdfPage = await doc.pdfjsDoc.getPage(item.pageIndex + 1);
       if (!frame.isConnected) return;
@@ -3364,7 +3513,9 @@ body.is-sorting .page-card.drag-source {
       const rotation = item.rotation ? t("rotationSuffix", { rotation: normalizeRotation(item.rotation) }) : "";
       elements.previewSubtitle.textContent = doc?.kind === "image"
         ? t("previewSubtitleImage", { name: doc.name, layout: imageLayoutLabel(item.imageLayout), rotation })
-        : t("previewSubtitle", { name: doc?.name || "PDF", sourcePage: item.pageIndex + 1, rotation });
+        : doc?.kind === "pptx"
+          ? t("previewSubtitlePptx", { name: doc.name, slide: item.pageIndex + 1, rotation })
+          : t("previewSubtitle", { name: doc?.name || "PDF", sourcePage: item.pageIndex + 1, rotation });
       elements.previewCounter.textContent = `${index + 1} / ${state.pages.length}`;
       elements.previewPreviousButton.disabled = index <= 0;
       elements.previewNextButton.disabled = index >= state.pages.length - 1;
@@ -3391,6 +3542,15 @@ body.is-sorting .page-card.drag-source {
           const canvas = await renderImagePageCanvas(item, doc, stageWidth, stageHeight, pixelRatio);
           if (token !== state.previewRenderToken || !elements.previewDialog.open) return;
           elements.previewCanvasHost.replaceChildren(canvas);
+          elements.previewCanvasHost.hidden = false;
+          return;
+        }
+        if (doc.kind === "pptx") {
+          const stageWidth = Math.max(260, elements.previewStage.clientWidth - 40);
+          const stageHeight = Math.max(300, elements.previewStage.clientHeight - 40);
+          disposePreviewPptxHandle();
+          await mountPptxSlide(doc, item, elements.previewCanvasHost, stageWidth, stageHeight, "preview");
+          if (token !== state.previewRenderToken || !elements.previewDialog.open) { disposePreviewPptxHandle(); return; }
           elements.previewCanvasHost.hidden = false;
           return;
         }
@@ -3653,6 +3813,29 @@ body.is-sorting .page-card.drag-source {
       return 1;
     }
 
+    async function addPptxForEditing(file, buffer) {
+      const pptx = await ensurePptxRenderer();
+      elements.busyTitle.textContent = t("readingPptx");
+      const files = await pptx.parseZip(buffer, pptx.RECOMMENDED_ZIP_LIMITS);
+      const presentation = pptx.buildPresentation(files, { lazySlides: true });
+      const slideCount = presentation?.slides?.length || 0;
+      if (!slideCount) throw new Error(t("pptxLoadFailed"));
+      const docId = makeId();
+      state.documents.set(docId, {
+        id: docId,
+        kind: "pptx",
+        name: file.name,
+        size: file.size,
+        buffer,
+        presentation,
+        pageCount: slideCount
+      });
+      for (let pageIndex = 0; pageIndex < slideCount; pageIndex++) {
+        state.pages.push({ id: makeId(), docId, pageIndex, rotation: 0 });
+      }
+      return slideCount;
+    }
+
     async function addFiles(fileList) {
       const allFiles = Array.from(fileList || []);
       const files = allFiles.filter(isSupportedFile);
@@ -3681,6 +3864,11 @@ body.is-sorting .page-card.drag-source {
           elements.busyTitle.textContent = t("readingPdf");
           if (isImageFile(file)) {
             addedPages += await addImageForEditing(file, originalBuffer);
+            addedFiles += 1;
+            continue;
+          }
+          if (isPptxFile(file)) {
+            addedPages += await addPptxForEditing(file, originalBuffer);
             addedFiles += 1;
             continue;
           }
@@ -3719,6 +3907,334 @@ body.is-sorting .page-card.drag-source {
       if (errors.length) showToast(errors.join("\n"), "error", 0);
     }
 
+    const PPTX_POINT_SCALE = 72 / 96;
+    const PPTX_RASTER_SCALE = 2;
+
+    const pptxCssColor = (value) => {
+      const match = String(value || "").match(/^rgba?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)(?:\s*,\s*([\d.]+))?\s*\)$/i);
+      if (!match || Number(match[4] ?? 1) <= 0) return null;
+      return rgb(Math.min(255, +match[1]) / 255, Math.min(255, +match[2]) / 255, Math.min(255, +match[3]) / 255);
+    };
+
+    async function blobImageUrlToDataUrl(url) {
+      if (!String(url || "").startsWith("blob:")) return url;
+      // connect-src is intentionally 'none', so fetch(blob:…) is blocked by CSP.
+      // Loading the already-created media URL as an image is allowed by img-src blob:
+      // and keeps the canvas origin-clean because pptx-renderer created the Blob locally.
+      const image = await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("Could not decode PPTX media"));
+        img.src = url;
+      });
+      const width = Math.max(1, image.naturalWidth || image.width || 1);
+      const height = Math.max(1, image.naturalHeight || image.height || 1);
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Could not rasterize PPTX media");
+      context.drawImage(image, 0, 0, width, height);
+      return canvas.toDataURL("image/png");
+    }
+
+    async function preparePptxCloneForRaster(sourceElement) {
+      const clone = sourceElement.cloneNode(true);
+
+      // Standard HTML images used by most PowerPoint pictures.
+      const sourceImages = sourceElement.querySelectorAll("img");
+      const cloneImages = clone.querySelectorAll("img");
+      for (let index = 0; index < sourceImages.length; index++) {
+        const src = sourceImages[index]?.src || "";
+        if (!src.startsWith("blob:")) continue;
+        try {
+          cloneImages[index]?.setAttribute("src", await blobImageUrlToDataUrl(src));
+        } catch (error) { console.warn("Could not inline PPTX image", error); }
+      }
+
+      // Cropped/custom-shape pictures are rendered as SVG <image href="blob:…">.
+      const sourceSvgImages = sourceElement.querySelectorAll("svg image");
+      const cloneSvgImages = clone.querySelectorAll("svg image");
+      for (let index = 0; index < sourceSvgImages.length; index++) {
+        const href = sourceSvgImages[index]?.getAttribute("href") || sourceSvgImages[index]?.getAttributeNS("http://www.w3.org/1999/xlink", "href") || "";
+        if (!href.startsWith("blob:")) continue;
+        try {
+          const dataUrl = await blobImageUrlToDataUrl(href);
+          cloneSvgImages[index]?.setAttribute("href", dataUrl);
+          cloneSvgImages[index]?.setAttributeNS("http://www.w3.org/1999/xlink", "href", dataUrl);
+        } catch (error) { console.warn("Could not inline PPTX SVG image", error); }
+      }
+
+      // Tiled picture fills are represented by CSS background-image: url(blob:…). 
+      const sourceNodes = sourceElement.querySelectorAll("*");
+      const cloneNodes = clone.querySelectorAll("*");
+      for (let index = 0; index < sourceNodes.length; index++) {
+        const background = sourceNodes[index]?.style?.backgroundImage || "";
+        const match = background.match(/url\(["']?(blob:[^)"']+)["']?\)/i);
+        if (!match) continue;
+        try {
+          cloneNodes[index].style.backgroundImage = `url("${await blobImageUrlToDataUrl(match[1])}")`;
+        } catch (error) { console.warn("Could not inline PPTX background image", error); }
+      }
+
+      // ECharts currently renders PowerPoint charts to canvas. Preserve those pixels
+      // before serializing the slide DOM into SVG.
+      const sourceCanvases = sourceElement.querySelectorAll("canvas");
+      const cloneCanvases = clone.querySelectorAll("canvas");
+      sourceCanvases.forEach((canvas, index) => {
+        const target = cloneCanvases[index];
+        if (!target) return;
+        try {
+          const image = document.createElement("img");
+          image.src = canvas.toDataURL("image/png");
+          image.setAttribute("style", target.getAttribute("style") || "");
+          image.width = canvas.width;
+          image.height = canvas.height;
+          target.replaceWith(image);
+        } catch (error) { console.warn("Could not snapshot PPTX chart", error); }
+      });
+      return clone;
+    }
+
+    async function rasterizePptxElement(element, width, height) {
+      const clone = await preparePptxCloneForRaster(element);
+      clone.style.transform = "none";
+      clone.style.position = "relative";
+      clone.style.left = "0";
+      clone.style.top = "0";
+      clone.style.width = `${width}px`;
+      clone.style.height = `${height}px`;
+      const serialized = new XMLSerializer().serializeToString(clone);
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width * PPTX_RASTER_SCALE}" height="${height * PPTX_RASTER_SCALE}" viewBox="0 0 ${width} ${height}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;height:${height}px;overflow:hidden;background:white">${serialized}</div></foreignObject></svg>`;
+
+      // Important: using a blob: URL for an SVG that contains <foreignObject> makes
+      // Chromium mark the destination canvas as origin-unclean. The slide still looks
+      // correct on screen, but canvas.toBlob()/toDataURL() then throws SecurityError.
+      // A data: URL keeps the SVG self-contained and exportable.
+      const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+      const image = await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error(t("pptxExportFailed")));
+        img.src = svgUrl;
+      });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(width * PPTX_RASTER_SCALE));
+      canvas.height = Math.max(1, Math.round(height * PPTX_RASTER_SCALE));
+      const context = canvas.getContext("2d", { alpha: false });
+      if (!context) throw new Error(t("pptxExportFailed"));
+      context.fillStyle = "#fff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise((resolve, reject) => {
+        try {
+          canvas.toBlob((value) => value ? resolve(value) : reject(new Error(t("pptxExportFailed"))), "image/jpeg", 0.92);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      return new Uint8Array(await blob.arrayBuffer());
+    }
+
+    function pptxTextLines(slideElement) {
+      const rootRect = slideElement.getBoundingClientRect();
+      const lines = [];
+      const walker = document.createTreeWalker(slideElement, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          return node.nodeValue?.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      });
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        const text = node.nodeValue || "";
+        const parent = node.parentElement;
+        if (!parent) continue;
+        const style = getComputedStyle(parent);
+        if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) continue;
+        let segmentStart = 0;
+        let previousTop = null;
+        let segmentRect = null;
+        const flush = (end) => {
+          if (!segmentRect || end <= segmentStart) return;
+          const value = text.slice(segmentStart, end).replace(/\s+/g, " ");
+          if (!value.trim()) { segmentStart = end; return; }
+          lines.push({
+            text: value,
+            x: segmentRect.left - rootRect.left,
+            y: segmentRect.top - rootRect.top,
+            width: segmentRect.width,
+            height: segmentRect.height,
+            fontSize: parseFloat(style.fontSize) || Math.max(8, segmentRect.height * 0.8)
+          });
+          segmentStart = end;
+        };
+        for (let i = 0; i < text.length; i++) {
+          const range = document.createRange();
+          range.setStart(node, i);
+          range.setEnd(node, i + 1);
+          const rect = range.getBoundingClientRect();
+          if (!rect.width && !rect.height) continue;
+          const top = Math.round(rect.top * 2) / 2;
+          if (previousTop !== null && Math.abs(top - previousTop) > 1.5) flush(i);
+          const currentRange = document.createRange();
+          currentRange.setStart(node, segmentStart);
+          currentRange.setEnd(node, i + 1);
+          segmentRect = currentRange.getBoundingClientRect();
+          previousTop = top;
+        }
+        flush(text.length);
+      }
+      return lines;
+    }
+
+    function utf16BeHex(value) {
+      let hex = "";
+      for (let i = 0; i < value.length; i++) hex += value.charCodeAt(i).toString(16).padStart(4, "0").toUpperCase();
+      return hex;
+    }
+
+    function createPptxSelectionFont(pdfDoc, page, chars, index) {
+      const context = pdfDoc.context;
+      const { PDFName, PDFHexString, PDFNumber } = PDFLib;
+      const charList = [...chars].slice(0, 240);
+      const charToCode = new Map(charList.map((char, i) => [char, i + 1]));
+      const charProcs = context.obj({});
+      const differences = [PDFNumber.of(1)];
+      charList.forEach((char, i) => {
+        const glyphName = PDFName.of(`g${i + 1}`);
+        const glyph = context.flateStream("1000 0 d0\n");
+        const glyphRef = context.register(glyph);
+        charProcs.set(glyphName, glyphRef);
+        differences.push(glyphName);
+      });
+      const cmapLines = [
+        "/CIDInit /ProcSet findresource begin", "12 dict begin", "begincmap",
+        "/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def",
+        `/CMapName /PPTXSelection${index} def`, "/CMapType 2 def",
+        "1 begincodespacerange", "<01> <F0>", "endcodespacerange"
+      ];
+      for (let start = 0; start < charList.length; start += 100) {
+        const chunk = charList.slice(start, start + 100);
+        cmapLines.push(`${chunk.length} beginbfchar`);
+        chunk.forEach((char, offset) => cmapLines.push(`<${(start + offset + 1).toString(16).padStart(2, "0").toUpperCase()}> <${utf16BeHex(char)}>`));
+        cmapLines.push("endbfchar");
+      }
+      cmapLines.push("endcmap", "CMapName currentdict /CMap defineresource pop", "end", "end");
+      const toUnicodeRef = context.register(context.flateStream(cmapLines.join("\n")));
+      const font = context.obj({
+        Type: "Font", Subtype: "Type3",
+        FontBBox: [0, 0, 1000, 1000], FontMatrix: [0.001, 0, 0, 0.001, 0, 0],
+        CharProcs: charProcs,
+        Encoding: context.obj({ Type: "Encoding", Differences: context.obj(differences) }),
+        FirstChar: 1, LastChar: Math.max(1, charList.length),
+        Widths: Array(Math.max(1, charList.length)).fill(1000),
+        Resources: context.obj({}), ToUnicode: toUnicodeRef
+      });
+      const fontRef = context.register(font);
+      const key = PDFName.of(`PPTXSel${index}`);
+      page.node.setFontDictionary(key, fontRef);
+      return { key: `PPTXSel${index}`, charToCode };
+    }
+
+    function addPptxSelectableText(pdfDoc, page, slideElement, pageHeight) {
+      const lines = pptxTextLines(slideElement);
+      if (!lines.length) return;
+      const allChars = [...new Set(lines.flatMap((line) => Array.from(line.text)))];
+      const fonts = [];
+      for (let i = 0; i < allChars.length; i += 240) fonts.push(createPptxSelectionFont(pdfDoc, page, allChars.slice(i, i + 240), fonts.length + 1));
+      const { beginText, endText, setFontAndSize, setTextMatrix, showText, PDFHexString } = PDFLib;
+      for (const line of lines) {
+        const chars = Array.from(line.text);
+        let cursor = 0;
+        while (cursor < chars.length) {
+          const font = fonts.find((candidate) => candidate.charToCode.has(chars[cursor]));
+          if (!font) { cursor += 1; continue; }
+          let end = cursor;
+          let hex = "";
+          while (end < chars.length && font.charToCode.has(chars[end])) {
+            hex += font.charToCode.get(chars[end]).toString(16).padStart(2, "0");
+            end += 1;
+          }
+          const size = Math.max(1, line.fontSize * PPTX_POINT_SCALE);
+          const x = line.x * PPTX_POINT_SCALE;
+          const y = pageHeight - (line.y + line.fontSize * 0.92) * PPTX_POINT_SCALE;
+          page.pushOperators(
+            beginText(), setFontAndSize(font.key, size), setTextMatrix(1, 0, 0, 1, x, y),
+            showText(PDFHexString.of(hex)), endText()
+          );
+          cursor = end;
+        }
+      }
+    }
+
+    function addPptxVectorOverlay(page, slideElement, pageHeight) {
+      const rootRect = slideElement.getBoundingClientRect();
+      for (const path of slideElement.querySelectorAll("svg path[d]")) {
+        const svg = path.closest("svg");
+        if (!svg || path.closest("defs") || path.hasAttribute("transform") || path.closest("g[transform]")) continue;
+        if (svg.querySelector("linearGradient,radialGradient,pattern,filter,mask,clipPath,image,foreignObject,text")) continue;
+        const viewBox = svg.viewBox?.baseVal;
+        const rect = svg.getBoundingClientRect();
+        if (!viewBox?.width || !viewBox?.height || !rect.width || !rect.height) continue;
+        const scaleX = rect.width / viewBox.width;
+        const scaleY = rect.height / viewBox.height;
+        if (Math.abs(scaleX - scaleY) > 0.01) continue;
+        const style = getComputedStyle(path);
+        const fill = style.fill === "none" ? null : pptxCssColor(style.fill);
+        const stroke = style.stroke === "none" ? null : pptxCssColor(style.stroke);
+        if (!fill && !stroke) continue;
+        const opacity = Math.max(0, Math.min(1, Number(style.opacity) || 1));
+        const borderWidthPx = parseFloat(style.strokeWidth) || 0;
+        try {
+          page.drawSvgPath(path.getAttribute("d"), {
+            x: (rect.left - rootRect.left - viewBox.x * scaleX) * PPTX_POINT_SCALE,
+            y: pageHeight - (rect.top - rootRect.top - viewBox.y * scaleY) * PPTX_POINT_SCALE,
+            scale: scaleX * PPTX_POINT_SCALE,
+            color: fill || undefined,
+            borderColor: stroke || undefined,
+            borderWidth: stroke ? borderWidthPx * PPTX_POINT_SCALE : 0,
+            opacity,
+            borderOpacity: opacity
+          });
+        } catch (error) { console.warn("PPTX vector overlay skipped", error); }
+      }
+    }
+
+    async function exportPptxPage(pdfDoc, item, source) {
+      const handle = await createPptxSlideHandle(source, item.pageIndex);
+      const slideElement = handle.element;
+      const width = Math.max(1, Number(source.presentation?.width) || 960);
+      const height = Math.max(1, Number(source.presentation?.height) || 540);
+      slideElement.style.width = `${width}px`;
+      slideElement.style.height = `${height}px`;
+      slideElement.style.transform = "none";
+      slideElement.style.position = "relative";
+      slideElement.style.left = "0";
+      slideElement.style.top = "0";
+      elements.pptxExportSandbox.replaceChildren(slideElement);
+      try {
+        await handle.ready;
+        if (document.fonts?.ready) await document.fonts.ready;
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const pageWidth = width * PPTX_POINT_SCALE;
+        const pageHeight = height * PPTX_POINT_SCALE;
+        const jpegBytes = await rasterizePptxElement(slideElement, width, height);
+        const image = await pdfDoc.embedJpg(jpegBytes);
+        const page = pdfDoc.addPage([pageWidth, pageHeight]);
+        page.drawImage(image, { x: 0, y: 0, width: pageWidth, height: pageHeight });
+        addPptxVectorOverlay(page, slideElement, pageHeight);
+        addPptxSelectableText(pdfDoc, page, slideElement, pageHeight);
+        page.setRotation(degrees(normalizeRotation(item.rotation)));
+        return page;
+      } catch (error) {
+        console.error("PPTX export failed", error);
+        throw new Error(t("pptxExportFailed"));
+      } finally {
+        elements.pptxExportSandbox.replaceChildren();
+        disposePptxHandle(handle);
+      }
+    }
+
     function sanitizeFilename(value) {
       let name = String(value || "").trim().replace(/[\\/:*?"<>|\u0000-\u001F]/g, "_");
       if (!name) name = "organized.pdf";
@@ -3746,7 +4262,7 @@ body.is-sorting .page-card.drag-source {
         for (const item of targetPages) {
           const source = state.documents.get(item.docId);
           if (!source) throw new Error(t("sourceMissing"));
-          if (source.kind === "image") continue;
+          if (source.kind !== "pdf") continue;
           if (!groupedPdfs.has(item.docId)) groupedPdfs.set(item.docId, []);
           groupedPdfs.get(item.docId).push(item);
         }
@@ -3769,7 +4285,9 @@ body.is-sorting .page-card.drag-source {
           const source = state.documents.get(item.docId);
           if (!source) throw new Error(t("sourceMissing"));
           elements.busyDetail.textContent = t("processingSource", { name: source.name });
-          if (source.kind === "image") {
+          if (source.kind === "pptx") {
+            await exportPptxPage(output, item, source);
+          } else if (source.kind === "image") {
             await ensurePdfEmbeddableImage(source);
             let embedded = embeddedImages.get(source.id);
             if (!embedded) {
@@ -4333,6 +4851,7 @@ body.is-sorting .page-card.drag-source {
       state.previewRenderToken += 1;
       try { state.previewRenderTask?.cancel(); } catch {}
       state.previewRenderTask = null;
+      disposePreviewPptxHandle();
       state.previewPageId = null;
       elements.previewCanvasHost.replaceChildren();
       elements.previewCanvasHost.hidden = true;

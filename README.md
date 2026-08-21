@@ -6,7 +6,7 @@
 
 [日本語版 README](README.ja.md)
 
-A privacy-focused, single-HTML app for organizing PDF pages together with JPG/PNG/WebP images without uploading the selected files to a server.
+A privacy-focused, single-HTML app for organizing PDF pages, JPG/PNG/WebP images, and PowerPoint (PPTX) slides without uploading selected files to a server.
 
 ## 🚀 Live demo
 
@@ -26,6 +26,8 @@ GitHub Pages delivers the initial HTML. After it loads, PDF parsing, thumbnails,
 - Preview pages by double-clicking or using the preview button
 - Merge pages from multiple PDFs
 - Add JPG / PNG / WebP files as single pages alongside PDFs
+- Add PowerPoint (`.pptx`) files slide-by-slide
+- PowerPoint export keeps a selectable/searchable Unicode text layer and overlays compatible basic SVG shapes as vectors
 - Choose `Fit`, `Fill`, or `Original Size` for each image
 - Export all pages or selected pages only; on mobile, a contextual selected-page save button appears within the same single-row bar
 - Undo and redo
@@ -57,8 +59,8 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 
 ## Usage
 
-1. Add one or more PDF, JPG, PNG, or WebP files. You can drag and drop them together in one batch.
-2. PDF pages and images appear in the same card list. Drag cards to change the page order.
+1. Add one or more PDF, JPG, PNG, WebP, or PowerPoint (PPTX) files. You can drag and drop them together in one batch.
+2. PDF pages, images, and PowerPoint slides appear in the same card list. Drag cards to change the order.
 3. Select multiple pages and drag one selected card to move the group together.
 4. On mobile, briefly hold a card before moving it. A normal vertical swipe scrolls the page.
 5. Rotate, preview, or delete pages from the toolbar or card controls. Image cards also let you choose `Fit`, `Fill`, or `Original Size`.
@@ -125,7 +127,7 @@ The build process automatically:
 - Gzip-compresses dependency libraries and embeds PDF.js support assets for lazy decompression; CMaps are grouped into small compressed chunks for better cross-file compression
 - Records SHA-256 hashes for the tarballs, PDF.js entry, and worker
 - Rejects remaining external script references and unresolved placeholders
-- Fails the build if the generated HTML exceeds 4 MB by default, catching size regressions
+- Fails the build if the generated HTML exceeds 4.75 MB by default, catching size regressions
 - Stops when an incompatible PDF.js package-layout change requires review
 - Generates `dist/dependency-manifest.json`
 
@@ -148,7 +150,9 @@ The GitHub Pages version requires an initial HTML request, but the PDF content s
 - PDF has no standard native WebP image filter, so WebP is converted locally before embedding. Alpha/lossless WebP uses PNG; opaque lossy WebP uses high-quality JPEG.
 - Editing a digitally signed PDF invalidates its signature.
 - Bookmarks, attachments, forms, signatures, and other document-level data may not be preserved.
-- PDFs with many pages or many high-resolution images can consume substantial device memory.
+- Large PDFs, high-resolution images, and PowerPoint decks with many slides or charts can consume substantial device memory.
+- Complex PowerPoint effects, charts, and unsupported content are rasterized for visual fidelity. Supported basic shapes are overlaid as vectors where possible, and a Unicode text layer is added for search/copy.
+- Word (DOCX) input is not supported yet.
 - The current UI accepts files up to 250 MB each.
 
 ## Dependencies
@@ -156,6 +160,7 @@ The GitHub Pages version requires an initial HTML request, but the PDF content s
 | Library | Version | License | Purpose |
 | --- | ---: | --- | --- |
 | PDF.js | 6.2.108 | Apache-2.0 | Loading, thumbnails, and preview |
+| @aiden0z/pptx-renderer | 1.2.4 | Apache-2.0 | PPTX parsing and DOM/SVG preview |
 | pdf-lib | 1.17.1 | MIT | Page copying, rotation, and export |
 
 Drag and drop is implemented directly with Pointer Events and has no drag-library dependency. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.

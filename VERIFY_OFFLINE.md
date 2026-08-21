@@ -1,7 +1,7 @@
 # Verify offline behavior
 
 1. Run `build-offline.bat`.
-2. Confirm the build reports a standalone HTML size below the default 4 MB guard.
+2. Confirm the build reports a standalone HTML size below the default 4.75 MB guard.
 3. Disconnect the network or enable browser DevTools Offline mode.
 4. Open `dist/index.html` in a current Chrome/Edge/Firefox/Safari browser.
 5. Load a PDF, reorder/rotate/delete pages, undo, preview, add another PDF, and export.

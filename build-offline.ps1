@@ -1,7 +1,7 @@
 param(
   [switch]$ForceDownload,
   [string]$OutputPath = "",
-  [double]$MaxOutputSizeMb = 4.0
+  [double]$MaxOutputSizeMb = 4.75
 )
 
 $ErrorActionPreference = "Stop"
@@ -190,19 +190,22 @@ $versions = Get-Content -Raw -Encoding UTF8 $VersionsPath | ConvertFrom-Json
 $pdfLibPackage = Expand-NpmPackage $versions.pdfLib.package $versions.pdfLib.version
 $pdfJsPackage = Expand-NpmPackage $versions.pdfJs.package $versions.pdfJs.version
 $pdfEncryptPackage = Expand-NpmPackage $versions.pdfEncrypt.package $versions.pdfEncrypt.version
+$pptxRendererPackage = Expand-NpmPackage $versions.pptxRenderer.package $versions.pptxRenderer.version
 
 $pdfLibPath = Join-Path $pdfLibPackage.Root ([string]$versions.pdfLib.entry)
 $pdfJsPath = Join-Path $pdfJsPackage.Root ([string]$versions.pdfJs.entry)
 $pdfWorkerPath = Join-Path $pdfJsPackage.Root ([string]$versions.pdfJs.worker)
 $pdfEncryptPath = Join-Path $pdfEncryptPackage.Root ([string]$versions.pdfEncrypt.entry)
+$pptxRendererPath = Join-Path $pptxRendererPackage.Root ([string]$versions.pptxRenderer.entry)
 
 $pdfLibSource = Get-MinifiedJavaScript $pdfLibPath
 $pdfJsSource = Get-MinifiedJavaScript $pdfJsPath
 $pdfWorkerSource = Get-MinifiedJavaScript $pdfWorkerPath
 $pdfEncryptSource = Get-MinifiedJavaScript $pdfEncryptPath
+$pptxRendererSource = Get-MinifiedJavaScript $pptxRendererPath
 
 # The distributed browser builds should be self-contained modules. Abort on version changes that introduce relative imports.
-foreach ($candidate in @(@{ Name = "PDF.js"; Text = $pdfJsSource }, @{ Name = "PDF.js worker"; Text = $pdfWorkerSource })) {
+foreach ($candidate in @(@{ Name = "PDF.js"; Text = $pdfJsSource }, @{ Name = "PDF.js worker"; Text = $pdfWorkerSource }, @{ Name = "pptx-renderer browser"; Text = $pptxRendererSource })) {
   if ($candidate.Text -match '(?m)^\s*import\s+.+?from\s+["'']\.{1,2}/' -or $candidate.Text -match 'import\(\s*["'']\.{1,2}/') {
     throw "$($candidate.Name) contains a relative module import. Review the new package layout before embedding this version."
   }
@@ -217,7 +220,7 @@ $assetEntriesJson = $assetPack.Entries | ConvertTo-Json -Compress -Depth 4
 $assetBundlesJson = $assetPack.Bundles | ConvertTo-Json -Compress -Depth 4
 
 $manifest = [ordered]@{
-  build = "offline-v1.1-compact"
+  build = "offline-v1.2-compact"
   generatedAtUtc = [DateTime]::UtcNow.ToString("o")
   payloadCompression = "gzip"
   dependencies = [ordered]@{
@@ -234,6 +237,13 @@ $manifest = [ordered]@{
       tarballSha256 = $pdfEncryptPackage.ArchiveSha256
       embeddedEntry = [string]$versions.pdfEncrypt.entry
       embeddedEntrySha256 = (Get-FileHash -Algorithm SHA256 -Path $pdfEncryptPath).Hash.ToLowerInvariant()
+    }
+    pptxRenderer = [ordered]@{
+      package = [string]$versions.pptxRenderer.package
+      version = [string]$versions.pptxRenderer.version
+      tarballSha256 = $pptxRendererPackage.ArchiveSha256
+      embeddedEntry = [string]$versions.pptxRenderer.entry
+      embeddedEntrySha256 = (Get-FileHash -Algorithm SHA256 -Path $pptxRendererPath).Hash.ToLowerInvariant()
     }
     pdfJs = [ordered]@{
       package = [string]$versions.pdfJs.package
@@ -259,6 +269,7 @@ $replacements = [ordered]@{
   "__PDF_ENCRYPT_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfEncryptSource
   "__PDF_LIB_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfLibSource
   "__PDF_JS_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfJsSource
+  "__PPTX_RENDERER_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pptxRendererSource
   "__PDF_WORKER_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfWorkerSource
   "__PDF_ASSET_ENTRIES_JSON__" = $assetEntriesJson.Replace("<", "\u003c")
   "__PDF_ASSET_BUNDLES_JSON__" = $assetBundlesJson.Replace("<", "\u003c")
@@ -279,7 +290,7 @@ $manifestPath = Join-Path $outputDirectory "dependency-manifest.json"
 
 $remainingUrls = Select-String -InputObject $template -Pattern '<script[^>]+src\s*=\s*["'']https?://|import\s+.+?from\s+["'']https?://' -AllMatches
 if ($remainingUrls) { throw "The generated HTML still contains a runtime external script or module URL." }
-if ($template.Contains("__PDF_")) { throw "One or more dependency placeholders remain in the generated HTML." }
+if ($template.Contains("__PDF_") -or $template.Contains("__PPTX_")) { throw "One or more dependency placeholders remain in the generated HTML." }
 
 $outputHash = (Get-FileHash -Algorithm SHA256 -Path $OutputPath).Hash.ToLowerInvariant()
 $outputSizeBytes = (Get-Item $OutputPath).Length

@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.2.1 — 2026-08-21
+
+- Fixed PowerPoint PDF export failing in Chromium because SVG `foreignObject` rendered through a `blob:` URL tainted the export canvas.
+- Switched the temporary slide rasterization URL to a self-contained `data:` URL so JPEG generation remains origin-clean.
+- Improved PowerPoint media export by inlining blob-backed HTML images, clipped SVG images, tiled picture fills, and chart canvases before rasterization.
+- Kept the existing selectable Unicode text layer and compatible SVG vector overlays unchanged.
+
+## 1.2.0 — 2026-08-21
+
+- Added PowerPoint (`.pptx`) input using `@aiden0z/pptx-renderer` 1.2.4.
+- Added native DOM/SVG thumbnails and large previews for PowerPoint slides.
+- Added hybrid PowerPoint-to-PDF export: a fidelity-preserving slide image, selectable/searchable Unicode text layer, and vector overlays for compatible simple SVG paths.
+- PowerPoint slides can be mixed with existing PDF pages and images, reordered, multi-selected, rotated, deleted, previewed, and exported together.
+- Kept PowerPoint processing fully local by embedding the standalone browser renderer into the generated single HTML.
+- Word input is intentionally not included yet.
+
 ## 1.1.0 — 2026-08-20
 
 - Added password-protected PDF input and optional AES-256 password protection for exported PDFs.
