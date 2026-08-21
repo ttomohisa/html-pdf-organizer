@@ -362,6 +362,7 @@
     .workspace-guide p { margin: 0; font-size: 12px; line-height: 1.45; }
     .workspace-guide strong { display: block; color: var(--text); font-size: 13px; font-weight: 720; }
     .workspace-guide span { display: block; }
+    .workspace-guide-mobile { display: none !important; }
     .workspace-title p { margin: 3px 0 0; color: var(--text-muted); font-size: 12px; }
 
     .compact-drop {
@@ -1169,7 +1170,28 @@
       #helpDialog .dialog-header { padding: 14px 14px; }
       #helpDialog .dialog-body { padding: 16px 16px calc(26px + env(safe-area-inset-bottom)); }
       .workspace-header { align-items: center; }
-      .workspace-guide { display: none; }
+      .workspace-title { min-width: 0; }
+      .workspace-guide {
+        display: flex;
+        gap: 6px;
+        margin-top: 4px;
+        max-width: 44ch;
+      }
+      .workspace-guide-icon {
+        width: 20px;
+        height: 20px;
+        margin-top: 0;
+        border-radius: 6px;
+      }
+      .workspace-guide-icon svg { width: 13px; height: 13px; }
+      .workspace-guide p {
+        margin-top: 1px;
+        font-size: 10.5px;
+        line-height: 1.35;
+      }
+      .workspace-guide-desktop { display: none !important; }
+      .workspace-guide-mobile { display: block !important; }
+      .compact-drop { flex: 0 0 auto; padding: 8px; }
       .compact-drop span { display: none; }
       .toolbar { top: calc(var(--header-height) + 7px); margin-inline: -4px; border-radius: 12px; }
       .toolbar .button-label.optional { display: none; }
@@ -1659,7 +1681,10 @@ body.is-sorting .page-card.drag-source {
           <h2 data-i18n="pageListHeading">ページ一覧</h2>
           <div class="workspace-guide">
             <span class="workspace-guide-icon" id="workspaceGuideIcon" aria-hidden="true"></span>
-            <p><span data-i18n="workspaceGuideBody">カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。</span></p>
+            <p>
+              <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。</span>
+              <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">ドラッグで並び替え。複数選択はまとめて移動できます。</span>
+            </p>
           </div>
         </div>
         <div class="compact-drop" id="compactDropZone">
@@ -2262,6 +2287,7 @@ body.is-sorting .page-card.drag-source {
         privacyNote: "すべての処理はこの端末内で完結",
         pageListHeading: "ページ一覧",
         workspaceGuideBody: "カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。",
+        workspaceGuideBodyMobile: "ドラッグで並び替え。複数選択はまとめて移動できます。",
         dropMorePdf: "ここにPDF・画像を追加ドロップ",
         addPdf: "PDF・画像を追加",
         pageEditing: "ページ編集",
@@ -2418,6 +2444,7 @@ body.is-sorting .page-card.drag-source {
         privacyNote: "Everything is processed on this device",
         pageListHeading: "Pages",
         workspaceGuideBody: "Drag any card to reorder. Selected pages move together as one group.",
+        workspaceGuideBodyMobile: "Drag to reorder. Multiple selections move together.",
         dropMorePdf: "Drop more PDFs & images here",
         addPdf: "Add PDFs & images",
         pageEditing: "Page editing",
