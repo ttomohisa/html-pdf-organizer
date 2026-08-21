@@ -18,23 +18,12 @@ GitHub Pages delivers the initial HTML. After it loads, PDF parsing, thumbnails,
 
 ## Features
 
-- Reorder pages by dragging anywhere on a card
-- Move multiple selected pages together with a visible stacked drag preview
-- Prioritize normal touch scrolling on mobile and start dragging only after a short hold
-- Fast edge auto-scroll while dragging beyond the visible area
-- Rotate or delete one or more pages
-- Preview pages by double-clicking or using the preview button
-- Merge pages from multiple PDFs
-- Add JPG / PNG / WebP files as single pages alongside PDFs
-- Add PowerPoint (`.pptx`) files slide-by-slide
-- PowerPoint export keeps a selectable/searchable Unicode text layer and overlays compatible basic SVG shapes as vectors
-- Choose `Fit`, `Fill`, or `Original Size` for each image
-- Export all pages or selected pages only; on mobile, a contextual selected-page save button appears within the same single-row bar
-- Undo and redo
-- Japanese and English UI in the same HTML
-- Responsive light and dark layouts
-- Embedded SVG favicon
-- Embedded PDF.js, pdf-lib, worker, fonts, CMaps, WASM, and related runtime assets
+- **Bring PDFs, images, and PowerPoint together** — Mix multiple source files and export them as one PDF.
+- **Reorder naturally by moving cards** — Drag single pages or move a multi-page selection together, with touch-friendly behavior on mobile.
+- **Edit without breaking your flow** — Rotate, delete, preview, undo, and redo directly from the page list.
+- **Preserve more from PowerPoint** — Keep high-fidelity slide rendering while retaining searchable/copyable text and vector information for supported shapes.
+- **Flexible export when you need it** — Save all pages or only a selection, adjust image placement, and optionally add AES-256 password protection.
+- **Private, single-HTML operation** — Required runtimes are embedded, with Japanese/English UI and no need to upload your files to the app.
 
 ## Quick start
 
@@ -65,6 +54,10 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 4. On mobile, briefly hold a card before moving it. A normal vertical swipe scrolls the page.
 5. Rotate, preview, or delete pages from the toolbar or card controls. Image cards also let you choose `Fit`, `Fill`, or `Original Size`.
 6. Enter an output filename and export all pages or only the selection. On mobile, selecting pages reveals a compact `Save n` action in the same single-row export bar.
+
+### Export options
+
+Normal export saves an unprotected PDF. When needed, use the lock button in the export bar to protect the output with an AES-256 open password. The password is kept only in browser memory and is cleared on reload. If you do not set one, export works exactly as before without password protection.
 
 ### Selecting pages
 
@@ -146,7 +139,7 @@ The GitHub Pages version requires an initial HTML request, but the PDF content s
 
 ## Limitations
 
-- Password-protected PDFs can be opened with the correct password. Edited PDFs are exported without password protection.
+- Password-protected PDFs can be opened with the correct password. The input password is not automatically carried over to the output, so set an output password at export time if protection is still required.
 - PDF has no standard native WebP image filter, so WebP is converted locally before embedding. Alpha/lossless WebP uses PNG; opaque lossy WebP uses high-quality JPEG.
 - Editing a digitally signed PDF invalidates its signature.
 - Bookmarks, attachments, forms, signatures, and other document-level data may not be preserved.
@@ -162,6 +155,7 @@ The GitHub Pages version requires an initial HTML request, but the PDF content s
 | PDF.js | 6.2.108 | Apache-2.0 | Loading, thumbnails, and preview |
 | @aiden0z/pptx-renderer | 1.2.4 | Apache-2.0 | PPTX parsing and DOM/SVG preview |
 | pdf-lib | 1.17.1 | MIT | Page copying, rotation, and export |
+| @pdfsmaller/pdf-encrypt | 1.2.0 | MIT | AES-256 password protection for exported PDFs |
 
 Drag and drop is implemented directly with Pointer Events and has no drag-library dependency. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
 
@@ -175,7 +169,3 @@ Copyright © 2026 ttomohisa
 
 Licensed under the [MIT License](LICENSE).
 
-
-### Output password
-
-Use the lock button in the export bar to optionally protect the exported PDF with an AES-256 open password. The password is kept only in browser memory and is cleared on reload. Normal export remains unprotected. Encryption uses `@pdfsmaller/pdf-encrypt` (MIT).
