@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#f7f7f5">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNjYyNGYiLz4KICA8cGF0aCBkPSJNMTQgMThoMjZsOCA4djI3SDE0eiIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjQyIi8+CiAgPHBhdGggZD0iTTIwIDEwaDIybDggOHYzNGEyIDIgMCAwIDEtMiAySDIyYTIgMiAwIDAgMS0yLTJ6IiBmaWxsPSIjZmZmIi8+CiAgPHBhdGggZD0iTTQyIDEwdjEwaDgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2I5ZGRkMCIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPHBhdGggZD0iTTI4IDI5aDE0TTI4IDM2aDE0TTI4IDQzaDEwIiBmaWxsPSJub25lIiBzdHJva2U9IiMxNjYyNGYiIHN0cm9rZS13aWR0aD0iMy41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNjYyNGYiLz48cGF0aCBkPSJNMTggMTRoMjBsOCA4djI4SDE4eiIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjk2Ii8+PHBhdGggZD0iTTM4IDE0djhoOCIgZmlsbD0iI2RiZTllNSIvPjx0ZXh0IHg9IjMyIiB5PSIzOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzE2NjI0ZiIgZm9udC1mYW1pbHk9IkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iNzAwIiBsZXR0ZXItc3BhY2luZz0iLS40Ij5QREY8L3RleHQ+PC9zdmc+">
   <title>PDF Organizer — ページ整理ツール</title>
   <meta name="description" content="PDFのページをブラウザ内だけで並び替え、回転、削除、結合できるシンプルなツールです。">
   <!--
@@ -108,6 +108,8 @@
       color: #fff;
       box-shadow: var(--shadow-sm);
     }
+
+    .brand-mark .brand-favicon { width: 100%; height: 100%; display: block; }
 
     .brand-copy { min-width: 0; }
     .brand h1 {
@@ -1627,10 +1629,7 @@ body.is-sorting .page-card.drag-source {
     <div class="header-inner">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/>
-            <path d="M14 3.5V8h4M9 12h6M9 15.5h6"/>
-          </svg>
+          <svg class="brand-favicon" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#16624f"/><path d="M18 14h20l8 8v28H18z" fill="#fff" opacity=".96"/><path d="M38 14v8h8" fill="#dbe9e5"/><text x="32" y="39" text-anchor="middle" fill="#16624f" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="-.4">PDF</text></svg>
         </div>
         <div class="brand-copy">
           <h1>PDF Organizer <span class="version-badge" title="Version 1.2">v1.2</span></h1>
