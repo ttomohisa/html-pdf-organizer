@@ -1632,7 +1632,7 @@ body.is-sorting .page-card.drag-source {
           <svg class="brand-favicon" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#16624f"/><path d="M18 14h20l8 8v28H18z" fill="#fff" opacity=".96"/><path d="M38 14v8h8" fill="#dbe9e5"/><text x="32" y="39" text-anchor="middle" fill="#16624f" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="-.4">PDF</text></svg>
         </div>
         <div class="brand-copy">
-          <h1>PDF Organizer <span class="version-badge" title="Version 1.2">v1.2</span></h1>
+          <h1>PDF Organizer <span class="version-badge" title="Version 1.2.2">v1.2.2</span></h1>
           <p data-i18n="brandSubtitle">PDF・画像ページの並び替え・回転・削除・結合</p>
         </div>
       </div>
@@ -1648,7 +1648,7 @@ body.is-sorting .page-card.drag-source {
       <div class="overview-copy">
         <span class="overview-label" data-i18n="overviewLabel">PDF Organizerでできること</span>
         <h2 id="overviewHeading" data-i18n="overviewHeading">ページを見ながら、整理・結合・保存</h2>
-        <div class="privacy-promise"><span id="shieldIcon" aria-hidden="true"></span><span data-i18n="privacyNote">すべての処理はこの端末内で完結</span></div>
+        <div class="privacy-promise"><span id="shieldIcon" aria-hidden="true"></span><span data-i18n="privacyNote">完全ローカル処理</span></div>
       </div>
       <ul class="overview-actions">
         <li>
@@ -2329,7 +2329,7 @@ body.is-sorting .page-card.drag-source {
         dropDescription: "PDF・JPG・PNG・WebP・PowerPointをまとめて、そのまま追加できます。",
         dropHint: "または、この枠内にPDF・画像・PowerPointをドラッグ＆ドロップ",
         choosePdf: "PDF・画像・PowerPointを選択",
-        privacyNote: "すべての処理はこの端末内で完結",
+        privacyNote: "完全ローカル処理",
         pageListHeading: "ページ一覧",
         workspaceGuideBody: "カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。",
         workspaceGuideBodyMobile: "ドラッグで並び替え。複数選択はまとめて移動できます。",
@@ -2667,7 +2667,7 @@ body.is-sorting .page-card.drag-source {
       document.querySelectorAll("[data-i18n-html]").forEach((element) => { element.innerHTML = t(element.dataset.i18nHtml); });
       document.querySelectorAll("[data-i18n-title]").forEach((element) => { element.title = t(element.dataset.i18nTitle); });
       document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => { element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel)); });
-      elements.languageButton.textContent = currentLanguage === "ja" ? "EN" : "日本語";
+      elements.languageButton.textContent = currentLanguage === "ja" ? "EN" : "JA";
       elements.languageButton.title = t("switchLanguage");
       elements.languageButton.setAttribute("aria-label", t("switchLanguage"));
       try { localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLanguage); } catch {}

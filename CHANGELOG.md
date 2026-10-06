@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.2.2 — 2026-10-06
+
+- Standardized the Japanese privacy badge to `完全ローカル処理` and the language target button to `EN` / `JA`, preserving localized accessible help and language names.
+- Displayed the full canonical patch version (`v1.2.2`) in the header.
+- Added repeated-language and header regression tests.
 
 - Added Japanese/English selection-to-start and selection-to-end actions in the desktop toolbar and mobile More menu, preserving current page order, rotation, image placement, and selection with one-step undo.
 - Disabled these actions for empty/all-page selections, selections already at the target edge, and loading/exporting.
