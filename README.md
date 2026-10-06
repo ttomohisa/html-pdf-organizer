@@ -50,7 +50,7 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 
 1. Add one or more PDF, JPG, PNG, WebP, or PowerPoint (PPTX) files. You can drag and drop them together in one batch.
 2. PDF pages, images, and PowerPoint slides appear in the same card list. Drag cards to change the order.
-3. Select multiple pages and drag one selected card to move the group together.
+3. Select multiple pages and drag one selected card to move the group together. Use `To start` / `To end` in the toolbar, or `Move selection to start` / `Move selection to end` under mobile `More`, to move the group directly to an edge while keeping its current page order.
 4. On mobile, briefly hold a card before moving it. A normal vertical swipe scrolls the page.
 5. Rotate, preview, or delete pages from the toolbar or card controls. Image cards also let you choose `Fit`, `Fill`, or `Original Size`.
 6. Enter an output filename and export all pages or only the selection. On mobile, selecting pages reveals a compact `Save n` action in the same single-row export bar.
@@ -65,6 +65,8 @@ Normal export saves an unprotected PDF. When needed, use the lock button in the 
 - Use the checkbox to add or remove that page without clearing the current selection.
 - Hold `Ctrl` / `⌘` while clicking to toggle pages.
 - Hold `Shift` while clicking to select a range.
+
+A selection move keeps rotations, image placement, and selection intact and can be undone in one step. The move controls are disabled when there is no change to make or while loading/exporting. Editing or deleting pages during a drag cancels that drag, so releasing the pointer cannot restore an older page list.
 
 ### Keyboard shortcuts
 

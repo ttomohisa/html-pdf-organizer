@@ -1710,6 +1710,8 @@ body.is-sorting .page-card.drag-source {
         </div>
         <div class="toolbar-divider" aria-hidden="true"></div>
         <div class="toolbar-group">
+          <button class="button" id="moveStartButton" type="button" data-i18n-title="moveSelectionStart" data-i18n-aria-label="moveSelectionStart" title="選択ページを先頭へ" aria-label="選択ページを先頭へ"><span id="moveStartIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveStart">先頭へ</span></button>
+          <button class="button" id="moveEndButton" type="button" data-i18n-title="moveSelectionEnd" data-i18n-aria-label="moveSelectionEnd" title="選択ページを末尾へ" aria-label="選択ページを末尾へ"><span id="moveEndIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveEnd">末尾へ</span></button>
           <button class="button" id="rotateLeftButton" type="button"><span id="rotateLeftIcon"></span><span class="button-label optional" data-i18n="rotateLeft">左回転</span></button>
           <button class="button" id="rotateRightButton" type="button"><span id="rotateRightIcon"></span><span class="button-label optional" data-i18n="rotateRight">右回転</span></button>
           <button class="button danger" id="deleteButton" type="button"><span id="deleteIcon"></span><span class="button-label optional" data-i18n="delete">削除</span></button>
@@ -2170,6 +2172,8 @@ body.is-sorting .page-card.drag-source {
       shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.8v5.4c0 4.1 2.65 7.7 6.5 9.8 3.85-2.1 6.5-5.7 6.5-9.8V5.8L12 3Z"/><path d="m9.3 12 1.8 1.8 3.9-4"/></svg>`,
       selectAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="m8.8 12 2 2 4.5-4.5"/></svg>`,
       clearSelection: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="m9 9 6 6M15 9l-6 6"/></svg>`,
+      moveStart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14M12 20V8m-5 5 5-5 5 5"/></svg>`,
+      moveEnd: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20h14M12 4v12m-5-5 5 5 5-5"/></svg>`,
       rotateLeft: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V4m0 0h4M4 4l3.2 3.2A7 7 0 1 1 5.4 14"/></svg>`,
       rotateRight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 8V4m0 0h-4m4 0-3.2 3.2A7 7 0 1 0 18.6 14"/></svg>`,
       trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>`,
@@ -2210,6 +2214,8 @@ body.is-sorting .page-card.drag-source {
       selectionStatus: $("#selectionStatus"),
       selectAllButton: $("#selectAllButton"),
       clearSelectionButton: $("#clearSelectionButton"),
+      moveStartButton: $("#moveStartButton"),
+      moveEndButton: $("#moveEndButton"),
       rotateLeftButton: $("#rotateLeftButton"),
       rotateRightButton: $("#rotateRightButton"),
       deleteButton: $("#deleteButton"),
@@ -2267,6 +2273,7 @@ body.is-sorting .page-card.drag-source {
       lastSelectedId: null,
       history: [],
       future: [],
+      pageRevision: 0,
       renderQueue: [],
       activeRenders: 0,
       maxConcurrentRenders: 2,
@@ -2291,6 +2298,7 @@ body.is-sorting .page-card.drag-source {
       ["helpButton", "help"], ["initialDropIcon", "upload"], ["initialAddIcon", "addFile"],
       ["shieldIcon", "shield"], ["compactAddIcon", "addFile"], ["selectAllIcon", "selectAll"],
       ["clearSelectionIcon", "clearSelection"], ["rotateLeftIcon", "rotateLeft"], ["rotateRightIcon", "rotateRight"],
+      ["moveStartIcon", "moveStart"], ["moveEndIcon", "moveEnd"],
       ["deleteIcon", "trash"], ["undoButton", "undo"], ["redoButton", "redo"], ["zoomSmallIcon", "zoomSmall"],
       ["zoomLargeIcon", "zoomLarge"], ["clearAllIcon", "trash"], ["emptyIcon", "file"], ["emptyAddIcon", "addFile"],
       ["saveSelectedIcon", "download"], ["saveAllIcon", "download"], ["outputPasswordIcon", "lockOpen"],
@@ -2330,6 +2338,10 @@ body.is-sorting .page-card.drag-source {
         pageEditing: "ページ編集",
         selectAll: "すべて選択",
         clearSelection: "選択解除",
+        moveStart: "先頭へ",
+        moveEnd: "末尾へ",
+        moveSelectionStart: "選択ページを先頭へ",
+        moveSelectionEnd: "選択ページを末尾へ",
         rotateLeft: "左回転",
         rotateRight: "右回転",
         delete: "削除",
@@ -2493,6 +2505,10 @@ body.is-sorting .page-card.drag-source {
         pageEditing: "Page editing",
         selectAll: "Select all",
         clearSelection: "Clear selection",
+        moveStart: "To start",
+        moveEnd: "To end",
+        moveSelectionStart: "Move selection to start",
+        moveSelectionEnd: "Move selection to end",
         rotateLeft: "Rotate left",
         rotateRight: "Rotate right",
         delete: "Delete",
@@ -2899,11 +2915,13 @@ body.is-sorting .page-card.drag-source {
     }
 
     function setBusy(busy, title = t("busyDefault"), detail = "") {
+      if (busy) cancelPointerDrag();
       state.isBusy = busy;
       elements.busyTitle.textContent = title;
       elements.busyDetail.textContent = detail;
       elements.busyOverlay.hidden = !busy;
       document.body.style.overflow = busy ? "hidden" : "";
+      updateUiState();
     }
 
     function showToast(message, type = "info", duration = 4500) {
@@ -2933,12 +2951,15 @@ body.is-sorting .page-card.drag-source {
     }
 
     function pushHistory(snapshot) {
+      cancelPointerDrag();
+      state.pageRevision += 1;
       state.history.push(snapshot);
       if (state.history.length > 60) state.history.shift();
       state.future.length = 0;
     }
 
     function performEdit(mutator) {
+      cancelPointerDrag();
       const before = clonePages();
       mutator();
       pushHistory(before);
@@ -2956,6 +2977,8 @@ body.is-sorting .page-card.drag-source {
 
     function undo() {
       if (!state.history.length || state.isBusy) return;
+      cancelPointerDrag();
+      state.pageRevision += 1;
       state.future.push(clonePages());
       state.pages = state.history.pop();
       reconcileSelection();
@@ -2965,6 +2988,8 @@ body.is-sorting .page-card.drag-source {
 
     function redo() {
       if (!state.future.length || state.isBusy) return;
+      cancelPointerDrag();
+      state.pageRevision += 1;
       state.history.push(clonePages());
       state.pages = state.future.pop();
       reconcileSelection();
@@ -2990,6 +3015,8 @@ body.is-sorting .page-card.drag-source {
         ? `<strong>${selectedCount}</strong> ${t("selectedStatusRest", { total: pageCount })}`
         : `<strong>${pageCount}</strong> ${t("pageCountRest")}`;
 
+      elements.moveStartButton.disabled = !canMoveSelectionToEdge("start");
+      elements.moveEndButton.disabled = !canMoveSelectionToEdge("end");
       elements.clearSelectionButton.disabled = !hasSelection;
       elements.rotateLeftButton.disabled = !hasSelection;
       elements.rotateRightButton.disabled = !hasSelection;
@@ -3350,6 +3377,28 @@ body.is-sorting .page-card.drag-source {
         state.selected.add(id);
         state.lastSelectedId = id;
       }
+    }
+
+    function getSelectionEdgeOrder(edge) {
+      if (edge !== "start" && edge !== "end") return state.pages;
+      const moving = [];
+      const remaining = [];
+      // Partition the current page order, never the order pages were selected.
+      for (const page of state.pages) {
+        (state.selected.has(page.id) ? moving : remaining).push(page);
+      }
+      return edge === "start" ? [...moving, ...remaining] : [...remaining, ...moving];
+    }
+
+    function canMoveSelectionToEdge(edge) {
+      if (state.isBusy || !state.selected.size) return false;
+      return getSelectionEdgeOrder(edge).some((page, index) => page.id !== state.pages[index].id);
+    }
+
+    function moveSelectionToEdge(edge) {
+      if (!canMoveSelectionToEdge(edge)) return;
+      const nextPages = getSelectionEdgeOrder(edge);
+      performEdit(() => { state.pages = nextPages; });
     }
 
     function rotateSelected(delta) {
@@ -4326,6 +4375,10 @@ body.is-sorting .page-card.drag-source {
 
     let pointerDrag = null;
 
+    function cancelPointerDrag() {
+      if (pointerDrag) finishPointerDrag({ pointerId: pointerDrag.pointerId }, true);
+    }
+
     function cleanupDragVisuals(drag = pointerDrag) {
       document.documentElement.classList.remove("is-sorting");
       document.body.classList.remove("is-sorting");
@@ -4510,6 +4563,7 @@ body.is-sorting .page-card.drag-source {
 
       pointerDrag.active = true;
       pointerDrag.snapshot = snapshot;
+      pointerDrag.revision = state.pageRevision;
       pointerDrag.movingIds = movingIds;
       pointerDrag.dropIndex = initialDropIndex;
       pointerDrag.preview = createPointerDragPreview(card, movingIds.size);
@@ -4533,7 +4587,9 @@ body.is-sorting .page-card.drag-source {
 
       if (!drag.active) return;
       state.suppressClickUntil = Date.now() + 320;
-      if (cancelled) {
+      // A drag owns only the page revision it started with. Never let a late
+      // pointer-up restore pages or metadata replaced by an intervening edit.
+      if (cancelled || state.isBusy || drag.revision !== state.pageRevision) {
         renderGrid();
         return;
       }
@@ -4684,6 +4740,7 @@ body.is-sorting .page-card.drag-source {
       if (!select) return;
       const item = state.pages.find((page) => page.id === select.dataset.imageLayout);
       if (!item || !IMAGE_LAYOUTS.has(select.value) || item.imageLayout === select.value) return;
+      cancelPointerDrag();
       const before = clonePages();
       item.imageLayout = select.value;
       pushHistory(before);
@@ -4783,6 +4840,8 @@ body.is-sorting .page-card.drag-source {
 
     elements.selectAllButton.addEventListener("click", selectAll);
     elements.clearSelectionButton.addEventListener("click", clearSelection);
+    elements.moveStartButton.addEventListener("click", () => moveSelectionToEdge("start"));
+    elements.moveEndButton.addEventListener("click", () => moveSelectionToEdge("end"));
     elements.rotateLeftButton.addEventListener("click", () => rotateSelected(-90));
     elements.rotateRightButton.addEventListener("click", () => rotateSelected(90));
     elements.deleteButton.addEventListener("click", deleteSelected);
@@ -5216,6 +5275,8 @@ body.is-sorting .page-card.drag-source {
         mobileToolsList.replaceChildren(
           createMobileTool(elements.addButton, icons.addFile, t("addPdf")),
           createMobileTool(elements.clearSelectionButton, icons.clearSelection, t("clearSelection")),
+          createMobileTool(elements.moveStartButton, icons.moveStart, t("moveSelectionStart")),
+          createMobileTool(elements.moveEndButton, icons.moveEnd, t("moveSelectionEnd")),
           createMobileTool(elements.redoButton, icons.redo, t("redo")),
           createMobileTool(elements.clearAllButton, icons.trash, mobileText("全ページを一覧から削除", "Remove every page"), true)
         );
