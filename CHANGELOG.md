@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Added Japanese/English selection-to-start and selection-to-end actions in the desktop toolbar and mobile More menu, preserving current page order, rotation, image placement, and selection with one-step undo.
+- Disabled these actions for empty/all-page selections, selections already at the target edge, and loading/exporting.
+- Fixed stale drag snapshots restoring deleted pages or overwriting newer rotation, image-layout, undo, or redo edits. Intervening edits cancel active and pending drags, and stale drops are rejected.
+- Added controller and bundled pdf-lib export regression tests.
+
 ## 1.2.1 — 2026-08-21
 
 - Fixed PowerPoint PDF export failing in Chromium because SVG `foreignObject` rendered through a `blob:` URL tainted the export canvas.
