@@ -1,0 +1,17 @@
+{
+  "name": "PDF Organizer",
+  "slug": "pdf-organizer",
+  "version": "1.2.3",
+  "languages": [
+    "ja",
+    "en"
+  ],
+  "license": "MIT",
+  "build": {
+    "output": "dist/index.html",
+    "aliases": [
+      "pdf-organizer.html"
+    ],
+    "blockRuntimeNetwork": true
+  }
+}

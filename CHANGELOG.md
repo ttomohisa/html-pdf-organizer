@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.3 - 2026-10-09
+
+- Added explicit standalone-output and existing network-blocking metadata for catalog health checks.
+- Kept application behavior, entrypoints, and network permissions unchanged.
+
 ## 1.2.2 — 2026-10-06
 
 - Standardized the Japanese privacy badge to `完全ローカル処理` and the language target button to `EN` / `JA`, preserving localized accessible help and language names.

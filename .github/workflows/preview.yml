@@ -35,6 +35,9 @@ jobs:
         with:
           node-version: 24
 
+      - name: Run regression tests
+        run: node --test
+
       - name: Build standalone HTML
         shell: pwsh
         run: ./build-offline.ps1
