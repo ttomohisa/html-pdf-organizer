@@ -24,7 +24,11 @@ test('canonical icon has exact brand color and quarter-side corner radii', () =>
  assert.equal(Number(rect.ry ?? rect.rx), Number(rect.height) / 4);
 });
 const files = ["src/index.template.html", "dist/index.html", "pdf-organizer.html"];
-for (const file of files) test(`${file} keeps canonical header and favicon artwork`, () => {
+for (const file of files) test(`${file} keeps canonical header and favicon artwork`, {
+ skip: file === config.build.output && !fs.existsSync(path.join(root, file)) && process.env.PDF_ICON_REQUIRE_BUILD !== '1'
+   ? 'Run build-offline.ps1, then PDF_ICON_REQUIRE_BUILD=1 to verify the generated icon'
+   : false
+}, () => {
  const html = read(file);
  const mark = html.match(/<div class="brand-mark"[^>]*>([\s\S]*?)<\/div>/);
  assert.ok(mark, 'brand mark exists');
