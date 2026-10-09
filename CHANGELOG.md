@@ -2,6 +2,7 @@
 
 ## 1.2.3 - 2026-10-09
 
+- Added a genuine screenshot from the v1.2.3 PR preview: English page organizer with a synthetic three-page sample PDF.
 - Added explicit standalone-output and existing network-blocking metadata for catalog health checks.
 - Kept application behavior, entrypoints, and network permissions unchanged.
 
