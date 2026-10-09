@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.4 - 2026-10-09
+
+- Normalize the app icon background to `#16624f` with 25% corner radii, and keep the asset, header and favicon consistent without changing the artwork.
+
 ## 1.2.3 - 2026-10-09
 
 - Added a genuine screenshot from the v1.2.3 PR preview: English page organizer with a synthetic three-page sample PDF.

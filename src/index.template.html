@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#f7f7f5">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNjYyNGYiLz48cGF0aCBkPSJNMTggMTRoMjBsOCA4djI4SDE4eiIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjk2Ii8+PHBhdGggZD0iTTM4IDE0djhoOCIgZmlsbD0iI2RiZTllNSIvPjx0ZXh0IHg9IjMyIiB5PSIzOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzE2NjI0ZiIgZm9udC1mYW1pbHk9IkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iNzAwIiBsZXR0ZXItc3BhY2luZz0iLS40Ij5QREY8L3RleHQ+PC9zdmc+">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTYiIGZpbGw9IiMxNjYyNGYiLz48cGF0aCBkPSJNMTggMTRoMjBsOCA4djI4SDE4eiIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjk2Ii8+PHBhdGggZD0iTTM4IDE0djhoOCIgZmlsbD0iI2RiZTllNSIvPjx0ZXh0IHg9IjMyIiB5PSIzOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzE2NjI0ZiIgZm9udC1mYW1pbHk9IkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iNzAwIiBsZXR0ZXItc3BhY2luZz0iLS40Ij5QREY8L3RleHQ+PC9zdmc+">
   <title>PDF Organizer — ページ整理ツール</title>
   <meta name="description" content="PDFのページをブラウザ内だけで並び替え、回転、削除、結合できるシンプルなツールです。">
   <!--
@@ -103,8 +103,8 @@
       width: 38px;
       height: 38px;
       flex: 0 0 auto;
-      border-radius: 11px;
-      background: var(--accent);
+      border-radius:25%;
+      background:transparent;
       color: #fff;
       box-shadow: var(--shadow-sm);
     }
@@ -1143,7 +1143,7 @@
     @media (max-width: 760px) {
       :root { --header-height: 58px; --thumb-width: 142px; }
       .header-inner { padding-block: 8px; }
-      .brand-mark { width: 34px; height: 34px; border-radius: 10px; }
+      .brand-mark { width: 34px; height: 34px; border-radius:25%; }
       .brand h1 { font-size: 15px; }
       .brand p { display: none; }
       .header-actions .button-label { display: none; }
@@ -1629,10 +1629,10 @@ body.is-sorting .page-card.drag-source {
     <div class="header-inner">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">
-          <svg class="brand-favicon" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#16624f"/><path d="M18 14h20l8 8v28H18z" fill="#fff" opacity=".96"/><path d="M38 14v8h8" fill="#dbe9e5"/><text x="32" y="39" text-anchor="middle" fill="#16624f" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="-.4">PDF</text></svg>
+          <svg class="brand-favicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#16624f"/><path d="M18 14h20l8 8v28H18z" fill="#fff" opacity=".96"/><path d="M38 14v8h8" fill="#dbe9e5"/><text x="32" y="39" text-anchor="middle" fill="#16624f" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="-.4">PDF</text></svg>
         </div>
         <div class="brand-copy">
-          <h1>PDF Organizer <span class="version-badge" title="Version 1.2.3">v1.2.3</span></h1>
+          <h1>PDF Organizer <span class="version-badge" title="Version 1.2.4">v1.2.4</span></h1>
           <p data-i18n="brandSubtitle">PDF・画像ページの並び替え・回転・削除・結合</p>
         </div>
       </div>
