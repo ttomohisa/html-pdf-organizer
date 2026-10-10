@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.5 - 2026-10-10
+
+- Keep password form actions, the mobile More list, and the preview footer reachable in short windows. Let cards scroll past the editing dock in short narrow layouts.
+- Prevent editing shortcuts and wheel scrolling from changing the background page while a modal is open.
+- Keep the preview open when its navigation buttons are activated with Enter or Space.
+- Compare canonical decoded release assets across equivalent platform gzip encodings; run generated-artifact regressions in CI.
+
 ## 1.2.4 - 2026-10-09
 
 - Normalize the app icon background to `#16624f` with 25% corner radii, and keep the asset, header and favicon consistent without changing the artwork.

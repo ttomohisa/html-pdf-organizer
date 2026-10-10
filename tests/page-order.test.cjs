@@ -38,6 +38,7 @@ function harness(filename) {
   const elements = new Proxy({}, { get: (o, key) => o[key] ||= element() });
   class Input {} class Textarea {}
   const document = { body: element(), documentElement: element(), hidden: false, createElement: element,
+    querySelector: selector => selector === 'dialog[open]' ? Object.values(elements).find(e => e.open) || null : null,
     querySelectorAll: () => [], addEventListener: (name, fn) => { listeners[name] = fn; } };
   const ctx = vm.createContext({ console, Uint8Array, ArrayBuffer, Blob, Map, Set, Date, crypto: crypto.webcrypto,
     HTMLInputElement: Input, HTMLTextAreaElement: Textarea, document, elements,
@@ -246,5 +247,23 @@ for (const filename of targets) {
     assert.match(source, /moveSelectionEnd: "Move selection to end"/);
     assert.match(source, /moveSelectionStart: "選択ページを先頭へ"/);
     assert.match(source, /moveSelectionEnd: "選択ページを末尾へ"/);
+  });
+}
+
+// Any modal must leave the background editor untouched; browser geometry/focus is checked separately.
+for (const filename of targets) {
+  test(path.relative(root, filename) + ': native modal dialogs block background editing shortcuts', async () => {
+    for (const dialog of ['helpDialog', 'passwordDialog', 'outputPasswordDialog', 'mobileToolsDialog']) {
+      for (const event of [{key:'Delete'}, {key:'Backspace'}, {key:'a',ctrlKey:true}, {key:'z',ctrlKey:true}, {key:'Escape'}]) {
+        const h = await setup(filename);
+        h.app.rotateSelected(90);
+        h.elements[dialog].open = true;
+        const before = JSON.stringify({pages:h.app.state.pages, selected:selected(h), history:h.app.state.history});
+        let prevented = false;
+        h.key({...event, preventDefault(){prevented=true;}});
+        assert.equal(JSON.stringify({pages:h.app.state.pages, selected:selected(h), history:h.app.state.history}), before, `${dialog}: ${event.key} must not edit behind a modal`);
+        assert.equal(prevented, false, `${dialog}: native modal keyboard behavior remains available`);
+      }
+    }
   });
 }

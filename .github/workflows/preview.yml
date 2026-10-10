@@ -42,13 +42,13 @@ jobs:
         shell: pwsh
         run: ./build-offline.ps1
 
-      - name: Verify generated icon parity
+      - name: Verify generated release and regression tests
         shell: pwsh
         env:
           PDF_ICON_REQUIRE_BUILD: '1'
         run: |
-          node --test tests/icon-brand.test.cjs
-          if ($LASTEXITCODE -ne 0) { throw 'Generated icon parity checks failed.' }
+          node --test
+          if ($LASTEXITCODE -ne 0) { throw 'Generated release regression checks failed.' }
 
       - name: Verify generated artifact
         shell: pwsh

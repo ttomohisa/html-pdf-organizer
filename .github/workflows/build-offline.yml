@@ -15,9 +15,15 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
       - name: Build standalone HTML
         shell: powershell
         run: .\build-offline.ps1
+      - name: Verify source and generated release
+        run: node --test
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
