@@ -513,6 +513,9 @@
       transform: scale(.975);
       pointer-events: none;
     }
+    /* Keep the held touch target present for the browser's later long-press
+       hit test. The separate visual preview remains pointer-transparent. */
+    body.is-touch-sorting .page-card.drag-source { pointer-events: auto; }
     .page-card.drop-before::before,
     .page-card.drop-after::after {
       content: "";
@@ -4389,7 +4392,7 @@ body.is-sorting .page-card.drag-source {
 
     function cleanupDragVisuals(drag = pointerDrag) {
       document.documentElement.classList.remove("is-sorting");
-      document.body.classList.remove("is-sorting");
+      document.body.classList.remove("is-sorting", "is-touch-sorting");
       elements.pagesGrid.querySelectorAll(".drag-source, .drop-before, .drop-after").forEach((card) => {
         card.classList.remove("drag-source", "drop-before", "drop-after");
       });
@@ -4578,6 +4581,7 @@ body.is-sorting .page-card.drag-source {
       pointerDrag.latestPoint = { clientX: event.clientX, clientY: event.clientY };
       document.documentElement.classList.add("is-sorting");
       document.body.classList.add("is-sorting");
+      if (pointerDrag.pointerType === "touch") document.body.classList.add("is-touch-sorting");
       elements.pagesGrid.querySelectorAll(".page-card").forEach((item) => {
         item.classList.toggle("drag-source", movingIds.has(item.dataset.pageId));
       });
@@ -4734,9 +4738,13 @@ body.is-sorting .page-card.drag-source {
       cancelPointerDrag();
     }, { capture: true, passive: true });
 
-    elements.pagesGrid.addEventListener("contextmenu", (event) => {
-      if (event.target.closest(".page-card")) event.preventDefault();
-    });
+    document.addEventListener("contextmenu", (event) => {
+      // A stationary finger can trigger a later native long-press hit test.
+      // Protect that active touch gesture even if its target is now the grid
+      // or body, without disabling unrelated context menus after it ends.
+      const activeTouchDrag = pointerDrag?.active && pointerDrag.pointerType === "touch";
+      if (activeTouchDrag || event.target.closest(".page-card")) event.preventDefault();
+    }, true);
 
     elements.pagesGrid.addEventListener("pointerup", (event) => {
       if (!pointerDrag || pointerDrag.pointerType === "touch" || event.pointerId !== pointerDrag.pointerId) return;

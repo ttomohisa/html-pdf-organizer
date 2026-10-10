@@ -16,12 +16,13 @@ function harness(filename) {
   const source = fs.readFileSync(filename, 'utf8');
   const listeners = [], timers = new Map(), trace = [], history = [];
   let timerId = 0, time = 1000, previewCount = 0;
-  const target = name => ({ addEventListener(type, fn, options) { listeners.push({ name, type, fn, options }); }, classList: { add() {}, remove() {}, toggle() {} } });
+  const classList=()=>{const values=new Set();return{add(...xs){xs.forEach(x=>values.add(x));},remove(...xs){xs.forEach(x=>values.delete(x));},toggle(x,on){if(on)values.add(x);else values.delete(x);},contains:x=>values.has(x)}};
+  const target = name => ({ addEventListener(type, fn, options) { listeners.push({ name, type, fn, options }); }, classList: classList() });
   const grid = target('grid'), win = target('window'), doc = target('document');
   doc.body = target('body'); doc.documentElement = target('html'); doc.hidden = false;
-  doc.querySelector = () => null;
+  doc.querySelector = () => null; doc.querySelectorAll=()=>[];
   const cards = ['A','B','C','D','E','F'].map(id => ({
-    dataset: { pageId: id }, classList: { toggle() {} },
+    dataset: { pageId: id }, classList: classList(),
     getBoundingClientRect: () => ({ left: 0, top: 0 }),
     closest: selector => selector === '.page-card' ? cards.find(c => c.dataset.pageId === id) : null,
     setPointerCapture(id) { trace.push(['capture', id]); },
@@ -29,18 +30,18 @@ function harness(filename) {
   }));
   grid.querySelectorAll = () => cards;
   const state = { pages: cards.map(c => ({ id: c.dataset.pageId, rotation: 0 })), selected: new Set(['B','C']), pageRevision: 0, isBusy: false, suppressClickUntil: 0 };
-  win.setTimeout = fn => { timers.set(++timerId, fn); return timerId; };
+  win.setTimeout = (fn,delay) => { timers.set(++timerId,{fn,at:time+delay}); return timerId; };
+  function advance(ms){const until=time+ms; for(;;){const next=[...timers.entries()].filter(([,t])=>t.at<=until).sort((a,b)=>a[1].at-b[1].at)[0];if(!next)break;timers.delete(next[0]);time=next[1].at;next[1].fn();}time=until;}
   const ctx = vm.createContext({ state, elements: { pagesGrid: grid }, window: win, document: doc, navigator: {},
     Date: { now: () => time }, Math, Set, Array,
     clearTimeout: id => timers.delete(id),
     clonePages: () => state.pages.map(p => ({ ...p })),
     refreshSelectionUi() {}, renderGrid() { trace.push(['render']); },
     pushHistory: snapshot => history.push(snapshot),
-    createPointerDragPreview() { previewCount++; return { style: {} }; },
-    cleanupDragVisuals() { previewCount = 0; },
+    createPointerDragPreview() { previewCount++; return { style: {},remove(){previewCount=Math.max(0,previewCount-1)} }; },
     requestPointerDragFrame() { vm.runInContext('if(pointerDrag?.active) pointerDrag.dropIndex = pointerDrag.latestPoint.clientX > 200 ? 4 : 0;', ctx); }
   });
-  const names = ['cancelPointerDrag','beginPointerDrag','finishPointerDrag'];
+  const names = ['cancelPointerDrag','cleanupDragVisuals','beginPointerDrag','finishPointerDrag'];
   if(source.includes('function preparePointerDrag(')) names.push('preparePointerDrag');
   const handlers = source.slice(source.indexOf('    const TOUCH_DRAG_HOLD_MS'), source.indexOf('    elements.pagesGrid.addEventListener("mousedown"'));
   vm.runInContext('let pointerDrag = null;\n' + names.map(n => extract(source,n)).join('\n') + '\n' + handlers + '\n globalThis.getDrag = () => pointerDrag; globalThis.cancelDrag = cancelPointerDrag;', ctx);
@@ -61,9 +62,9 @@ function harness(filename) {
     const e = { touches:[touch()], changedTouches:[touch()], ...extra };
     emit('window','touchstart',e); emit('grid','touchstart',e);
   }
-  return { state, cards, listeners, history, trace, doc, touch, emit, fingerDown,
-    hold() { const pending=[...timers.values()]; timers.clear(); for(const fn of pending) fn(); },
-    nextGesture() { time+=500; },
+  return { source,state, cards, listeners, history, trace, doc, touch, emit, fingerDown,advance,
+    hold() { advance(210); },
+    nextGesture() { advance(500); },
     move(x=300,y=40,extra={}) { emit('grid','pointermove',{clientX:x,clientY:y}); return emit('grid','touchmove',{ touches:[touch(41,x,y)], changedTouches:[touch(41,x,y)], ...extra }); },
     end(id=41) { emit('window','touchend',{ touches:[], changedTouches:[touch(id)] }); },
     cancel(id=41) { emit('window','touchcancel',{ touches:[], changedTouches:[touch(id)] }); },
@@ -147,6 +148,29 @@ for(const filename of targets) {
       else h.emit('window',type,{key:'Escape'});
       assert.equal(h.drag(),null); assert.equal(h.ghosts(),0); assert.equal(h.history.length,0);
     }
+  });
+  test(prefix+'stationary hold protects a later context menu retargeted outside the source card',()=>{
+    for(const targetName of ['grid','body']) {
+      const h=harness(filename);h.fingerDown();h.advance(209);assert.equal(h.drag().active,false);
+      h.advance(1);assert.ok(h.drag().active);h.advance(1200);assert.ok(h.drag().active);
+      const event=h.emit('document','contextmenu',{target:{nodeName:targetName,closest:()=>null}});
+      assert.equal(event.prevented,true,'late native callout must be suppressed while the touch drag owns the gesture');
+      assert.ok(h.drag().active);h.move();h.end();assert.deepEqual(h.order(),['A','D','E','F','B','C']);assert.equal(h.ghosts(),0);
+    }
+  });
+  test(prefix+'active touch source stays hit-testable while the ghost stays transparent',()=>{
+    const h=harness(filename);h.fingerDown();h.hold();
+    assert.equal(h.doc.body.classList.contains('is-touch-sorting'),true);
+    assert.match(h.source,/body\.is-touch-sorting \.page-card\.drag-source\s*\{[^}]*pointer-events:\s*auto/);
+    assert.match(h.source,/\.pointer-drag-preview\s*\{[^}]*pointer-events:\s*none/);
+    h.cancel();assert.equal(h.doc.body.classList.contains('is-touch-sorting'),false);assert.equal(h.ghosts(),0);
+  });
+  test(prefix+'unrelated native context menus remain available outside active touch dragging',()=>{
+    const h=harness(filename),outside={closest:()=>null};
+    assert.equal(h.emit('document','contextmenu',{target:outside}).prevented,false);
+    h.fingerDown();assert.equal(h.emit('document','contextmenu',{target:outside}).prevented,false);h.cancel();
+    h.nextGesture();h.emit('grid','pointerdown',{pointerType:'mouse'});h.emit('grid','pointermove',{pointerType:'mouse',clientX:300});
+    assert.equal(h.emit('document','contextmenu',{target:outside}).prevented,false);
   });
   test(prefix+'mouse and pen still reorder through Pointer Events',()=>{
     for(const pointerType of ['mouse','pen']) { const h=harness(filename);
