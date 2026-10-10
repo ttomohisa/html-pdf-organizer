@@ -921,6 +921,8 @@
     .toast-close { border: 0; background: transparent; color: var(--text-muted); cursor: pointer; padding: 0; }
     @keyframes toast-in { from { opacity: 0; transform: translateY(-5px); } }
 
+    html:has(dialog[open]) { overflow: hidden; }
+
     dialog {
       width: min(640px, calc(100% - 28px));
       max-height: min(760px, calc(100vh - 36px));
@@ -971,7 +973,10 @@
     .dialog-body > :last-child { margin-bottom: 4px; }
 
     .password-dialog { width: min(440px, calc(100% - 28px)); }
-    .password-dialog .dialog-body { max-height: none; padding-bottom: 20px; }
+    .password-dialog[open] { display: flex; flex-direction: column; }
+    .password-dialog > form { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
+    .password-dialog .dialog-header, .password-dialog .dialog-actions { flex: 0 0 auto; }
+    .password-dialog .dialog-body { min-height: 0; flex: 1 1 auto; max-height: none; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 20px; }
     .password-file { margin: 0 0 16px; color: var(--text-muted); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
     .password-field { display: grid; gap: 7px; }
     .password-field label { font-size: 13px; font-weight: 700; }
@@ -1057,7 +1062,7 @@
     .preview-counter { min-width: 66px; color: var(--text-muted); font-size: 12px; text-align: center; white-space: nowrap; }
     .preview-stage {
       position: relative;
-      min-height: 260px;
+      min-height: 0;
       display: grid;
       place-items: center;
       overflow: auto;
@@ -1553,7 +1558,8 @@ body.is-sorting .page-card.drag-source {
     border-radius: 22px 22px 0 0;
     background: var(--surface);
   }
-  .mobile-tools-dialog[open] { display: block; }
+  .mobile-tools-dialog[open] { display: flex; flex-direction: column; }
+  .mobile-tools-handle, .mobile-tools-head { flex: 0 0 auto; }
   .mobile-tools-dialog::backdrop {
     background: rgba(15, 17, 14, .42);
     backdrop-filter: blur(2px);
@@ -1588,6 +1594,10 @@ body.is-sorting .page-card.drag-source {
   .mobile-tools-close:active { background: var(--surface-muted); }
   .mobile-tools-close svg { width: 18px; height: 18px; }
   .mobile-tools-list {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    flex: 1 1 auto;
     display: grid;
     gap: 7px;
     padding: 12px 12px calc(14px + env(safe-area-inset-bottom));
@@ -1622,6 +1632,10 @@ body.is-sorting .page-card.drag-source {
   .mobile-dock-button span { font-size: 8px; }
 }
 
+@media (max-width: 760px) and (max-height: 480px) {
+  .mobile-edit-dock { position: static; }
+}
+
 </style>
 </head>
 <body>
@@ -1632,7 +1646,7 @@ body.is-sorting .page-card.drag-source {
           <svg class="brand-favicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#16624f"/><path d="M18 14h20l8 8v28H18z" fill="#fff" opacity=".96"/><path d="M38 14v8h8" fill="#dbe9e5"/><text x="32" y="39" text-anchor="middle" fill="#16624f" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="-.4">PDF</text></svg>
         </div>
         <div class="brand-copy">
-          <h1>PDF Organizer <span class="version-badge" title="Version 1.2.4">v1.2.4</span></h1>
+          <h1>PDF Organizer <span class="version-badge" title="Version 1.2.5">v1.2.5</span></h1>
           <p data-i18n="brandSubtitle">PDF・画像ページの並び替え・回転・削除・結合</p>
         </div>
       </div>
@@ -1882,6 +1896,8 @@ body.is-sorting .page-card.drag-source {
         <kbd>Delete</kbd><span data-i18n="shortcutDelete">選択ページを削除</span>
         <kbd>Esc</kbd><span data-i18n="shortcutClear">選択を解除</span>
       </div>
+
+      <p data-i18n="helpModals">ダイアログや「その他」を開いている間は背景のページ操作とスクロールを止めます。低い画面ではパスワード欄や操作一覧の中をスクロールできます。</p>
 
       <h3 data-i18n="privacy">プライバシー</h3>
       <p data-i18n="helpPrivacy">選択したPDF・画像の読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。</p>
@@ -2400,6 +2416,7 @@ body.is-sorting .page-card.drag-source {
         multipleSelection: "複数選択",
         helpSelection: "カード右上のチェックをクリックすると、<kbd>Ctrl</kbd> / <kbd>⌘</kbd> クリックと同様に現在の選択を残したまま追加・解除できます。<kbd>Shift</kbd> を押しながらカードをクリックすると範囲選択できます。",
         keyboardShortcuts: "キーボード操作",
+        helpModals: "ダイアログや「その他」を開いている間は背景のページ操作とスクロールを止めます。低い画面ではパスワード欄や操作一覧の中をスクロールできます。",
         shortcutSelectAll: "すべてのページを選択",
         shortcutDelete: "選択ページを削除",
         shortcutClear: "選択を解除",
@@ -2567,6 +2584,7 @@ body.is-sorting .page-card.drag-source {
         multipleSelection: "Multiple selection",
         helpSelection: "Click the check button to add or remove a page without clearing the current selection, just like <kbd>Ctrl</kbd> / <kbd>⌘</kbd> click. Hold <kbd>Shift</kbd> while clicking a card to select a range.",
         keyboardShortcuts: "Keyboard shortcuts",
+        helpModals: "While a dialog or More actions is open, background editing shortcuts and page scrolling are paused. In short windows, scroll within password fields or the action list.",
         shortcutSelectAll: "Select every page",
         shortcutDelete: "Delete selected pages",
         shortcutClear: "Clear selection",
@@ -4929,6 +4947,8 @@ body.is-sorting .page-card.drag-source {
         }
         return;
       }
+
+      if (document.querySelector("dialog[open]")) return;
 
       const modifier = event.ctrlKey || event.metaKey;
       if (modifier && event.key.toLowerCase() === "a") {

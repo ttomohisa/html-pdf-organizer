@@ -176,4 +176,6 @@ Licensed under the [MIT License](LICENSE).
 
 `app.config.json` describes the existing standalone artifact and its network-blocking CSP. Metadata does not add runtime network permissions.
 
-The canonical build writes `dist/index.html`. After `build-offline.ps1`, copy that file unchanged to the committed `pdf-organizer.html` distribution alias (`Copy-Item dist/index.html pdf-organizer.html` in PowerShell). `build.aliases` declares that alias; it is not a separate or multithreaded build. Node metadata tests verify byte parity whenever the canonical build output is present.
+The canonical build writes `dist/index.html`. After `build-offline.ps1`, copy that file unchanged to the committed `pdf-organizer.html` distribution alias (`Copy-Item dist/index.html pdf-organizer.html` in PowerShell). `build.aliases` declares that alias; it is not a separate or multithreaded build. Node metadata tests verify exact runtime and decoded dependency parity whenever the canonical build output is present, allowing only build timestamps, line endings, and equivalent gzip/chunk encodings.
+
+While a dialog or More actions is open, background editing shortcuts and page scrolling are paused. In short windows, scroll within password fields or the action list.
