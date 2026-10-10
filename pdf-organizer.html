@@ -1897,7 +1897,7 @@ body.is-sorting .page-card.drag-source {
         <kbd>Esc</kbd><span data-i18n="shortcutClear">選択を解除</span>
       </div>
 
-      <p data-i18n="helpModals">ダイアログや「その他」を開いている間は背景のページ操作とスクロールを止めます。低い画面ではパスワード欄や操作一覧の中をスクロールできます。</p>
+      <p data-i18n="helpModals">ダイアログや「その他」を開いている間は背景のページ操作とスクロールを止めます。低い画面ではパスワード欄や操作一覧の中をスクロールできます。プレビューのページ移動ボタンはEnterやSpaceでも操作できます。</p>
 
       <h3 data-i18n="privacy">プライバシー</h3>
       <p data-i18n="helpPrivacy">選択したPDF・画像の読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。</p>
@@ -2416,7 +2416,7 @@ body.is-sorting .page-card.drag-source {
         multipleSelection: "複数選択",
         helpSelection: "カード右上のチェックをクリックすると、<kbd>Ctrl</kbd> / <kbd>⌘</kbd> クリックと同様に現在の選択を残したまま追加・解除できます。<kbd>Shift</kbd> を押しながらカードをクリックすると範囲選択できます。",
         keyboardShortcuts: "キーボード操作",
-        helpModals: "ダイアログや「その他」を開いている間は背景のページ操作とスクロールを止めます。低い画面ではパスワード欄や操作一覧の中をスクロールできます。",
+        helpModals: "ダイアログや「その他」を開いている間は背景のページ操作とスクロールを止めます。低い画面ではパスワード欄や操作一覧の中をスクロールできます。プレビューのページ移動ボタンはEnterやSpaceでも操作できます。",
         shortcutSelectAll: "すべてのページを選択",
         shortcutDelete: "選択ページを削除",
         shortcutClear: "選択を解除",
@@ -2584,7 +2584,7 @@ body.is-sorting .page-card.drag-source {
         multipleSelection: "Multiple selection",
         helpSelection: "Click the check button to add or remove a page without clearing the current selection, just like <kbd>Ctrl</kbd> / <kbd>⌘</kbd> click. Hold <kbd>Shift</kbd> while clicking a card to select a range.",
         keyboardShortcuts: "Keyboard shortcuts",
-        helpModals: "While a dialog or More actions is open, background editing shortcuts and page scrolling are paused. In short windows, scroll within password fields or the action list.",
+        helpModals: "While a dialog or More actions is open, background editing shortcuts and page scrolling are paused. In short windows, scroll within password fields or the action list. Preview navigation buttons also work with Enter or Space.",
         shortcutSelectAll: "Select every page",
         shortcutDelete: "Delete selected pages",
         shortcutClear: "Clear selection",
@@ -4911,6 +4911,7 @@ body.is-sorting .page-card.drag-source {
       elements.previewCanvasHost.hidden = true;
     });
     elements.previewDialog.addEventListener("click", (event) => {
+      if (event.target !== elements.previewDialog) return;
       const rect = elements.previewDialog.getBoundingClientRect();
       const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
       if (outside) closePreview();

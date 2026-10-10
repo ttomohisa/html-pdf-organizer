@@ -4,6 +4,7 @@
 
 - Keep password form actions, the mobile More list, and the preview footer reachable in short windows. Let cards scroll past the editing dock in short narrow layouts.
 - Prevent editing shortcuts and wheel scrolling from changing the background page while a modal is open.
+- Keep the preview open when its navigation buttons are activated with Enter or Space.
 - Compare canonical decoded release assets across equivalent platform gzip encodings; run generated-artifact regressions in CI.
 
 ## 1.2.4 - 2026-10-09
