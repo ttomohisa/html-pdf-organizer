@@ -10,7 +10,7 @@ const targets = process.env.PDF_ORGANIZER_HTML ? [process.env.PDF_ORGANIZER_HTML
 for (const filename of targets) {
   const source = fs.readFileSync(path.resolve(root, filename), 'utf8');
   test(`${filename}: header shows the canonical patch version`, () => {
-    assert.match(source, /class="version-badge" title="Version 1\.2\.5">v1\.2\.5<\/span>/);
+    assert.match(source, /class="version-badge" title="Version 1\.2\.6">v1\.2\.6<\/span>/);
     assert.match(source, /data-i18n="privacyNote">完全ローカル処理<\/span>/);
   });
   test(`${filename}: repeated language changes preserve privacy and accessible header controls`, () => {

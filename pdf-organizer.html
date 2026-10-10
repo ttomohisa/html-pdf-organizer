@@ -175,17 +175,7 @@
       transition: border-color .18s ease, background .18s ease, transform .18s ease;
     }
 
-    .drop-zone::before {
-      content: "";
-      position: absolute;
-      inset: -40% auto auto -10%;
-      width: 340px;
-      height: 210px;
-      border-radius: 50%;
-      background: color-mix(in srgb, var(--accent-soft) 64%, transparent);
-      filter: blur(8px);
-      pointer-events: none;
-    }
+
 
     .drop-zone.is-dragover {
       border-color: var(--accent);
@@ -523,6 +513,9 @@
       transform: scale(.975);
       pointer-events: none;
     }
+    /* Keep the held touch target present for the browser's later long-press
+       hit test. The separate visual preview remains pointer-transparent. */
+    body.is-touch-sorting .page-card.drag-source { pointer-events: auto; }
     .page-card.drop-before::before,
     .page-card.drop-after::after {
       content: "";
@@ -1646,7 +1639,7 @@ body.is-sorting .page-card.drag-source {
           <svg class="brand-favicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#16624f"/><path d="M18 14h20l8 8v28H18z" fill="#fff" opacity=".96"/><path d="M38 14v8h8" fill="#dbe9e5"/><text x="32" y="39" text-anchor="middle" fill="#16624f" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="-.4">PDF</text></svg>
         </div>
         <div class="brand-copy">
-          <h1>PDF Organizer <span class="version-badge" title="Version 1.2.5">v1.2.5</span></h1>
+          <h1>PDF Organizer <span class="version-badge" title="Version 1.2.6">v1.2.6</span></h1>
           <p data-i18n="brandSubtitle">PDF・画像ページの並び替え・回転・削除・結合</p>
         </div>
       </div>
@@ -1666,19 +1659,19 @@ body.is-sorting .page-card.drag-source {
       </div>
       <ul class="overview-actions">
         <li>
-          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7h10M8 12h10M8 17h10"/><path d="m4 5-2 2 2 2M2 7h3M4 15l-2 2 2 2M2 17h3"/></svg></span>
+          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h9l3 3v15H9z"/><path d="M18 3v4h3M4 4v16M2 6l2-2 2 2M2 18l2 2 2-2"/></svg></span>
           <span class="overview-action-copy"><strong data-i18n="overviewReorder">並べ替え</strong><small data-i18n="overviewReorderNote">ドラッグで順番変更</small></span>
         </li>
         <li>
-          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg></span>
+          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l3 3v4M14 3v4h3M5 3v18h7"/><path d="m14 18 6-6 2 2-6 6-3 1z"/></svg></span>
           <span class="overview-action-copy"><strong data-i18n="overviewEdit">回転・削除</strong><small data-i18n="overviewEditNote">不要ページも整理</small></span>
         </li>
         <li>
-          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="10" height="14" rx="2"/><path d="M10 3h6a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4h-6"/></svg></span>
+          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h9l3 3v15H8z"/><path d="M17 3v4h3M4 7v14M11 14h6M14 11v6"/></svg></span>
           <span class="overview-action-copy"><strong data-i18n="overviewMerge">PDFを結合</strong><small data-i18n="overviewMergeNote">複数ファイルをひとつに</small></span>
         </li>
         <li>
-          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7.5 11 4.5 4.5 4.5-4.5"/><path d="M5 20h14"/></svg></span>
+          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3h10l3 3v5M14 3v4h3M4 3v18h6"/><path d="M17 12v9m-4-4 4 4 4-4"/></svg></span>
           <span class="overview-action-copy"><strong data-i18n="overviewExport">必要なページを保存</strong><small data-i18n="overviewExportNote">全部・選択だけ両対応</small></span>
         </li>
       </ul>
@@ -2190,8 +2183,8 @@ body.is-sorting .page-card.drag-source {
       clearSelection: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="m9 9 6 6M15 9l-6 6"/></svg>`,
       moveStart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14M12 20V8m-5 5 5-5 5 5"/></svg>`,
       moveEnd: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20h14M12 4v12m-5-5 5 5 5-5"/></svg>`,
-      rotateLeft: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V4m0 0h4M4 4l3.2 3.2A7 7 0 1 1 5.4 14"/></svg>`,
-      rotateRight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 8V4m0 0h-4m4 0-3.2 3.2A7 7 0 1 0 18.6 14"/></svg>`,
+      rotateLeft: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a9 9 0 1 1 2.7 8.4"/><path d="M3 4v6h6"/></svg>`,
+      rotateRight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(24 0) scale(-1 1)"><path d="M3 10a9 9 0 1 1 2.7 8.4"/><path d="M3 4v6h6"/></g></svg>`,
       trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>`,
       undo: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7 4 12l5 5"/><path d="M5 12h8a6 6 0 0 1 6 6"/></svg>`,
       redo: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 7 5 5-5 5"/><path d="M19 12h-8a6 6 0 0 0-6 6"/></svg>`,
@@ -4399,7 +4392,7 @@ body.is-sorting .page-card.drag-source {
 
     function cleanupDragVisuals(drag = pointerDrag) {
       document.documentElement.classList.remove("is-sorting");
-      document.body.classList.remove("is-sorting");
+      document.body.classList.remove("is-sorting", "is-touch-sorting");
       elements.pagesGrid.querySelectorAll(".drag-source, .drop-before, .drop-after").forEach((card) => {
         card.classList.remove("drag-source", "drop-before", "drop-after");
       });
@@ -4588,10 +4581,13 @@ body.is-sorting .page-card.drag-source {
       pointerDrag.latestPoint = { clientX: event.clientX, clientY: event.clientY };
       document.documentElement.classList.add("is-sorting");
       document.body.classList.add("is-sorting");
+      if (pointerDrag.pointerType === "touch") document.body.classList.add("is-touch-sorting");
       elements.pagesGrid.querySelectorAll(".page-card").forEach((item) => {
         item.classList.toggle("drag-source", movingIds.has(item.dataset.pageId));
       });
-      try { card.setPointerCapture(event.pointerId); } catch {}
+      if (pointerDrag.pointerType !== "touch") {
+        try { card.setPointerCapture(event.pointerId); } catch {}
+      }
       requestPointerDragFrame();
     }
 
@@ -4600,7 +4596,9 @@ body.is-sorting .page-card.drag-source {
       const drag = pointerDrag;
       pointerDrag = null;
       if (drag.activationTimer) clearTimeout(drag.activationTimer);
-      try { drag.card.releasePointerCapture(drag.pointerId); } catch {}
+      if (drag.pointerType !== "touch") {
+        try { drag.card.releasePointerCapture(drag.pointerId); } catch {}
+      }
       cleanupDragVisuals(drag);
 
       if (!drag.active) return;
@@ -4630,11 +4628,8 @@ body.is-sorting .page-card.drag-source {
       renderGrid();
     }
 
-    const TOUCH_DRAG_HOLD_MS = 210;
-    const TOUCH_SCROLL_CANCEL_DISTANCE = 11;
-
-    elements.pagesGrid.addEventListener("pointerdown", (event) => {
-      if (state.isBusy || event.button !== 0 || !event.isPrimary) return;
+    function preparePointerDrag(event) {
+      if (state.isBusy || pointerDrag || event.button !== 0 || !event.isPrimary) return;
       const card = event.target.closest(".page-card");
       if (!card || event.target.closest("button, input, select, a")) return;
       const rect = card.getBoundingClientRect();
@@ -4664,6 +4659,7 @@ body.is-sorting .page-card.drag-source {
         const pointerId = event.pointerId;
         pointerDrag.activationTimer = window.setTimeout(() => {
           if (!pointerDrag || pointerDrag.pointerId !== pointerId || pointerDrag.active) return;
+          if (document.querySelector("dialog[open]")) { cancelPointerDrag(); return; }
           beginPointerDrag({
             pointerId,
             clientX: pointerDrag.latestPoint.clientX,
@@ -4672,20 +4668,32 @@ body.is-sorting .page-card.drag-source {
           if (navigator.vibrate) navigator.vibrate(8);
         }, TOUCH_DRAG_HOLD_MS);
       }
+    }
+
+    const TOUCH_DRAG_HOLD_MS = 210;
+    const TOUCH_SCROLL_CANCEL_DISTANCE = 11;
+
+    elements.pagesGrid.addEventListener("pointerdown", (event) => {
+      // Touch Events own touch gestures. Compatibility pointer/mouse events must
+      // not start a second drag or replace a touch that is already in progress.
+      if (event.pointerType === "touch" || Date.now() < state.suppressClickUntil) return;
+      preparePointerDrag(event);
     });
 
+    elements.pagesGrid.addEventListener("touchstart", (event) => {
+      if (event.touches.length !== 1 || Date.now() < state.suppressClickUntil) return;
+      const touch = event.changedTouches[0];
+      if (!touch) return;
+      preparePointerDrag({ target: event.target, button: 0, isPrimary: true,
+        pointerId: touch.identifier, pointerType: "touch",
+        clientX: touch.clientX, clientY: touch.clientY });
+    }, { passive: true });
+
     elements.pagesGrid.addEventListener("pointermove", (event) => {
-      if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) return;
+      if (!pointerDrag || pointerDrag.pointerType === "touch" || event.pointerId !== pointerDrag.pointerId) return;
       pointerDrag.latestPoint = { clientX: event.clientX, clientY: event.clientY };
       if (!pointerDrag.active) {
         const distance = Math.hypot(event.clientX - pointerDrag.startX, event.clientY - pointerDrag.startY);
-        if (pointerDrag.pointerType === "touch") {
-          if (distance >= TOUCH_SCROLL_CANCEL_DISTANCE) {
-            if (pointerDrag.activationTimer) clearTimeout(pointerDrag.activationTimer);
-            pointerDrag = null;
-          }
-          return;
-        }
         if (distance < 4) return;
         beginPointerDrag(event);
       }
@@ -4693,37 +4701,70 @@ body.is-sorting .page-card.drag-source {
       requestPointerDragFrame();
     }, { passive: false });
 
-    // Once a long press has activated dragging, keep the browser from taking
-    // over the same gesture as page scrolling. Before activation this listener
-    // does nothing, so ordinary swipes remain native and smooth.
+    // Register before a gesture begins. Pointer capture/cancellation does not
+    // own a touch drag: the browser may end the pointer stream while the finger
+    // still has a cancelable Touch Events stream. Keep tracking that finger.
     elements.pagesGrid.addEventListener("touchmove", (event) => {
-      if (pointerDrag?.active) event.preventDefault();
+      if (!pointerDrag || pointerDrag.pointerType !== "touch") return;
+      const touch = Array.from(event.changedTouches).find(item => item.identifier === pointerDrag.pointerId);
+      if (!touch) return;
+      if (event.touches.length !== 1 || !event.cancelable) {
+        cancelPointerDrag();
+        return;
+      }
+      pointerDrag.latestPoint = { clientX: touch.clientX, clientY: touch.clientY };
+      if (!pointerDrag.active) {
+        const distance = Math.hypot(touch.clientX - pointerDrag.startX, touch.clientY - pointerDrag.startY);
+        if (distance >= TOUCH_SCROLL_CANCEL_DISTANCE) cancelPointerDrag();
+        return; // Quick swipes remain native page scrolling.
+      }
+      event.preventDefault();
+      requestPointerDragFrame();
     }, { passive: false });
 
-    elements.pagesGrid.addEventListener("contextmenu", (event) => {
-      if (event.target.closest(".page-card")) event.preventDefault();
-    });
+    window.addEventListener("touchstart", (event) => {
+      if (pointerDrag?.pointerType === "touch" && event.touches.length > 1) cancelPointerDrag();
+    }, { capture: true, passive: true });
+
+    window.addEventListener("touchend", (event) => {
+      if (!pointerDrag || pointerDrag.pointerType !== "touch") return;
+      if (!Array.from(event.changedTouches).some(touch => touch.identifier === pointerDrag.pointerId)) return;
+      finishPointerDrag({ pointerId: pointerDrag.pointerId }, false);
+    }, { capture: true, passive: true });
+
+    window.addEventListener("touchcancel", (event) => {
+      if (!pointerDrag || pointerDrag.pointerType !== "touch") return;
+      if (!Array.from(event.changedTouches).some(touch => touch.identifier === pointerDrag.pointerId)) return;
+      cancelPointerDrag();
+    }, { capture: true, passive: true });
+
+    document.addEventListener("contextmenu", (event) => {
+      // A stationary finger can trigger a later native long-press hit test.
+      // Protect that active touch gesture even if its target is now the grid
+      // or body, without disabling unrelated context menus after it ends.
+      const activeTouchDrag = pointerDrag?.active && pointerDrag.pointerType === "touch";
+      if (activeTouchDrag || event.target.closest(".page-card")) event.preventDefault();
+    }, true);
 
     elements.pagesGrid.addEventListener("pointerup", (event) => {
-      if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) return;
+      if (!pointerDrag || pointerDrag.pointerType === "touch" || event.pointerId !== pointerDrag.pointerId) return;
       finishPointerDrag(event, false);
     });
 
     elements.pagesGrid.addEventListener("pointercancel", (event) => {
-      if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) return;
+      if (!pointerDrag || pointerDrag.pointerType === "touch" || event.pointerId !== pointerDrag.pointerId) return;
       finishPointerDrag(event, true);
     });
 
-    // Pointer capture can still be lost when Android browser UI, translation UI,
-    // or the system file viewer interrupts the gesture. Window-level fallbacks
-    // guarantee that the preview and source-card styles are always cleared.
+    // Window-level endings also clean up mouse/pen drags outside the grid.
+    // Touch endings are handled above by their own identifier and lifecycle.
     window.addEventListener("pointerup", (event) => {
-      if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) return;
+      if (!pointerDrag || pointerDrag.pointerType === "touch" || event.pointerId !== pointerDrag.pointerId) return;
       finishPointerDrag(event, false);
     }, true);
 
     window.addEventListener("pointercancel", (event) => {
-      if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) return;
+      if (!pointerDrag || pointerDrag.pointerType === "touch" || event.pointerId !== pointerDrag.pointerId) return;
       finishPointerDrag(event, true);
     }, true);
 
@@ -4996,6 +5037,7 @@ body.is-sorting .page-card.drag-source {
       let dragLayoutSnapshot = null;
 
       function captureDragLayout(event) {
+        if (pointerDrag || event.pointerType === "touch" || event.touches?.length > 1) return;
         const card = event.target.closest(".page-card");
         if (!card || event.target.closest("button, input, select, a")) return;
         const cards = Array.from(elements.pagesGrid.querySelectorAll(".page-card"));
@@ -5017,6 +5059,7 @@ body.is-sorting .page-card.drag-source {
       }
 
       elements.pagesGrid.addEventListener("pointerdown", captureDragLayout, true);
+      elements.pagesGrid.addEventListener("touchstart", captureDragLayout, { capture: true, passive: true });
 
       function stableRect(id) {
         const rect = dragLayoutSnapshot?.rects.get(id);

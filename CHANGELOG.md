@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.6 - 2026-10-10
+
+- Track long-press touch reordering through the finger’s touch lifecycle so an accompanying pointer cancellation does not drop the active cards. Quick swipes still scroll normally; multiple touches and genuine interruptions cancel cleanly.
+- Keep an activated touch source hit-testable during a stationary hold and suppress a retargeted native context menu for that active gesture; genuine touch cancellation still cleans up.
+- Remove the decorative tinted layer from the initial drop area.
+- Refresh the four overview icons and use clear, mirrored left/right rotation arrows across the toolbar, cards, and mobile dock.
+- Add actual-handler touch lifecycle regressions, including repeated groups, interrupted edits, and compatibility pointer events. Physical Android verification is still separate from the simulated event tests.
+
 ## 1.2.5 - 2026-10-10
 
 - Keep password form actions, the mobile More list, and the preview footer reachable in short windows. Let cards scroll past the editing dock in short narrow layouts.
