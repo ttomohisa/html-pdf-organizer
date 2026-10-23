@@ -37,7 +37,7 @@ for (const filename of targets) {
       assert.equal(languageButton.title, languageButton.attributes['aria-label']);
       assert.equal(help.attributes['aria-label'], japanese ? '使い方と注意事項' : 'How to use & notes');
       assert.equal(help.title, help.attributes['aria-label']);
-      assert.equal(privacy.textContent, japanese ? '完全ローカル処理' : 'Everything is processed on this device');
+      assert.equal(privacy.textContent, japanese ? '完全ローカル処理' : 'Fully local processing');
       assert.equal(saved['pdf-organizer-language'], language);
     }
   });
