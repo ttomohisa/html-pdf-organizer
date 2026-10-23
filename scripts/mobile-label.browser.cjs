@@ -17,6 +17,9 @@ async function main(){
  await page.goto(pathToFileURL(path.resolve(__dirname,'../dist/index.html')).href);
  const langButton=width<=760&&cfg.phoneLanguage?cfg.phoneLanguage:cfg.language;
  await page.locator(langButton).waitFor();
+ // The embedded asynchronous asset loader may finish after the initial HTML load.
+ // Wait for its locale initialization before clicking the language toggle.
+ await page.waitForFunction(lang=>document.documentElement.lang===lang && document.querySelector('#languageButton').textContent.trim()===(lang==='ja'?'EN':'JA'),language);
  if(await page.locator('html').getAttribute('lang')!==language)await page.locator(langButton).click();
  const badge=page.locator(cfg.badge);
  assert.equal((await badge.textContent()).trim(),language==='ja'?'完全ローカル処理':'Fully local processing');
