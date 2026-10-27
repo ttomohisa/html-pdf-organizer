@@ -2977,6 +2977,7 @@ body.is-sorting .page-card.drag-source {
       const close = document.createElement("button");
       close.className = "toast-close";
       close.type = "button";
+      close.setAttribute("data-i18n-aria-label", "toastClose");
       close.setAttribute("aria-label", t("toastClose"));
       close.innerHTML = icons.close;
 
@@ -2986,7 +2987,7 @@ body.is-sorting .page-card.drag-source {
         if (toast.contains(document.activeElement)) { toast.addEventListener("focusout", () => setTimeout(remove, 0), { once:true }); return; }
         toast.remove();
       };
-      close.addEventListener("click", remove);
+      close.addEventListener("click", () => toast.remove());
       if (duration > 0) setTimeout(remove, duration);
     }
 
@@ -5280,6 +5281,7 @@ body.is-sorting .page-card.drag-source {
         action.className = "toast-action";
         action.dataset.bkButton = ""; action.dataset.bkVariant = "secondary";
         action.type = "button";
+        action.setAttribute("data-i18n", "undo");
         action.textContent = t("undo");
         action.addEventListener("click", () => {
           toast.remove();
