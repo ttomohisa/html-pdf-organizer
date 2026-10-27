@@ -19,15 +19,15 @@ for (const filename of targets) {
     const help = element({ i18nTitle: 'helpTitle', i18nAriaLabel: 'helpTitle' });
     const languageButton = element();
     const saved = {};
-    const document = { documentElement: {}, querySelector: () => null, querySelectorAll: selector => ({
+    const document = { documentElement: {}, querySelector: selector => selector === 'meta[name="description"]' ? null : element(), querySelectorAll: selector => ({
       '[data-i18n]': [privacy], '[data-i18n-html]': [], '[data-i18n-title]': [help], '[data-i18n-aria-label]': [help]
-    }[selector]) };
-    const ctx = vm.createContext({ document, elements: { languageButton, previewDialog: { open: false } },
+    }[selector] || []) };
+    const ctx = vm.createContext({ document, BrowserKittyUI: require("../components/ui-conventions.js"), elements: { languageButton, busyTitle: {textContent:""}, busyDetail: {textContent:""}, previewDialog: { open: false } },
       state: { pages: [] }, localStorage: { setItem: (key, value) => { saved[key] = value; } },
       updateUiState() {}, updatePasswordVisibilityUi() {} });
     const translations = source.slice(source.indexOf('    const translations = {'), source.indexOf('    const LANGUAGE_STORAGE_KEY'));
     const functions = source.slice(source.indexOf('    function t('), source.indexOf('    const makeId ='));
-    vm.runInContext(translations + '\nlet currentLanguage = "ja"; const LANGUAGE_STORAGE_KEY = "pdf-organizer-language";\n' + functions + '\nglobalThis.apply = applyLanguage;', ctx);
+    vm.runInContext(translations + '\nlet currentLanguage = "ja"; let languageSessionOnly = false; const LANGUAGE_STORAGE_KEY = "pdf-organizer-language";\n' + functions + '\nglobalThis.apply = applyLanguage;', ctx);
     for (const language of ['ja', 'en', 'ja', 'en']) {
       ctx.apply(language);
       const japanese = language === 'ja';
@@ -38,7 +38,7 @@ for (const filename of targets) {
       assert.equal(help.attributes['aria-label'], japanese ? '使い方と注意事項' : 'How to use & notes');
       assert.equal(help.title, help.attributes['aria-label']);
       assert.equal(privacy.textContent, japanese ? '完全ローカル処理' : 'Fully local processing');
-      assert.equal(saved['pdf-organizer-language'], language);
+      assert.deepEqual(saved, {}, 'rendering never writes legacy or common language');
     }
   });
 }

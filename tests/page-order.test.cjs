@@ -32,7 +32,7 @@ function harness(filename) {
     const handlers = {};
     return { handlers, textContent: '', value: '', disabled: false, open: false, hidden: false, dataset: {}, style: {},
       classList: { add: noop, remove: noop, toggle: noop }, querySelector: () => null, querySelectorAll: () => [],
-      setAttribute: noop, append: noop, remove: noop, addEventListener: (name, fn) => { (handlers[name] ||= []).push(fn); },
+      setAttribute: noop, removeAttribute: noop, append: noop, remove: noop, addEventListener: (name, fn) => { (handlers[name] ||= []).push(fn); },
       click() { if (!this.disabled) for (const fn of handlers.click || []) fn({}); } };
   }
   const elements = new Proxy({}, { get: (o, key) => o[key] ||= element() });
@@ -40,7 +40,7 @@ function harness(filename) {
   const document = { body: element(), documentElement: element(), hidden: false, createElement: element,
     querySelector: selector => selector === 'dialog[open]' ? Object.values(elements).find(e => e.open) || null : null,
     querySelectorAll: () => [], addEventListener: (name, fn) => { listeners[name] = fn; } };
-  const ctx = vm.createContext({ console, Uint8Array, ArrayBuffer, Blob, Map, Set, Date, crypto: crypto.webcrypto,
+  const ctx = vm.createContext({ BrowserKittyUI: require("../components/ui-conventions.js"), console, Uint8Array, ArrayBuffer, Blob, Map, Set, Date, crypto: crypto.webcrypto,
     HTMLInputElement: Input, HTMLTextAreaElement: Textarea, document, elements,
     window: { PDFLib, matchMedia: () => ({ matches: false }), addEventListener: (name, fn) => { windowListeners[name] = fn; } },
     URL: { createObjectURL: b => { blobs.push(b); return 'blob:synthetic'; }, revokeObjectURL: noop },
@@ -266,4 +266,20 @@ for (const filename of targets) {
       }
     }
   });
+}
+
+for (const filename of targets) {
+ test(path.relative(root, filename)+': busy state blocks direct destructive handlers and preserves Undo', async()=>{
+  const h=await setup(filename);h.app.setBusy(true);h.app.deleteSelected();
+  assert.deepEqual(order(h),[0,1,2,3]);assert.equal(h.elements.deleteButton.disabled,true);
+  h.app.setBusy(false);h.app.deleteSelected();h.app.undo();assert.deepEqual(order(h),[0,1,2,3]);
+ });
+ test(path.relative(root, filename)+': export captures the selected scope and editable filename before awaiting', async()=>{
+  const h=await setup(filename,[1,3]);const deliveries=[];const original=h.document.createElement;
+  h.document.createElement=(tag)=>{const e=original(tag);if(tag==='a')e.click=()=>deliveries.push(e.download);return e};
+  h.elements.filenameInput.value='selected-at-start.pdf';const run=h.app.exportPdf(true);
+  h.elements.filenameInput.value='changed-later.pdf';await run;
+  assert.deepEqual(deliveries,['selected-at-start.pdf']);
+  assert.equal((await PDFLib.PDFDocument.load(await h.blobs[0].arrayBuffer())).getPageCount(),2);
+ });
 }

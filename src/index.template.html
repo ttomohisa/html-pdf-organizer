@@ -1236,7 +1236,7 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
-  
+
 /* mobile-enhancements: integrated */
 /* Mobile UX and live-sort enhancements injected by build-offline.ps1. */
 
@@ -1630,6 +1630,9 @@ body.is-sorting .page-card.drag-source {
 }
 
 </style>
+<style>__BK_UI_CSS__</style>
+<style>.app-header{z-index:110} #operationStatus,#retentionStatus{margin:8px 0}.header-actions button{min-width:44px;min-height:44px}</style>
+<script data-bk-ui-version="1.0.0">__BK_UI_JS__</script>
 </head>
 <body>
   <header class="app-header">
@@ -1644,13 +1647,16 @@ body.is-sorting .page-card.drag-source {
         </div>
       </div>
       <div class="header-actions">
-        <button class="button ghost language-button" id="languageButton" type="button" title="Switch to English" aria-label="Switch to English">EN</button>
-        <button class="button ghost icon-only" id="helpButton" type="button" data-i18n-title="helpTitle" data-i18n-aria-label="helpTitle" title="使い方と注意事項" aria-label="使い方と注意事項"></button>
+        <button class="button ghost language-button" id="languageButton" data-bk-button data-bk-variant="secondary" type="button" title="Switch to English" aria-label="Switch to English">EN</button>
+        <button class="button ghost icon-only" id="helpButton" data-bk-button data-bk-variant="secondary" type="button" data-i18n-title="helpTitle" data-i18n-aria-label="helpTitle" title="使い方と注意事項" aria-label="使い方と注意事項"></button>
       </div>
     </div>
   </header>
 
   <main class="main">
+    <p id="retentionStatus" role="status" data-bk-save-status></p>
+  <p id="operationStatus" role="status" aria-live="polite"></p>
+
     <section class="initial-overview" id="initialOverview" aria-labelledby="overviewHeading">
       <div class="overview-copy">
         <span class="overview-label" data-i18n="overviewLabel">PDF Organizerでできること</span>
@@ -1682,7 +1688,7 @@ body.is-sorting .page-card.drag-source {
         <div class="drop-icon" id="initialDropIcon" aria-hidden="true"></div>
         <h2 data-i18n="dropHeading">PDF・画像を追加して始める</h2>
         <p data-i18n="dropDescription">PDF・JPG・PNG・WebPをまとめて、そのまま追加できます。</p>
-        <button class="button primary" id="initialAddButton" type="button">
+        <button class="button primary" id="initialAddButton" data-bk-button data-bk-variant="secondary" type="button">
           <span id="initialAddIcon" aria-hidden="true"></span>
           <span data-i18n="choosePdf">PDF・画像を選択</span>
         </button>
@@ -1712,21 +1718,21 @@ body.is-sorting .page-card.drag-source {
       <div class="toolbar" role="toolbar" data-i18n-aria-label="pageEditing" aria-label="ページ編集">
         <div class="selection-status" id="selectionStatus" aria-live="polite"></div>
         <div class="toolbar-group">
-          <button class="button" id="selectAllButton" type="button"><span id="selectAllIcon"></span><span class="button-label optional" data-i18n="selectAll">すべて選択</span></button>
-          <button class="button" id="clearSelectionButton" type="button"><span id="clearSelectionIcon"></span><span class="button-label optional" data-i18n="clearSelection">選択解除</span></button>
+          <button class="button" id="selectAllButton" data-bk-button data-bk-variant="secondary" type="button"><span id="selectAllIcon"></span><span class="button-label optional" data-i18n="selectAll">すべて選択</span></button>
+          <button class="button" id="clearSelectionButton" data-bk-button data-bk-variant="secondary" type="button"><span id="clearSelectionIcon"></span><span class="button-label optional" data-i18n="clearSelection">選択解除</span></button>
         </div>
         <div class="toolbar-divider" aria-hidden="true"></div>
         <div class="toolbar-group">
-          <button class="button" id="moveStartButton" type="button" data-i18n-title="moveSelectionStart" data-i18n-aria-label="moveSelectionStart" title="選択ページを先頭へ" aria-label="選択ページを先頭へ"><span id="moveStartIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveStart">先頭へ</span></button>
-          <button class="button" id="moveEndButton" type="button" data-i18n-title="moveSelectionEnd" data-i18n-aria-label="moveSelectionEnd" title="選択ページを末尾へ" aria-label="選択ページを末尾へ"><span id="moveEndIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveEnd">末尾へ</span></button>
-          <button class="button" id="rotateLeftButton" type="button"><span id="rotateLeftIcon"></span><span class="button-label optional" data-i18n="rotateLeft">左回転</span></button>
-          <button class="button" id="rotateRightButton" type="button"><span id="rotateRightIcon"></span><span class="button-label optional" data-i18n="rotateRight">右回転</span></button>
-          <button class="button danger" id="deleteButton" type="button"><span id="deleteIcon"></span><span class="button-label optional" data-i18n="delete">削除</span></button>
+          <button class="button" id="moveStartButton" data-bk-button data-bk-variant="secondary" type="button" data-i18n-title="moveSelectionStart" data-i18n-aria-label="moveSelectionStart" title="選択ページを先頭へ" aria-label="選択ページを先頭へ"><span id="moveStartIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveStart">先頭へ</span></button>
+          <button class="button" id="moveEndButton" data-bk-button data-bk-variant="secondary" type="button" data-i18n-title="moveSelectionEnd" data-i18n-aria-label="moveSelectionEnd" title="選択ページを末尾へ" aria-label="選択ページを末尾へ"><span id="moveEndIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveEnd">末尾へ</span></button>
+          <button class="button" id="rotateLeftButton" data-bk-button data-bk-variant="secondary" type="button"><span id="rotateLeftIcon"></span><span class="button-label optional" data-i18n="rotateLeft">左回転</span></button>
+          <button class="button" id="rotateRightButton" data-bk-button data-bk-variant="secondary" type="button"><span id="rotateRightIcon"></span><span class="button-label optional" data-i18n="rotateRight">右回転</span></button>
+          <button class="button danger" id="deleteButton" data-bk-button data-bk-variant="secondary" type="button"><span id="deleteIcon"></span><span class="button-label optional" data-i18n="delete">削除</span></button>
         </div>
         <div class="toolbar-divider" aria-hidden="true"></div>
         <div class="toolbar-group">
-          <button class="button icon-only" id="undoButton" type="button" data-i18n-title="undoTitle" data-i18n-aria-label="undo" title="元に戻す (Ctrl/⌘ + Z)" aria-label="元に戻す"></button>
-          <button class="button icon-only" id="redoButton" type="button" data-i18n-title="redoTitle" data-i18n-aria-label="redo" title="やり直す (Ctrl/⌘ + Shift + Z)" aria-label="やり直す"></button>
+          <button class="button icon-only" id="undoButton" data-bk-button data-bk-variant="secondary" type="button" data-i18n-title="undoTitle" data-i18n-aria-label="undo" title="元に戻す (Ctrl/⌘ + Z)" aria-label="元に戻す"></button>
+          <button class="button icon-only" id="redoButton" data-bk-button data-bk-variant="secondary" type="button" data-i18n-title="redoTitle" data-i18n-aria-label="redo" title="やり直す (Ctrl/⌘ + Shift + Z)" aria-label="やり直す"></button>
         </div>
         <div class="toolbar-spacer"></div>
         <label class="zoom-control" data-i18n-title="thumbnailSize" title="サムネイルの大きさ">
@@ -1734,7 +1740,7 @@ body.is-sorting .page-card.drag-source {
           <input id="zoomSlider" type="range" min="120" max="250" step="10" value="174" data-i18n-aria-label="thumbnailSize" aria-label="サムネイルの大きさ">
           <span id="zoomLargeIcon" aria-hidden="true"></span>
         </label>
-        <button class="button danger ghost" id="clearAllButton" type="button"><span id="clearAllIcon"></span><span class="button-label optional" data-i18n="clearAll">すべて削除</span></button>
+        <button class="button danger ghost" id="clearAllButton" data-bk-button data-bk-variant="secondary" type="button"><span id="clearAllIcon"></span><span class="button-label optional" data-i18n="clearAll">すべて削除</span></button>
       </div>
 
       <div class="pages-grid" id="pagesGrid" data-i18n-aria-label="pdfPageList" aria-label="PDFページ一覧"></div>
@@ -1756,10 +1762,10 @@ body.is-sorting .page-card.drag-source {
     <div class="filename-wrap">
       <label class="sr-only" for="filenameInput" data-i18n="filenameLabel">保存ファイル名</label>
       <input class="filename-input" id="filenameInput" type="text" value="organized.pdf" maxlength="180" autocomplete="off" spellcheck="false">
-      <button class="button icon-only ghost output-password-button" id="outputPasswordButton" type="button" aria-label="出力PDFにパスワードを設定" title="出力PDFにパスワードを設定"><span id="outputPasswordIcon" aria-hidden="true"></span></button>
+      <button class="button icon-only ghost output-password-button" id="outputPasswordButton" data-bk-button data-bk-variant="secondary" type="button" aria-label="出力PDFにパスワードを設定" title="出力PDFにパスワードを設定"><span id="outputPasswordIcon" aria-hidden="true"></span></button>
     </div>
-    <button class="button" id="saveSelectedButton" type="button"><span id="saveSelectedIcon"></span><span class="button-label" data-i18n="saveSelected">選択ページを保存</span></button>
-    <button class="button primary" id="saveAllButton" type="button"><span id="saveAllIcon"></span><span class="button-label" data-i18n="saveAll">すべて保存</span></button>
+    <button class="button" id="saveSelectedButton" data-bk-button data-bk-variant="secondary" type="button"><span id="saveSelectedIcon"></span><span class="button-label" data-i18n="saveSelected">選択ページを保存</span></button>
+    <button class="button primary" id="saveAllButton" data-bk-button data-bk-variant="primary" type="button"><span id="saveAllIcon"></span><span class="button-label" data-i18n="saveAll">すべて保存</span></button>
   </div>
 
   <div id="pptxExportSandbox" aria-hidden="true"></div>
@@ -2353,8 +2359,8 @@ body.is-sorting .page-card.drag-source {
         moveSelectionEnd: "選択ページを末尾へ",
         rotateLeft: "左回転",
         rotateRight: "右回転",
-        delete: "削除",
-        clearAll: "すべて削除",
+        delete: "一覧から取り除く",
+        clearAll: "全ページを一覧から取り除く",
         undo: "元に戻す",
         redo: "やり直す",
         undoTitle: "元に戻す (Ctrl/⌘ + Z)",
@@ -2367,7 +2373,7 @@ body.is-sorting .page-card.drag-source {
         saveSelected: "選択ページを保存",
         saveSelectedCount: "選択 {count}ページを保存",
         saveSelectedCompact: "選択 {count}P 保存",
-        saveAll: "すべて保存",
+        saveAll: "全ページをPDFで保存",
         outputPasswordButtonInactive: "出力PDFにパスワードを設定",
         outputPasswordButtonActive: "出力パスワード設定済み",
         outputPasswordDialogTitle: "出力PDFをパスワードで保護",
@@ -2385,7 +2391,7 @@ body.is-sorting .page-card.drag-source {
         outputPasswordCleared: "出力PDFのパスワード設定を解除しました",
         protectingPdf: "PDFをパスワードで保護しています",
         protectingPdfDetail: "AES-256で暗号化しています",
-        savedProtectedPdf: "{count}ページのパスワード付きPDFを保存しました",
+        savedProtectedPdf: "{count}ページのパスワード付きPDFの保存を開始しました",
         outputPasswordProtectionFailed: "PDFのパスワード保護に失敗しました",
         busyDefault: "処理しています",
         previewHeading: "ページプレビュー",
@@ -2480,7 +2486,7 @@ body.is-sorting .page-card.drag-source {
         processingSource: "{name} を処理中",
         pageProgress: "{current} / {total}ページ",
         pageBuildFailed: "ページの生成に失敗しました",
-        savedPdf: "{count}ページのPDFを保存しました",
+        savedPdf: "{count}ページのPDFの保存を開始しました",
         generationFailed: "PDFの生成に失敗しました",
         clearedAll: "{count}ページを一覧から削除しました",
         libraryLoadFailed: "内蔵ライブラリの読み込みに失敗しました。ページを再読み込みしてください。"
@@ -2521,8 +2527,8 @@ body.is-sorting .page-card.drag-source {
         moveSelectionEnd: "Move selection to end",
         rotateLeft: "Rotate left",
         rotateRight: "Rotate right",
-        delete: "Delete",
-        clearAll: "Remove all",
+        delete: "Remove from list",
+        clearAll: "Remove all pages from list",
         undo: "Undo",
         redo: "Redo",
         undoTitle: "Undo (Ctrl/⌘ + Z)",
@@ -2532,10 +2538,10 @@ body.is-sorting .page-card.drag-source {
         noPagesHeading: "No pages",
         noPagesBody: "Add a PDF, image, or PowerPoint file, or undo your last change.",
         filenameLabel: "Output filename",
-        saveSelected: "Save selected",
-        saveSelectedCount: "Save {count} selected",
+        saveSelected: "Save selected pages as PDF",
+        saveSelectedCount: "Save {count} selected pages as PDF",
         saveSelectedCompact: "Save {count}",
-        saveAll: "Save all",
+        saveAll: "Save all pages as PDF",
         outputPasswordButtonInactive: "Set an output PDF password",
         outputPasswordButtonActive: "Output password is set",
         outputPasswordDialogTitle: "Password-protect output PDF",
@@ -2553,7 +2559,7 @@ body.is-sorting .page-card.drag-source {
         outputPasswordCleared: "Output PDF password removed",
         protectingPdf: "Password-protecting PDF",
         protectingPdfDetail: "Encrypting with AES-256",
-        savedProtectedPdf: "Saved a password-protected {count}-page PDF",
+        savedProtectedPdf: "Download started: password-protected PDF, {count} pages",
         outputPasswordProtectionFailed: "Failed to password-protect the PDF",
         busyDefault: "Working",
         previewHeading: "Page preview",
@@ -2648,7 +2654,7 @@ body.is-sorting .page-card.drag-source {
         processingSource: "Processing {name}",
         pageProgress: "{current} / {total} pages",
         pageBuildFailed: "Failed to generate a page",
-        savedPdf: "Saved a {count}-page PDF",
+        savedPdf: "Download started: PDF, {count} pages",
         generationFailed: "Failed to generate the PDF",
         clearedAll: "Removed {count} pages from the list",
         libraryLoadFailed: "Libraries failed to load. Check your internet connection and reload the page."
@@ -2656,21 +2662,33 @@ body.is-sorting .page-card.drag-source {
     };
 
     const LANGUAGE_STORAGE_KEY = "pdf-organizer-language";
-    let currentLanguage = (() => {
-      try {
-        const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-        if (saved === "ja" || saved === "en") return saved;
-      } catch {}
-      return navigator.language?.toLowerCase().startsWith("ja") ? "ja" : "en";
-    })();
+    let currentLanguage = BrowserKittyUI.resolveLanguage({ legacyKeys: [LANGUAGE_STORAGE_KEY] });
+    let languageSessionOnly = false;
 
     function t(key, values = {}) {
       const template = translations[currentLanguage]?.[key] ?? translations.ja[key] ?? key;
       return String(template).replace(/\{(\w+)\}/g, (_, name) => values[name] ?? "");
     }
 
+    function translateLiveCopy(previousLanguage) {
+      const nodes = [elements.busyTitle, elements.busyDetail, ...document.querySelectorAll(".toast-message")];
+      for (const node of nodes) {
+        for (const [key, template] of Object.entries(translations[previousLanguage])) {
+          const names = [];
+          const pattern = template.split(/(\{\w+\})/).map(part => {
+            if (/^\{/.test(part)) { names.push(part.slice(1,-1)); return "(.*?)"; }
+            return part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          }).join("");
+          const match = node.textContent.match(new RegExp("^" + pattern + "$"));
+          if (match) { node.textContent = t(key, Object.fromEntries(names.map((name,i)=>[name,match[i+1]]))); break; }
+        }
+      }
+    }
+
     function applyLanguage(language, rerender = true) {
+      const previousLanguage = currentLanguage;
       currentLanguage = language === "en" ? "en" : "ja";
+      translateLiveCopy(previousLanguage);
       document.documentElement.lang = currentLanguage;
       document.title = t("documentTitle");
       document.querySelector('meta[name="description"]')?.setAttribute("content", t("metaDescription"));
@@ -2681,7 +2699,9 @@ body.is-sorting .page-card.drag-source {
       elements.languageButton.textContent = currentLanguage === "ja" ? "EN" : "JA";
       elements.languageButton.title = t("switchLanguage");
       elements.languageButton.setAttribute("aria-label", t("switchLanguage"));
-      try { localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLanguage); } catch {}
+      BrowserKittyUI.setSaveStatus(document.querySelector("#retentionStatus"), {mode:"session", language:currentLanguage});
+      document.querySelector("#operationStatus").textContent = languageSessionOnly ? BrowserKittyUI.text("languageSessionOnly", currentLanguage) : "";
+
       if (rerender && state.pages.length) renderGrid();
       else updateUiState();
       updatePasswordVisibilityUi();
@@ -2936,6 +2956,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function showToast(message, type = "info", duration = 4500) {
+      if (type === "error") { const status = document.querySelector("#operationStatus"); status.textContent = message; status.setAttribute("role", "alert"); }
       const toast = document.createElement("div");
       toast.className = `toast ${type === "error" ? "error" : ""}`;
       toast.setAttribute("role", type === "error" ? "alert" : "status");
@@ -2956,7 +2977,10 @@ body.is-sorting .page-card.drag-source {
 
       toast.append(icon, body, close);
       elements.toastRegion.append(toast);
-      const remove = () => toast.remove();
+      const remove = () => {
+        if (toast.contains(document.activeElement)) { toast.addEventListener("focusout", () => setTimeout(remove, 0), { once:true }); return; }
+        toast.remove();
+      };
       close.addEventListener("click", remove);
       if (duration > 0) setTimeout(remove, duration);
     }
@@ -3046,6 +3070,12 @@ body.is-sorting .page-card.drag-source {
       elements.undoButton.disabled = state.history.length === 0;
       elements.redoButton.disabled = state.future.length === 0;
       updateOutputPasswordUi();
+      elements.addButton.disabled = state.isBusy;
+      const controls = [elements.moveStartButton, elements.moveEndButton, elements.clearSelectionButton,
+        elements.rotateLeftButton, elements.rotateRightButton, elements.deleteButton, elements.saveSelectedButton,
+        elements.selectAllButton, elements.clearAllButton, elements.saveAllButton, elements.undoButton, elements.redoButton, elements.addButton];
+      for (const button of controls) BrowserKittyUI.setButtonState(button, state.isBusy ? "busy" : button.disabled ? "unavailable" : "ready");
+      elements.filenameInput.disabled = state.isBusy;
     }
 
     function updatePasswordVisibilityButton(input, button, iconId) {
@@ -3319,6 +3349,8 @@ body.is-sorting .page-card.drag-source {
       button.className = `icon-button${danger ? " danger" : ""}`;
       button.type = "button";
       button.dataset.action = action;
+      button.dataset.bkButton = ""; button.dataset.bkVariant = "secondary";
+      BrowserKittyUI.setButtonState(button, state.isBusy ? "busy" : "ready");
       button.title = label;
       button.setAttribute("aria-label", label);
       button.innerHTML = icon;
@@ -3423,7 +3455,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function deleteSelected() {
-      if (!state.selected.size) return;
+      if (state.isBusy || !state.selected.size) return;
       const count = state.selected.size;
       performEdit(() => {
         state.pages = state.pages.filter((page) => !state.selected.has(page.id));
@@ -4002,7 +4034,7 @@ body.is-sorting .page-card.drag-source {
         } catch (error) { console.warn("Could not inline PPTX SVG image", error); }
       }
 
-      // Tiled picture fills are represented by CSS background-image: url(blob:…). 
+      // Tiled picture fills are represented by CSS background-image: url(blob:…).
       const sourceNodes = sourceElement.querySelectorAll("*");
       const cloneNodes = clone.querySelectorAll("*");
       for (let index = 0; index < sourceNodes.length; index++) {
@@ -4284,6 +4316,8 @@ body.is-sorting .page-card.drag-source {
       const targetPages = selectedOnly
         ? state.pages.filter((page) => state.selected.has(page.id))
         : [...state.pages];
+      const outputFilename = sanitizeFilename(elements.filenameInput.value);
+      const protection = { ...outputProtection };
       if (!targetPages.length) {
         showToast(t("noPagesToSave"), "error");
         return;
@@ -4353,13 +4387,13 @@ body.is-sorting .page-card.drag-source {
         output.setModificationDate(new Date());
 
         let bytes = await output.save({ useObjectStreams: true });
-        const protectOutput = outputProtection.enabled && !!outputProtection.password;
+        const protectOutput = protection.enabled && !!protection.password;
         if (protectOutput) {
           elements.busyTitle.textContent = t("protectingPdf");
           elements.busyDetail.textContent = t("protectingPdfDetail");
           try {
             const encryptor = await ensurePdfEncrypt();
-            bytes = await encryptor.encryptPDF(new Uint8Array(bytes), outputProtection.password, { algorithm: "AES-256" });
+            bytes = await encryptor.encryptPDF(new Uint8Array(bytes), protection.password, { algorithm: "AES-256" });
           } catch (error) {
             console.error(error);
             throw new Error(`${t("outputPasswordProtectionFailed")}: ${error?.message || ""}`.replace(/:\s*$/, ""));
@@ -4369,7 +4403,7 @@ body.is-sorting .page-card.drag-source {
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = url;
-        anchor.download = sanitizeFilename(elements.filenameInput.value);
+        anchor.download = outputFilename;
         document.body.append(anchor);
         anchor.click();
         anchor.remove();
@@ -4920,7 +4954,7 @@ body.is-sorting .page-card.drag-source {
     elements.outputPasswordDialog.addEventListener("close", resetOutputPasswordVisibility);
 
     elements.clearAllButton.addEventListener("click", () => {
-      if (!state.pages.length) return;
+      if (state.isBusy || !state.pages.length) return;
       const count = state.pages.length;
       performEdit(() => {
         state.pages = [];
@@ -4965,7 +4999,11 @@ body.is-sorting .page-card.drag-source {
       previewResizeTimer = setTimeout(() => renderPreview(state.previewPageId), 120);
     });
 
-    elements.languageButton.addEventListener("click", () => applyLanguage(currentLanguage === "ja" ? "en" : "ja"));
+    elements.languageButton.addEventListener("click", () => {
+      const result = BrowserKittyUI.chooseLanguage(currentLanguage === "ja" ? "en" : "ja");
+      languageSessionOnly = !result.persisted;
+      applyLanguage(result.language);
+    });
     elements.helpButton.addEventListener("click", () => elements.helpDialog.showModal());
     elements.closeHelpButton.addEventListener("click", () => elements.helpDialog.close());
     elements.helpDialog.addEventListener("click", (event) => {
@@ -5229,6 +5267,7 @@ body.is-sorting .page-card.drag-source {
         toast.classList.add("undoable");
         const action = document.createElement("button");
         action.className = "toast-action";
+        action.dataset.bkButton = ""; action.dataset.bkVariant = "secondary";
         action.type = "button";
         action.textContent = t("undo");
         action.addEventListener("click", () => {
@@ -5255,6 +5294,7 @@ body.is-sorting .page-card.drag-source {
       const mobileClearSelectionButton = document.createElement("button");
       mobileClearSelectionButton.type = "button";
       mobileClearSelectionButton.className = "mobile-clear-selection";
+      mobileClearSelectionButton.dataset.bkButton = ""; mobileClearSelectionButton.dataset.bkVariant = "secondary";
       mobileClearSelectionButton.addEventListener("click", () => elements.clearSelectionButton.click());
       const dockHistory = document.createElement("div");
       dockHistory.className = "mobile-dock-history";
@@ -5267,6 +5307,7 @@ body.is-sorting .page-card.drag-source {
         button.setAttribute("aria-label", label);
         button.title = label;
         button.addEventListener("click", () => source.click());
+        button.dataset.bkButton = ""; button.dataset.bkVariant = "secondary";
         button._sourceButton = source;
         return button;
       }
@@ -5287,6 +5328,7 @@ body.is-sorting .page-card.drag-source {
         button.innerHTML = `${icon}<span></span>`;
         button.dataset.labelKey = labelKey;
         button.addEventListener("click", () => source.click());
+        button.dataset.bkButton = ""; button.dataset.bkVariant = "secondary";
         button._sourceButton = source;
         dockProxyButtons.push(button);
         return button;
@@ -5325,7 +5367,8 @@ body.is-sorting .page-card.drag-source {
         button.className = `mobile-tools-action${danger ? " danger" : ""}`;
         button.innerHTML = `${icon}<span></span>`;
         button.querySelector("span").textContent = label;
-        button.disabled = source.disabled;
+        button.dataset.bkButton = ""; button.dataset.bkVariant = "secondary";
+        BrowserKittyUI.setButtonState(button, state.isBusy ? "busy" : source.disabled ? "unavailable" : "ready");
         button.addEventListener("click", () => {
           mobileToolsDialog.close();
           source.click();

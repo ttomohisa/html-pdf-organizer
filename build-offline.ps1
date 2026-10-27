@@ -265,6 +265,8 @@ $manifestJson = $manifest | ConvertTo-Json -Compress -Depth 8
 
 Write-Step "Generating standalone HTML"
 $template = [System.IO.File]::ReadAllText($TemplatePath, [System.Text.Encoding]::UTF8)
+. (Join-Path $Root "scripts/embed-ui-conventions.ps1")
+$template = Expand-BrowserKittyUI -Template $template -ComponentsPath (Join-Path $Root "components")
 $replacements = [ordered]@{
   "__PDF_ENCRYPT_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfEncryptSource
   "__PDF_LIB_GZIP_BASE64__" = Get-GzipBase64FromUtf8 $pdfLibSource
