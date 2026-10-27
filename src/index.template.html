@@ -1655,7 +1655,7 @@ body.is-sorting .page-card.drag-source {
 
   <main class="main">
     <p id="retentionStatus" role="status" data-bk-save-status></p>
-  <p id="operationStatus" role="status" aria-live="polite"></p>
+  <p id="operationStatus" role="status" aria-live="polite"></p><p id="languageStatus" role="status"></p>
 
     <section class="initial-overview" id="initialOverview" aria-labelledby="overviewHeading">
       <div class="overview-copy">
@@ -2671,9 +2671,11 @@ body.is-sorting .page-card.drag-source {
     }
 
     function translateLiveCopy(previousLanguage) {
-      const nodes = [elements.busyTitle, elements.busyDetail, ...document.querySelectorAll(".toast-message")];
-      for (const node of nodes) {
-        for (const [key, template] of Object.entries(translations[previousLanguage])) {
+      const rewrite = (node, keys = Object.keys(translations[previousLanguage])) => {
+        if (!node) return;
+        for (const key of keys) {
+          const template = translations[previousLanguage][key];
+          if (!template) continue;
           const names = [];
           const pattern = template.split(/(\{\w+\})/).map(part => {
             if (/^\{/.test(part)) { names.push(part.slice(1,-1)); return "(.*?)"; }
@@ -2682,7 +2684,10 @@ body.is-sorting .page-card.drag-source {
           const match = node.textContent.match(new RegExp("^" + pattern + "$"));
           if (match) { node.textContent = t(key, Object.fromEntries(names.map((name,i)=>[name,match[i+1]]))); break; }
         }
-      }
+      };
+      [elements.busyTitle, elements.outputPasswordError, document.querySelector("#operationStatus"), ...document.querySelectorAll(".toast-message")].forEach(node => rewrite(node));
+      // Only authored progress templates can translate; a bare source filename stays literal.
+      rewrite(elements.busyDetail, ["fileProgress", "processingSource", "pageProgress", "pageCount", "protectingPdfDetail"]);
     }
 
     function applyLanguage(language, rerender = true) {
@@ -2700,7 +2705,7 @@ body.is-sorting .page-card.drag-source {
       elements.languageButton.title = t("switchLanguage");
       elements.languageButton.setAttribute("aria-label", t("switchLanguage"));
       BrowserKittyUI.setSaveStatus(document.querySelector("#retentionStatus"), {mode:"session", language:currentLanguage});
-      document.querySelector("#operationStatus").textContent = languageSessionOnly ? BrowserKittyUI.text("languageSessionOnly", currentLanguage) : "";
+      document.querySelector("#languageStatus").textContent = languageSessionOnly ? BrowserKittyUI.text("languageSessionOnly", currentLanguage) : "";
 
       if (rerender && state.pages.length) renderGrid();
       else updateUiState();
@@ -2994,6 +2999,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function performEdit(mutator) {
+      if (state.isBusy) return;
       cancelPointerDrag();
       const before = clonePages();
       mutator();
@@ -3076,6 +3082,8 @@ body.is-sorting .page-card.drag-source {
         elements.selectAllButton, elements.clearAllButton, elements.saveAllButton, elements.undoButton, elements.redoButton, elements.addButton];
       for (const button of controls) BrowserKittyUI.setButtonState(button, state.isBusy ? "busy" : button.disabled ? "unavailable" : "ready");
       elements.filenameInput.disabled = state.isBusy;
+      elements.pagesGrid.querySelectorAll("select[data-image-layout]").forEach(select => { select.disabled = state.isBusy; });
+      elements.pagesGrid.querySelectorAll("button[data-action]").forEach(button => BrowserKittyUI.setButtonState(button, state.isBusy ? "busy" : "ready"));
     }
 
     function updatePasswordVisibilityButton(input, button, iconId) {
@@ -3318,6 +3326,7 @@ body.is-sorting .page-card.drag-source {
         const select = document.createElement("select");
         select.className = "image-layout-select";
         select.dataset.imageLayout = item.id;
+        select.disabled = state.isBusy;
         select.setAttribute("aria-label", t("imageLayoutLabel"));
         [["fit", t("layoutFit")], ["fill", t("layoutFill")], ["original", t("layoutOriginal")]].forEach(([value, label]) => {
           const option = document.createElement("option");
@@ -4314,8 +4323,8 @@ body.is-sorting .page-card.drag-source {
     async function exportPdf(selectedOnly = false) {
       if (state.isBusy) return;
       const targetPages = selectedOnly
-        ? state.pages.filter((page) => state.selected.has(page.id))
-        : [...state.pages];
+        ? state.pages.filter((page) => state.selected.has(page.id)).map(page => ({ ...page }))
+        : clonePages();
       const outputFilename = sanitizeFilename(elements.filenameInput.value);
       const protection = { ...outputProtection };
       if (!targetPages.length) {
@@ -4829,6 +4838,7 @@ body.is-sorting .page-card.drag-source {
     });
 
     elements.pagesGrid.addEventListener("change", (event) => {
+      if (state.isBusy) return;
       const select = event.target.closest("select[data-image-layout]");
       if (!select) return;
       const item = state.pages.find((page) => page.id === select.dataset.imageLayout);
@@ -4845,6 +4855,7 @@ body.is-sorting .page-card.drag-source {
     });
 
     elements.pagesGrid.addEventListener("click", (event) => {
+      if (state.isBusy) return;
       if (Date.now() < state.suppressClickUntil) return;
       const card = event.target.closest(".page-card");
       if (!card) return;

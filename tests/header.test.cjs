@@ -19,10 +19,13 @@ for (const filename of targets) {
     const help = element({ i18nTitle: 'helpTitle', i18nAriaLabel: 'helpTitle' });
     const languageButton = element();
     const saved = {};
-    const document = { documentElement: {}, querySelector: selector => selector === 'meta[name="description"]' ? null : element(), querySelectorAll: selector => ({
+    const nodes = new Map(); const node = selector => {if(!nodes.has(selector))nodes.set(selector,{...element(),textContent:""});return nodes.get(selector)};
+    node("#operationStatus").textContent="PDFの生成に失敗しました";
+    const outputPasswordError={textContent:"パスワードが一致しません。",hidden:false};
+    const document = { documentElement: {}, querySelector: selector => selector === 'meta[name="description"]' ? null : node(selector), querySelectorAll: selector => ({
       '[data-i18n]': [privacy], '[data-i18n-html]': [], '[data-i18n-title]': [help], '[data-i18n-aria-label]': [help]
     }[selector] || []) };
-    const ctx = vm.createContext({ document, BrowserKittyUI: require("../components/ui-conventions.js"), elements: { languageButton, busyTitle: {textContent:""}, busyDetail: {textContent:""}, previewDialog: { open: false } },
+    const ctx = vm.createContext({ document, BrowserKittyUI: require("../components/ui-conventions.js"), elements: { outputPasswordError, languageButton, busyTitle: {textContent:""}, busyDetail: {textContent:""}, previewDialog: { open: false } },
       state: { pages: [] }, localStorage: { setItem: (key, value) => { saved[key] = value; } },
       updateUiState() {}, updatePasswordVisibilityUi() {} });
     const translations = source.slice(source.indexOf('    const translations = {'), source.indexOf('    const LANGUAGE_STORAGE_KEY'));
@@ -39,6 +42,8 @@ for (const filename of targets) {
       assert.equal(help.title, help.attributes['aria-label']);
       assert.equal(privacy.textContent, japanese ? '完全ローカル処理' : 'Fully local processing');
       assert.deepEqual(saved, {}, 'rendering never writes legacy or common language');
+      assert.ok(node('#operationStatus').textContent,'language changes retain persistent processing error');
+      if(language==='en')assert.doesNotMatch(outputPasswordError.textContent,/[ぁ-んァ-ヶ一-龠]/,'open password error translates');
     }
   });
 }

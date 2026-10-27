@@ -283,3 +283,12 @@ for (const filename of targets) {
   assert.equal((await PDFLib.PDFDocument.load(await h.blobs[0].arrayBuffer())).getPageCount(),2);
  });
 }
+
+for(const filename of targets){
+ test(path.relative(root,filename)+': export copies page metadata and busy layout events cannot edit work',async()=>{
+  const h=await setup(filename,[1]);const before=JSON.stringify(h.app.state.pages);const run=h.app.exportPdf(true);
+  h.layout(h.app.state.pages[1].id,'original');assert.equal(JSON.stringify(h.app.state.pages),before);
+  h.app.state.pages[1].rotation=90;await run;
+  const result=await PDFLib.PDFDocument.load(await h.blobs[0].arrayBuffer());assert.equal(result.getPage(0).getRotation().angle,0);
+ });
+}
