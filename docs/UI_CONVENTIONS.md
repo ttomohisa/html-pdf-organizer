@@ -9,3 +9,5 @@ Removing pages changes the list only; original files remain intact. Existing his
 Human acceptance pending: check desktop/mobile touch layouts, keyboard focus and modal backdrop/Escape, screen-reader announcements, encrypted and selected PDF downloads. Dense thumbnail and fixed export controls retain their compact geometry; verify touch reachability, alongside 44px header targets. Run build-offline.ps1, copy dist/index.html to pdf-organizer.html, node --test. Decoded release parity is tested.
 
 Review follow-up: persistent operation errors and open password validation translate without being replaced by language-storage notices. Export page metadata is copied before awaits; layout/card controls and direct edit handlers are blocked while busy. Source filenames remain literal in progress.
+
+Pinned JS/CSS have explicit LF checkout attributes. Validate a fresh core.autocrlf=true checkout, not only current working bytes: Windows checkout conversion previously changed the bytes and failed the locked embed check. Never change the fixed hashes to accommodate line-ending conversion.
