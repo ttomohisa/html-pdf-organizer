@@ -128,7 +128,7 @@
       border-radius: 999px;
       color: var(--text-muted);
       background: var(--surface-muted);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 650;
       vertical-align: 2px;
     }
@@ -287,17 +287,27 @@
       display: inline-flex;
       align-items: center;
       gap: 7px;
+      flex: 0 0 auto;
       max-width: 100%;
-      margin-top: 9px;
-      padding: 7px 9px;
-      border-radius: 10px;
-      background: var(--accent-soft);
+      margin-top: 3px;
+      padding: 7px 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
       color: var(--accent);
-      font-size: 11px;
-      font-weight: 780;
+      font-size: 12px;
+      font-weight: 500;
       line-height: 1.35;
+      white-space: nowrap;
     }
-    .privacy-promise svg { width: 16px; height: 16px; flex: 0 0 auto; }
+    .privacy-promise svg { width: 15px; height: 15px; flex: 0 0 auto; }
+    footer { width: min(1480px, 100%); margin: 0 auto; padding: 18px clamp(14px, 2.8vw, 30px) 34px; color: var(--text-muted); font-size: 12px; text-align: left; }
+    .dialog-close { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; color: var(--text-muted); }
+    .dialog-close svg { width: 18px; height: 18px; }
+    .file-fallback-button { display: none; }
+    @media (max-width: 767px), (pointer: coarse) and (max-height: 600px) {
+      .file-fallback-button { display: block; width: 100%; margin-top: 8px; padding: 10px; border: 0; background: transparent; color: var(--accent); font-size: 13px; font-weight: 650; min-height: 44px; cursor: pointer; }
+    }
 
     .workspace[hidden], .drop-zone[hidden] { display: none !important; }
 
@@ -1161,7 +1171,7 @@
       .overview-action-icon { width: 26px; height: 26px; border-radius: 8px; }
       .overview-action-copy strong { font-size: 10px; }
       .overview-action-copy small { font-size: 8px; }
-      .privacy-promise { margin-top: 8px; padding: 6px 8px; font-size: 10px; }
+      .privacy-promise { margin-top: 8px; padding: 6px 0; font-size: 10px; }
       .drop-zone { min-height: 210px; padding: 20px 14px; }
       .drop-zone h2 { font-size: 18px; }
       .drop-zone p { margin-bottom: 13px; font-size: 12px; }
@@ -1749,8 +1759,10 @@ body.is-sorting .page-card.drag-source {
           </button>
         </div>
       </div>
+      <button class="file-fallback-button" id="fileFallbackButton" type="button" data-i18n="fileFallback">ファイルから選択</button>
     </section>
   </main>
+  <footer>PDF Organizer · MIT License · <span data-i18n="footerNote">PDFの整理はブラウザー内で完結</span></footer>
 
   <div class="export-bar" id="exportBar" hidden>
     <div class="filename-wrap">
@@ -1765,6 +1777,7 @@ body.is-sorting .page-card.drag-source {
   <div id="pptxExportSandbox" aria-hidden="true"></div>
 
   <input class="sr-only" id="fileInput" type="file" accept="application/pdf,image/jpeg,image/png,image/webp,application/vnd.openxmlformats-officedocument.presentationml.presentation,.pdf,.jpg,.jpeg,.png,.webp,.pptx" multiple>
+<input class="sr-only" id="fileFallbackInput" type="file" multiple>
 
   <div class="busy-overlay" id="busyOverlay" hidden role="status" aria-live="assertive">
     <div class="busy-card">
@@ -1864,7 +1877,7 @@ body.is-sorting .page-card.drag-source {
   <dialog id="helpDialog">
     <div class="dialog-header">
       <h2 data-i18n="helpTitle">使い方と注意事項</h2>
-      <button class="button icon-only ghost" id="closeHelpButton" type="button" data-i18n-aria-label="close" aria-label="閉じる"></button>
+      <button class="dialog-close" id="closeHelpButton" type="button" data-i18n-aria-label="close" aria-label="閉じる"></button>
     </div>
     <div class="dialog-body">
       <h3 data-i18n="basicOperations">基本操作</h3>
@@ -2178,7 +2191,7 @@ body.is-sorting .page-card.drag-source {
       help: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.3 2.3 0 1 1 3.75 1.78c-.91.69-1.55 1.16-1.55 2.22"/><path d="M12 17h.01"/></svg>`,
       upload: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7.5 8.5 4.5-4.5 4.5 4.5"/><path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/></svg>`,
       addFile: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M12 11v6M9 14h6"/></svg>`,
-      shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5.5 5.8v5.4c0 4.1 2.65 7.7 6.5 9.8 3.85-2.1 6.5-5.7 6.5-9.8V5.8L12 3Z"/><path d="m9.3 12 1.8 1.8 3.9-4"/></svg>`,
+      shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.6 2.8 8 7 10 4.2-2 7-5.4 7-10V6z"/><path d="m9 12 2 2 4-5"/></svg>`,
       selectAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="m8.8 12 2 2 4.5-4.5"/></svg>`,
       clearSelection: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="m9 9 6 6M15 9l-6 6"/></svg>`,
       moveStart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14M12 20V8m-5 5 5-5 5 5"/></svg>`,
@@ -2338,7 +2351,7 @@ body.is-sorting .page-card.drag-source {
         dropDescription: "PDF・JPG・PNG・WebP・PowerPointをまとめて、そのまま追加できます。",
         dropHint: "または、この枠内にPDF・画像・PowerPointをドラッグ＆ドロップ",
         choosePdf: "PDF・画像・PowerPointを選択",
-        privacyNote: "完全ローカル処理",
+        privacyNote: "完全ローカル処理", footerNote: "PDFの整理はブラウザー内で完結", fileFallback: "ファイルから選択",
         pageListHeading: "ページ一覧",
         workspaceGuideBody: "カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。",
         workspaceGuideBodyMobile: "ドラッグで並び替え。複数選択はまとめて移動できます。",
@@ -2506,7 +2519,7 @@ body.is-sorting .page-card.drag-source {
         dropDescription: "Add PDFs, JPGs, PNGs, WebP images, and PowerPoint files together.",
         dropHint: "Or drag and drop PDFs, images, and PowerPoint files anywhere in this box",
         choosePdf: "Choose PDFs, images & PowerPoint",
-        privacyNote: "Fully local processing",
+        privacyNote: "Fully local processing", footerNote: "PDF organizing stays in the browser", fileFallback: "Choose from files",
         pageListHeading: "Pages",
         workspaceGuideBody: "Drag any card to reorder. Selected pages move together as one group.",
         workspaceGuideBodyMobile: "Drag to reorder. Multiple selections move together.",
@@ -4896,6 +4909,8 @@ body.is-sorting .page-card.drag-source {
     elements.addButton.addEventListener("click", () => elements.fileInput.click());
     elements.emptyAddButton.addEventListener("click", () => elements.fileInput.click());
     elements.fileInput.addEventListener("change", () => addFiles(elements.fileInput.files));
+    document.getElementById("fileFallbackButton").addEventListener("click", () => document.getElementById("fileFallbackInput").click());
+    document.getElementById("fileFallbackInput").addEventListener("change", (event) => { addFiles(event.target.files); event.target.value = ""; });
 
     elements.selectAllButton.addEventListener("click", selectAll);
     elements.clearSelectionButton.addEventListener("click", clearSelection);

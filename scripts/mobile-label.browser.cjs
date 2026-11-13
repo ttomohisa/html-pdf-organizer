@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {pathToFileURL}=require('node:url');
 const {chromium}=require('playwright');
-const cfg={"language": "#languageButton", "help": "#helpButton", "modal": "#helpDialog", "scroll": "#helpDialog .dialog-body", "end": "[data-i18n=\"helpOpenSource\"]", "badge": "[data-i18n=\"privacyNote\"]", "hide": 0, "header": "#helpDialog .dialog-header"};
+const cfg={"language": "#languageButton", "help": "#helpButton", "modal": "#helpDialog", "scroll": "#helpDialog .dialog-body", "end": "[data-i18n=\"helpOpenSource\"]", "badge": "[data-i18n=\"privacyNote\"]", "hide": 0, "footer": 0, "header": "#helpDialog .dialog-header"};
 const evidence=path.resolve('test-results/mobile-label');
 async function main(){
  fs.mkdirSync(evidence,{recursive:true});const browser=await chromium.launch();
@@ -26,7 +26,7 @@ async function main(){
  assert.equal(await badge.isVisible(),width>cfg.hide,label+': existing badge visibility');
  if(width>cfg.hide)assert.ok(await badge.evaluate(el=>{const r=el.getBoundingClientRect(),p=el.parentElement.getBoundingClientRect();return r.left>=p.left-1&&r.right<=p.right+1;}),label+': label fits');
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),label+': page width');
- if(cfg.footer)assert.equal(await page.locator('body > footer').isVisible(),width>cfg.footer,label+': existing footer hiding');
+ if(cfg.footer!=null)assert.equal(await page.locator('body > footer').isVisible(),width>cfg.footer,label+': existing footer hiding');
  else assert.equal(await page.locator('body > footer').count(),0,'No informational footer is added');
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  if(width!==393)await page.screenshot({path:path.join(evidence,label+'.png')});
