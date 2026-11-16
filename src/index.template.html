@@ -1907,12 +1907,12 @@ body.is-sorting .page-card.drag-source {
     <div class="dialog-body">
       <h3 data-i18n="basicOperations">基本操作</h3>
       <ul>
-        <li data-i18n="helpAdd">PDF・JPG・PNG・WebPを追加すると、PDFの各ページと画像が同じ一覧にサムネイルで表示されます。</li>
+        <li data-i18n="helpAdd">PDF・JPG・PNG・WebP・PowerPoint（PPTX）を追加すると、PDFの各ページ、画像、スライドが同じ一覧に表示されます。</li>
         <li data-i18n="helpDrag">カードのどこをつかんでもドラッグでき、ページ順をすばやく変更できます。</li>
         <li data-i18n="helpGroupDrag">複数ページを選択してから選択中のカードをドラッグすると、まとめて順番を移動できます。</li>
         <li data-i18n="helpEdit">カードをクリックして選択し、複数ページをまとめて回転・削除できます。</li>
         <li data-i18n="helpPreview">カードの拡大ボタン、またはカードをダブルクリックするとページを大きくプレビューできます。</li>
-        <li data-i18n="helpMerge">PDFと画像を好きな順に並べて、1つのPDFとして結合保存できます。画像は Fit / Fill / Original Size を選べます。</li>
+        <li data-i18n="helpMerge">PDF・画像・PowerPointスライドを好きな順に並べて、1つのPDFとして保存できます。画像は Fit / Fill / Original Size を選べます。</li>
         <li data-i18n="helpImageLayout">画像の Fit は全体をA4内に収め、Fill はA4いっぱいに中央配置してはみ出しを切り取り、Original Size は画像自体の大きさに合わせたページを作ります。</li>
       </ul>
 
@@ -1931,14 +1931,14 @@ body.is-sorting .page-card.drag-source {
       <p data-i18n="helpModals">プレビューのページ移動ボタンはEnterやSpaceでも操作できます。</p>
 
       <h3 data-i18n="privacy">プライバシー</h3>
-      <p data-i18n="helpPrivacy">選択したPDF・画像の読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。</p>
+      <p data-i18n="helpPrivacy">選択したPDF・画像・PowerPointの読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。</p>
 
       <h3 data-i18n="limitations">制限事項</h3>
       <ul>
         <li data-i18n="limitPassword">パスワード付きPDFは正しいパスワードで開けます。出力PDFにも必要に応じてAES-256のパスワードを設定できます。</li>
         <li data-i18n="limitMetadata">保存時に、しおり、添付ファイル、電子署名、フォームなどの文書レベル情報が引き継がれない場合があります。</li>
         <li data-i18n="limitSignature">電子署名付きPDFを編集すると、署名は無効になります。</li>
-        <li data-i18n="limitMemory">ページ数や画像量が多いPDFでは、端末のメモリを多く使用します。</li>
+        <li data-i18n="limitMemory">ページ数が多いPDF、高解像度画像、スライド数や図表が多いPowerPointでは、端末のメモリを多く使用します。</li>
       </ul>
 
       <h3 data-i18n="openSource">オープンソース</h3>
@@ -2357,7 +2357,7 @@ body.is-sorting .page-card.drag-source {
     const translations = {
       ja: {
         documentTitle: "PDF Organizer — ページ整理ツール",
-        metaDescription: "PDF・JPG・PNG・WebPをブラウザ内だけでページとしてまとめ、並び替え・回転・削除・結合・保存できるツールです。",
+        metaDescription: "PDF・画像・PowerPoint（PPTX）のページをブラウザ内で並び替え・回転・削除・結合・保存できるツールです。",
         brandSubtitle: "PDF・画像ページの並び替え・回転・削除・結合",
         switchLanguage: "Switch to English",
         helpTitle: "使い方と注意事項",
@@ -4056,6 +4056,25 @@ body.is-sorting .page-card.drag-source {
       return rgb(Math.min(255, +match[1]) / 255, Math.min(255, +match[2]) / 255, Math.min(255, +match[3]) / 255);
     };
 
+    function pptxVectorPathIsOpaque(path, slideElement, style, fill, stroke) {
+      // The raster already contains these shapes. Drawing semi-transparent
+      // vectors again would darken them, including overlapping figures.
+      const alpha = (color) => {
+        const match = String(color || "").match(/^rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+(?:\s*,\s*([\d.]+))?\s*\)$/i);
+        return match ? Number(match[1] ?? 1) : 0;
+      };
+      if (fill && (alpha(style.fill) < 0.999 || Number(style.fillOpacity) < 0.999)) return false;
+      if (stroke && (alpha(style.stroke) < 0.999 || Number(style.strokeOpacity) < 0.999)) return false;
+      for (let node = path; node; node = node.parentElement) {
+        const computed = getComputedStyle(node);
+        if (Number(computed.opacity) < 0.999 ||
+            (computed.mixBlendMode && computed.mixBlendMode !== "normal") ||
+            (computed.filter && computed.filter !== "none")) return false;
+        if (node === slideElement) break;
+      }
+      return true;
+    }
+
     async function blobImageUrlToDataUrl(url) {
       if (!String(url || "").startsWith("blob:")) return url;
       // connect-src is intentionally 'none', so fetch(blob:…) is blocked by CSP.
@@ -4309,7 +4328,17 @@ body.is-sorting .page-card.drag-source {
 
     function addPptxVectorOverlay(page, slideElement, pageHeight) {
       const rootRect = slideElement.getBoundingClientRect();
-      for (const path of slideElement.querySelectorAll("svg path[d]")) {
+      const paths = slideElement.querySelectorAll("svg path[d]");
+      // Even an opaque overlay can cover a translucent shape above it in
+      // the original slide. Keep the entire raster unchanged in that case.
+      for (const path of paths) {
+        if (path.closest("defs")) continue;
+        const style = getComputedStyle(path);
+        const fill = style.fill === "none" ? null : pptxCssColor(style.fill);
+        const stroke = style.stroke === "none" ? null : pptxCssColor(style.stroke);
+        if ((fill || stroke) && !pptxVectorPathIsOpaque(path, slideElement, style, fill, stroke)) return;
+      }
+      for (const path of paths) {
         const svg = path.closest("svg");
         if (!svg || path.closest("defs") || path.hasAttribute("transform") || path.closest("g[transform]")) continue;
         if (svg.querySelector("linearGradient,radialGradient,pattern,filter,mask,clipPath,image,foreignObject,text")) continue;
@@ -4323,7 +4352,7 @@ body.is-sorting .page-card.drag-source {
         const fill = style.fill === "none" ? null : pptxCssColor(style.fill);
         const stroke = style.stroke === "none" ? null : pptxCssColor(style.stroke);
         if (!fill && !stroke) continue;
-        const opacity = Math.max(0, Math.min(1, Number(style.opacity) || 1));
+        if (!pptxVectorPathIsOpaque(path, slideElement, style, fill, stroke)) continue;
         const borderWidthPx = parseFloat(style.strokeWidth) || 0;
         try {
           page.drawSvgPath(path.getAttribute("d"), {
@@ -4333,8 +4362,8 @@ body.is-sorting .page-card.drag-source {
             color: fill || undefined,
             borderColor: stroke || undefined,
             borderWidth: stroke ? borderWidthPx * PPTX_POINT_SCALE : 0,
-            opacity,
-            borderOpacity: opacity
+            opacity: 1,
+            borderOpacity: 1
           });
         } catch (error) { console.warn("PPTX vector overlay skipped", error); }
       }
