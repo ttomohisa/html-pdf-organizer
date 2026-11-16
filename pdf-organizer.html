@@ -631,6 +631,31 @@
         var(--surface-muted);
     }
 
+    .thumbnail-error {
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.4;
+      text-align: center;
+    }
+    .thumbnail-retry {
+      min-height: 36px;
+      padding: 6px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      color: var(--accent);
+      background: var(--surface);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .thumbnail-retry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
     .thumb-frame canvas {
       display: block;
       max-width: calc(100% - 14px);
@@ -1882,12 +1907,12 @@ body.is-sorting .page-card.drag-source {
     <div class="dialog-body">
       <h3 data-i18n="basicOperations">基本操作</h3>
       <ul>
-        <li data-i18n="helpAdd">PDF・JPG・PNG・WebPを追加すると、PDFの各ページと画像が同じ一覧にサムネイルで表示されます。</li>
+        <li data-i18n="helpAdd">PDF・JPG・PNG・WebP・PowerPoint（PPTX）を追加すると、PDFの各ページ、画像、スライドが同じ一覧に表示されます。</li>
         <li data-i18n="helpDrag">カードのどこをつかんでもドラッグでき、ページ順をすばやく変更できます。</li>
         <li data-i18n="helpGroupDrag">複数ページを選択してから選択中のカードをドラッグすると、まとめて順番を移動できます。</li>
         <li data-i18n="helpEdit">カードをクリックして選択し、複数ページをまとめて回転・削除できます。</li>
         <li data-i18n="helpPreview">カードの拡大ボタン、またはカードをダブルクリックするとページを大きくプレビューできます。</li>
-        <li data-i18n="helpMerge">PDFと画像を好きな順に並べて、1つのPDFとして結合保存できます。画像は Fit / Fill / Original Size を選べます。</li>
+        <li data-i18n="helpMerge">PDF・画像・PowerPointスライドを好きな順に並べて、1つのPDFとして保存できます。画像は Fit / Fill / Original Size を選べます。</li>
         <li data-i18n="helpImageLayout">画像の Fit は全体をA4内に収め、Fill はA4いっぱいに中央配置してはみ出しを切り取り、Original Size は画像自体の大きさに合わせたページを作ります。</li>
       </ul>
 
@@ -1906,14 +1931,14 @@ body.is-sorting .page-card.drag-source {
       <p data-i18n="helpModals">プレビューのページ移動ボタンはEnterやSpaceでも操作できます。</p>
 
       <h3 data-i18n="privacy">プライバシー</h3>
-      <p data-i18n="helpPrivacy">選択したPDF・画像の読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。</p>
+      <p data-i18n="helpPrivacy">選択したPDF・画像・PowerPointの読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。</p>
 
       <h3 data-i18n="limitations">制限事項</h3>
       <ul>
         <li data-i18n="limitPassword">パスワード付きPDFは正しいパスワードで開けます。出力PDFにも必要に応じてAES-256のパスワードを設定できます。</li>
         <li data-i18n="limitMetadata">保存時に、しおり、添付ファイル、電子署名、フォームなどの文書レベル情報が引き継がれない場合があります。</li>
         <li data-i18n="limitSignature">電子署名付きPDFを編集すると、署名は無効になります。</li>
-        <li data-i18n="limitMemory">ページ数や画像量が多いPDFでは、端末のメモリを多く使用します。</li>
+        <li data-i18n="limitMemory">ページ数が多いPDF、高解像度画像、スライド数や図表が多いPowerPointでは、端末のメモリを多く使用します。</li>
       </ul>
 
       <h3 data-i18n="openSource">オープンソース</h3>
@@ -2332,7 +2357,7 @@ body.is-sorting .page-card.drag-source {
     const translations = {
       ja: {
         documentTitle: "PDF Organizer — ページ整理ツール",
-        metaDescription: "PDF・JPG・PNG・WebPをブラウザ内だけでページとしてまとめ、並び替え・回転・削除・結合・保存できるツールです。",
+        metaDescription: "PDF・画像・PowerPoint（PPTX）のページをブラウザ内で並び替え・回転・削除・結合・保存できるツールです。",
         brandSubtitle: "PDF・画像ページの並び替え・回転・削除・結合",
         switchLanguage: "Switch to English",
         helpTitle: "使い方と注意事項",
@@ -2408,6 +2433,8 @@ body.is-sorting .page-card.drag-source {
         nextPageTitle: "次のページ (→)",
         closePreview: "プレビューを閉じる",
         renderingPage: "ページを描画しています",
+        thumbnailFailed: "プレビューを表示できませんでした",
+        thumbnailRetry: "再試行",
         previewFooterOpen: "カードの拡大ボタンまたはダブルクリックで表示",
         previewFooterKeys: "← → でページ移動・Escで閉じる",
         close: "閉じる",
@@ -2576,6 +2603,8 @@ body.is-sorting .page-card.drag-source {
         nextPageTitle: "Next page (→)",
         closePreview: "Close preview",
         renderingPage: "Rendering page",
+        thumbnailFailed: "Could not display preview",
+        thumbnailRetry: "Retry",
         previewFooterOpen: "Open with the preview button or double-click a card",
         previewFooterKeys: "Use ← → to move · Esc to close",
         close: "Close",
@@ -2715,6 +2744,24 @@ body.is-sorting .page-card.drag-source {
     };
     const isSupportedFile = (file) => isPdfFile(file) || isImageFile(file) || isPptxFile(file);
     const clonePages = () => state.pages.map((page) => ({ ...page }));
+    // Keep file data for pages still visible or reachable through Undo/Redo.
+    function releaseUnusedDocuments() {
+      const referenced = new Set(state.pages.map((page) => page.docId));
+      for (const snapshot of [...state.history, ...state.future]) {
+        for (const page of snapshot) referenced.add(page.docId);
+      }
+      for (const [id, source] of state.documents) {
+        if (referenced.has(id)) continue;
+        state.documents.delete(id);
+        if (source.pdfjsDoc?.destroy) {
+          try { Promise.resolve(source.pdfjsDoc.destroy()).catch((error) => console.warn("PDF dispose failed", error)); }
+          catch (error) { console.warn("PDF dispose failed", error); }
+        }
+        if (source.imageRenderablePromise) {
+          Promise.resolve(source.imageRenderablePromise).then((image) => image?.close?.()).catch(() => {});
+        }
+      }
+    }
     const IMAGE_LAYOUTS = new Set(["fit", "fill", "original"]);
     const A4_WIDTH = 595.28;
     const A4_HEIGHT = 841.89;
@@ -2983,6 +3030,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function performEdit(mutator) {
+      if (state.isBusy) return;
       cancelPointerDrag();
       const before = clonePages();
       mutator();
@@ -3039,13 +3087,14 @@ body.is-sorting .page-card.drag-source {
         ? `<strong>${selectedCount}</strong> ${t("selectedStatusRest", { total: pageCount })}`
         : `<strong>${pageCount}</strong> ${t("pageCountRest")}`;
 
+      const locked = state.isBusy;
       elements.moveStartButton.disabled = !canMoveSelectionToEdge("start");
       elements.moveEndButton.disabled = !canMoveSelectionToEdge("end");
-      elements.clearSelectionButton.disabled = !hasSelection;
-      elements.rotateLeftButton.disabled = !hasSelection;
-      elements.rotateRightButton.disabled = !hasSelection;
-      elements.deleteButton.disabled = !hasSelection;
-      elements.saveSelectedButton.disabled = !hasSelection;
+      elements.clearSelectionButton.disabled = locked || (!hasSelection);
+      elements.rotateLeftButton.disabled = locked || (!hasSelection);
+      elements.rotateRightButton.disabled = locked || (!hasSelection);
+      elements.deleteButton.disabled = locked || (!hasSelection);
+      elements.saveSelectedButton.disabled = locked || (!hasSelection);
       elements.saveSelectedButton.classList.toggle("has-selection", hasSelection);
       const saveSelectedLabel = elements.saveSelectedButton.querySelector(".button-label");
       const saveSelectedText = hasSelection ? t("saveSelectedCount", { count: selectedCount }) : t("saveSelected");
@@ -3053,12 +3102,14 @@ body.is-sorting .page-card.drag-source {
       if (saveSelectedLabel) saveSelectedLabel.textContent = window.matchMedia("(max-width: 760px)").matches ? saveSelectedCompactText : saveSelectedText;
       elements.saveSelectedButton.setAttribute("aria-label", saveSelectedText);
       elements.saveSelectedButton.title = saveSelectedText;
-      elements.selectAllButton.disabled = !hasPages || selectedCount === pageCount;
-      elements.clearAllButton.disabled = !hasPages;
-      elements.saveAllButton.disabled = !hasPages;
-      elements.undoButton.disabled = state.history.length === 0;
-      elements.redoButton.disabled = state.future.length === 0;
+      elements.selectAllButton.disabled = locked || (!hasPages || selectedCount === pageCount);
+      elements.clearAllButton.disabled = locked || (!hasPages);
+      elements.saveAllButton.disabled = locked || (!hasPages);
+      elements.undoButton.disabled = locked || (state.history.length === 0);
+      elements.redoButton.disabled = locked || (state.future.length === 0);
       updateOutputPasswordUi();
+      for (const control of [elements.addButton, elements.initialAddButton, elements.emptyAddButton,
+        elements.fileInput, elements.filenameInput, elements.outputPasswordButton]) control.disabled = locked;
     }
 
     function updatePasswordVisibilityButton(input, button, iconId) {
@@ -3117,6 +3168,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function openOutputPasswordDialog() {
+      if (state.isBusy) return;
       resetOutputPasswordVisibility();
       const available = !!globalThis.crypto?.subtle;
       elements.outputPasswordUnavailable.hidden = available;
@@ -3135,6 +3187,7 @@ body.is-sorting .page-card.drag-source {
 
     async function applyOutputPasswordSettings(event) {
       event.preventDefault();
+      if (state.isBusy) return;
       const enabled = elements.outputPasswordEnabled.checked && !elements.outputPasswordEnabled.disabled;
       if (!enabled) {
         const hadPassword = outputProtection.enabled;
@@ -3219,18 +3272,23 @@ body.is-sorting .page-card.drag-source {
 
     async function mountPptxSlide(source, item, host, maxWidth, maxHeight, mode = "thumbnail") {
       const handle = await createPptxSlideHandle(source, item.pageIndex);
-      const shell = createPptxScaledShell(handle.element, source, maxWidth, maxHeight, item.rotation);
-      host.replaceChildren(shell);
-      await handle.ready;
-      if (mode === "thumbnail") {
-        const previous = state.pptxThumbnailHandles.get(item.id);
-        if (previous && previous !== handle) disposePptxHandle(previous);
-        state.pptxThumbnailHandles.set(item.id, handle);
-      } else if (mode === "preview") {
-        disposePreviewPptxHandle();
-        state.pptxPreviewHandle = handle;
+      try {
+        const shell = createPptxScaledShell(handle.element, source, maxWidth, maxHeight, item.rotation);
+        host.replaceChildren(shell);
+        await handle.ready;
+        if (mode === "thumbnail") {
+          const previous = state.pptxThumbnailHandles.get(item.id);
+          if (previous && previous !== handle) disposePptxHandle(previous);
+          state.pptxThumbnailHandles.set(item.id, handle);
+        } else if (mode === "preview") {
+          disposePreviewPptxHandle();
+          state.pptxPreviewHandle = handle;
+        }
+        return handle;
+      } catch (error) {
+        disposePptxHandle(handle);
+        throw error;
       }
-      return handle;
     }
 
     function createPageCard(item, index) {
@@ -3356,6 +3414,7 @@ body.is-sorting .page-card.drag-source {
       const children = state.pages.map(createPageCard);
       if (state.pages.length) children.push(createAddPdfCard());
       elements.pagesGrid.replaceChildren(...children);
+      releaseUnusedDocuments();
       updateUiState();
       observeVisibleThumbnails();
     }
@@ -3372,6 +3431,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function selectPage(id, event = {}) {
+      if (state.isBusy) return;
       const index = state.pages.findIndex((page) => page.id === id);
       if (index < 0) return;
 
@@ -3396,6 +3456,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function ensureTargetSelected(id) {
+      if (state.isBusy) return;
       if (!state.selected.has(id)) {
         state.selected.clear();
         state.selected.add(id);
@@ -3426,7 +3487,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function rotateSelected(delta) {
-      if (!state.selected.size) return;
+      if (!state.selected.size || state.isBusy) return;
       performEdit(() => {
         state.pages = state.pages.map((page) => state.selected.has(page.id)
           ? { ...page, rotation: normalizeRotation(page.rotation + delta) }
@@ -3436,7 +3497,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function deleteSelected() {
-      if (!state.selected.size) return;
+      if (!state.selected.size || state.isBusy) return;
       const count = state.selected.size;
       performEdit(() => {
         state.pages = state.pages.filter((page) => !state.selected.has(page.id));
@@ -3447,12 +3508,14 @@ body.is-sorting .page-card.drag-source {
     }
 
     function selectAll() {
+      if (state.isBusy) return;
       state.selected = new Set(state.pages.map((page) => page.id));
       state.lastSelectedId = state.pages.at(-1)?.id || null;
       refreshSelectionUi();
     }
 
     function clearSelection() {
+      if (state.isBusy) return;
       state.selected.clear();
       state.lastSelectedId = null;
       refreshSelectionUi();
@@ -3481,12 +3544,38 @@ body.is-sorting .page-card.drag-source {
       processRenderQueue();
     }
 
+    function showThumbnailError(pageId, error) {
+      console.warn("Thumbnail render failed", error);
+      const frame = elements.pagesGrid.querySelector(`.thumb-frame[data-page-id="${CSS.escape(pageId)}"]`);
+      if (!frame?.isConnected || !state.pages.some((page) => page.id === pageId)) return;
+      const wrapper = document.createElement("div");
+      wrapper.className = "thumbnail-error";
+      wrapper.setAttribute("role", "status");
+      const message = document.createElement("span");
+      message.textContent = t("thumbnailFailed");
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "thumbnail-retry";
+      retry.textContent = t("thumbnailRetry");
+      retry.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (state.isBusy) return;
+        frame.dataset.rendered = "";
+        frame.replaceChildren();
+        enqueueThumbnail(pageId);
+      });
+      wrapper.append(message, retry);
+      frame.dataset.rendered = "error";
+      frame.replaceChildren(wrapper);
+    }
+
     async function processRenderQueue() {
       while (state.activeRenders < state.maxConcurrentRenders && state.renderQueue.length) {
         const pageId = state.renderQueue.shift();
         state.activeRenders += 1;
         renderThumbnail(pageId)
-          .catch((error) => console.warn("Thumbnail render failed", error))
+          .catch((error) => showThumbnailError(pageId, error))
           .finally(() => {
             state.activeRenders -= 1;
             processRenderQueue();
@@ -3500,7 +3589,7 @@ body.is-sorting .page-card.drag-source {
       if (!item || !frame || frame.dataset.rendered === "true") return;
 
       const doc = state.documents.get(item.docId);
-      if (!doc) return;
+      if (!doc) throw new Error(t("sourceMissing"));
       if (doc.kind === "image") {
         const frameWidth = Math.max(80, frame.clientWidth - 14);
         const frameHeight = Math.max(100, frame.clientHeight - 14);
@@ -3523,7 +3612,7 @@ body.is-sorting .page-card.drag-source {
         frame.dataset.rendered = "true";
         return;
       }
-      if (!doc.pdfjsDoc) return;
+      if (!doc.pdfjsDoc) throw new Error(t("sourceMissing"));
       const pdfPage = await doc.pdfjsDoc.getPage(item.pageIndex + 1);
       if (!frame.isConnected) return;
 
@@ -3953,6 +4042,7 @@ body.is-sorting .page-card.drag-source {
         showToast(t("addedFiles", { files: addedFiles, pages: addedPages }));
       }
       setBusy(false);
+      releaseUnusedDocuments();
       elements.fileInput.value = "";
       if (errors.length) showToast(errors.join("\n"), "error", 0);
     }
@@ -3965,6 +4055,25 @@ body.is-sorting .page-card.drag-source {
       if (!match || Number(match[4] ?? 1) <= 0) return null;
       return rgb(Math.min(255, +match[1]) / 255, Math.min(255, +match[2]) / 255, Math.min(255, +match[3]) / 255);
     };
+
+    function pptxVectorPathIsOpaque(path, slideElement, style, fill, stroke) {
+      // The raster already contains these shapes. Drawing semi-transparent
+      // vectors again would darken them, including overlapping figures.
+      const alpha = (color) => {
+        const match = String(color || "").match(/^rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+(?:\s*,\s*([\d.]+))?\s*\)$/i);
+        return match ? Number(match[1] ?? 1) : 0;
+      };
+      if (fill && (alpha(style.fill) < 0.999 || Number(style.fillOpacity) < 0.999)) return false;
+      if (stroke && (alpha(style.stroke) < 0.999 || Number(style.strokeOpacity) < 0.999)) return false;
+      for (let node = path; node; node = node.parentElement) {
+        const computed = getComputedStyle(node);
+        if (Number(computed.opacity) < 0.999 ||
+            (computed.mixBlendMode && computed.mixBlendMode !== "normal") ||
+            (computed.filter && computed.filter !== "none")) return false;
+        if (node === slideElement) break;
+      }
+      return true;
+    }
 
     async function blobImageUrlToDataUrl(url) {
       if (!String(url || "").startsWith("blob:")) return url;
@@ -4219,7 +4328,17 @@ body.is-sorting .page-card.drag-source {
 
     function addPptxVectorOverlay(page, slideElement, pageHeight) {
       const rootRect = slideElement.getBoundingClientRect();
-      for (const path of slideElement.querySelectorAll("svg path[d]")) {
+      const paths = slideElement.querySelectorAll("svg path[d]");
+      // Even an opaque overlay can cover a translucent shape above it in
+      // the original slide. Keep the entire raster unchanged in that case.
+      for (const path of paths) {
+        if (path.closest("defs")) continue;
+        const style = getComputedStyle(path);
+        const fill = style.fill === "none" ? null : pptxCssColor(style.fill);
+        const stroke = style.stroke === "none" ? null : pptxCssColor(style.stroke);
+        if ((fill || stroke) && !pptxVectorPathIsOpaque(path, slideElement, style, fill, stroke)) return;
+      }
+      for (const path of paths) {
         const svg = path.closest("svg");
         if (!svg || path.closest("defs") || path.hasAttribute("transform") || path.closest("g[transform]")) continue;
         if (svg.querySelector("linearGradient,radialGradient,pattern,filter,mask,clipPath,image,foreignObject,text")) continue;
@@ -4233,7 +4352,7 @@ body.is-sorting .page-card.drag-source {
         const fill = style.fill === "none" ? null : pptxCssColor(style.fill);
         const stroke = style.stroke === "none" ? null : pptxCssColor(style.stroke);
         if (!fill && !stroke) continue;
-        const opacity = Math.max(0, Math.min(1, Number(style.opacity) || 1));
+        if (!pptxVectorPathIsOpaque(path, slideElement, style, fill, stroke)) continue;
         const borderWidthPx = parseFloat(style.strokeWidth) || 0;
         try {
           page.drawSvgPath(path.getAttribute("d"), {
@@ -4243,8 +4362,8 @@ body.is-sorting .page-card.drag-source {
             color: fill || undefined,
             borderColor: stroke || undefined,
             borderWidth: stroke ? borderWidthPx * PPTX_POINT_SCALE : 0,
-            opacity,
-            borderOpacity: opacity
+            opacity: 1,
+            borderOpacity: 1
           });
         } catch (error) { console.warn("PPTX vector overlay skipped", error); }
       }
@@ -4302,6 +4421,9 @@ body.is-sorting .page-card.drag-source {
         return;
       }
 
+      const outputFilename = sanitizeFilename(elements.filenameInput.value);
+      const exportPassword = outputProtection.enabled ? outputProtection.password : "";
+      const protectOutput = !!exportPassword;
       setBusy(true, t("generatingPdf"), t("pageCount", { count: targetPages.length }));
       try {
         const output = await PDFDocument.create();
@@ -4366,13 +4488,12 @@ body.is-sorting .page-card.drag-source {
         output.setModificationDate(new Date());
 
         let bytes = await output.save({ useObjectStreams: true });
-        const protectOutput = outputProtection.enabled && !!outputProtection.password;
         if (protectOutput) {
           elements.busyTitle.textContent = t("protectingPdf");
           elements.busyDetail.textContent = t("protectingPdfDetail");
           try {
             const encryptor = await ensurePdfEncrypt();
-            bytes = await encryptor.encryptPDF(new Uint8Array(bytes), outputProtection.password, { algorithm: "AES-256" });
+            bytes = await encryptor.encryptPDF(new Uint8Array(bytes), exportPassword, { algorithm: "AES-256" });
           } catch (error) {
             console.error(error);
             throw new Error(`${t("outputPasswordProtectionFailed")}: ${error?.message || ""}`.replace(/:\s*$/, ""));
@@ -4382,7 +4503,7 @@ body.is-sorting .page-card.drag-source {
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = url;
-        anchor.download = sanitizeFilename(elements.filenameInput.value);
+        anchor.download = outputFilename;
         document.body.append(anchor);
         anchor.click();
         anchor.remove();
@@ -4808,6 +4929,7 @@ body.is-sorting .page-card.drag-source {
     });
 
     elements.pagesGrid.addEventListener("change", (event) => {
+      if (state.isBusy) return;
       const select = event.target.closest("select[data-image-layout]");
       if (!select) return;
       const item = state.pages.find((page) => page.id === select.dataset.imageLayout);
@@ -4824,7 +4946,7 @@ body.is-sorting .page-card.drag-source {
     });
 
     elements.pagesGrid.addEventListener("click", (event) => {
-      if (Date.now() < state.suppressClickUntil) return;
+      if (state.isBusy || Date.now() < state.suppressClickUntil) return;
       const card = event.target.closest(".page-card");
       if (!card) return;
       if (event.target.closest("select")) return;
@@ -4935,7 +5057,7 @@ body.is-sorting .page-card.drag-source {
     elements.outputPasswordDialog.addEventListener("close", resetOutputPasswordVisibility);
 
     elements.clearAllButton.addEventListener("click", () => {
-      if (!state.pages.length) return;
+      if (!state.pages.length || state.isBusy) return;
       const count = state.pages.length;
       performEdit(() => {
         state.pages = [];
