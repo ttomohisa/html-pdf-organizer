@@ -23,7 +23,11 @@ jobs:
         shell: powershell
         run: .\build-offline.ps1
       - name: Verify source and generated release
-        run: node --test
+        shell: pwsh
+        run: |
+          Copy-Item -LiteralPath dist/index.html -Destination pdf-organizer.html -Force
+          node --test
+          if ($LASTEXITCODE -ne 0) { throw "Regression tests failed." }
       - name: Verify mobile label in Chromium
         if: github.event_name == 'pull_request'
         shell: pwsh
