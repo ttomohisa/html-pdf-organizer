@@ -3276,6 +3276,12 @@ body.is-sorting .page-card.drag-source {
         const shell = createPptxScaledShell(handle.element, source, maxWidth, maxHeight, item.rotation);
         host.replaceChildren(shell);
         await handle.ready;
+        // A completed render from an earlier grid must not replace or dispose
+        // the handle belonging to the current thumbnail.
+        if (mode === "thumbnail" && !host.isConnected) {
+          disposePptxHandle(handle);
+          return null;
+        }
         if (mode === "thumbnail") {
           const previous = state.pptxThumbnailHandles.get(item.id);
           if (previous && previous !== handle) disposePptxHandle(previous);
@@ -3544,10 +3550,10 @@ body.is-sorting .page-card.drag-source {
       processRenderQueue();
     }
 
-    function showThumbnailError(pageId, error) {
+    function showThumbnailError(pageId, error, expectedFrame = null) {
       console.warn("Thumbnail render failed", error);
       const frame = elements.pagesGrid.querySelector(`.thumb-frame[data-page-id="${CSS.escape(pageId)}"]`);
-      if (!frame?.isConnected || !state.pages.some((page) => page.id === pageId)) return;
+      if (!frame?.isConnected || (expectedFrame && frame !== expectedFrame) || !state.pages.some((page) => page.id === pageId)) return;
       const wrapper = document.createElement("div");
       wrapper.className = "thumbnail-error";
       wrapper.setAttribute("role", "status");
@@ -3573,9 +3579,10 @@ body.is-sorting .page-card.drag-source {
     async function processRenderQueue() {
       while (state.activeRenders < state.maxConcurrentRenders && state.renderQueue.length) {
         const pageId = state.renderQueue.shift();
+        const expectedFrame = elements.pagesGrid.querySelector(`.thumb-frame[data-page-id="${CSS.escape(pageId)}"]`);
         state.activeRenders += 1;
         renderThumbnail(pageId)
-          .catch((error) => showThumbnailError(pageId, error))
+          .catch((error) => showThumbnailError(pageId, error, expectedFrame))
           .finally(() => {
             state.activeRenders -= 1;
             processRenderQueue();
@@ -3603,10 +3610,11 @@ body.is-sorting .page-card.drag-source {
       if (doc.kind === "pptx") {
         const frameWidth = Math.max(80, frame.clientWidth - 14);
         const frameHeight = Math.max(100, frame.clientHeight - 14);
-        await mountPptxSlide(doc, item, frame, frameWidth, frameHeight, "thumbnail");
+        const handle = await mountPptxSlide(doc, item, frame, frameWidth, frameHeight, "thumbnail");
+        if (!handle) return;
         if (!frame.isConnected || !state.pages.some((page) => page.id === pageId)) {
-          disposePptxHandle(state.pptxThumbnailHandles.get(item.id));
-          state.pptxThumbnailHandles.delete(item.id);
+          if (state.pptxThumbnailHandles.get(item.id) === handle) state.pptxThumbnailHandles.delete(item.id);
+          disposePptxHandle(handle);
           return;
         }
         frame.dataset.rendered = "true";
