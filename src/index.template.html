@@ -631,6 +631,31 @@
         var(--surface-muted);
     }
 
+    .thumbnail-error {
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.4;
+      text-align: center;
+    }
+    .thumbnail-retry {
+      min-height: 36px;
+      padding: 6px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      color: var(--accent);
+      background: var(--surface);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .thumbnail-retry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
     .thumb-frame canvas {
       display: block;
       max-width: calc(100% - 14px);
@@ -2408,6 +2433,8 @@ body.is-sorting .page-card.drag-source {
         nextPageTitle: "次のページ (→)",
         closePreview: "プレビューを閉じる",
         renderingPage: "ページを描画しています",
+        thumbnailFailed: "プレビューを表示できませんでした",
+        thumbnailRetry: "再試行",
         previewFooterOpen: "カードの拡大ボタンまたはダブルクリックで表示",
         previewFooterKeys: "← → でページ移動・Escで閉じる",
         close: "閉じる",
@@ -2576,6 +2603,8 @@ body.is-sorting .page-card.drag-source {
         nextPageTitle: "Next page (→)",
         closePreview: "Close preview",
         renderingPage: "Rendering page",
+        thumbnailFailed: "Could not display preview",
+        thumbnailRetry: "Retry",
         previewFooterOpen: "Open with the preview button or double-click a card",
         previewFooterKeys: "Use ← → to move · Esc to close",
         close: "Close",
@@ -3243,18 +3272,23 @@ body.is-sorting .page-card.drag-source {
 
     async function mountPptxSlide(source, item, host, maxWidth, maxHeight, mode = "thumbnail") {
       const handle = await createPptxSlideHandle(source, item.pageIndex);
-      const shell = createPptxScaledShell(handle.element, source, maxWidth, maxHeight, item.rotation);
-      host.replaceChildren(shell);
-      await handle.ready;
-      if (mode === "thumbnail") {
-        const previous = state.pptxThumbnailHandles.get(item.id);
-        if (previous && previous !== handle) disposePptxHandle(previous);
-        state.pptxThumbnailHandles.set(item.id, handle);
-      } else if (mode === "preview") {
-        disposePreviewPptxHandle();
-        state.pptxPreviewHandle = handle;
+      try {
+        const shell = createPptxScaledShell(handle.element, source, maxWidth, maxHeight, item.rotation);
+        host.replaceChildren(shell);
+        await handle.ready;
+        if (mode === "thumbnail") {
+          const previous = state.pptxThumbnailHandles.get(item.id);
+          if (previous && previous !== handle) disposePptxHandle(previous);
+          state.pptxThumbnailHandles.set(item.id, handle);
+        } else if (mode === "preview") {
+          disposePreviewPptxHandle();
+          state.pptxPreviewHandle = handle;
+        }
+        return handle;
+      } catch (error) {
+        disposePptxHandle(handle);
+        throw error;
       }
-      return handle;
     }
 
     function createPageCard(item, index) {
@@ -3510,12 +3544,38 @@ body.is-sorting .page-card.drag-source {
       processRenderQueue();
     }
 
+    function showThumbnailError(pageId, error) {
+      console.warn("Thumbnail render failed", error);
+      const frame = elements.pagesGrid.querySelector(`.thumb-frame[data-page-id="${CSS.escape(pageId)}"]`);
+      if (!frame?.isConnected || !state.pages.some((page) => page.id === pageId)) return;
+      const wrapper = document.createElement("div");
+      wrapper.className = "thumbnail-error";
+      wrapper.setAttribute("role", "status");
+      const message = document.createElement("span");
+      message.textContent = t("thumbnailFailed");
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "thumbnail-retry";
+      retry.textContent = t("thumbnailRetry");
+      retry.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (state.isBusy) return;
+        frame.dataset.rendered = "";
+        frame.replaceChildren();
+        enqueueThumbnail(pageId);
+      });
+      wrapper.append(message, retry);
+      frame.dataset.rendered = "error";
+      frame.replaceChildren(wrapper);
+    }
+
     async function processRenderQueue() {
       while (state.activeRenders < state.maxConcurrentRenders && state.renderQueue.length) {
         const pageId = state.renderQueue.shift();
         state.activeRenders += 1;
         renderThumbnail(pageId)
-          .catch((error) => console.warn("Thumbnail render failed", error))
+          .catch((error) => showThumbnailError(pageId, error))
           .finally(() => {
             state.activeRenders -= 1;
             processRenderQueue();
@@ -3529,7 +3589,7 @@ body.is-sorting .page-card.drag-source {
       if (!item || !frame || frame.dataset.rendered === "true") return;
 
       const doc = state.documents.get(item.docId);
-      if (!doc) return;
+      if (!doc) throw new Error(t("sourceMissing"));
       if (doc.kind === "image") {
         const frameWidth = Math.max(80, frame.clientWidth - 14);
         const frameHeight = Math.max(100, frame.clientHeight - 14);
@@ -3552,7 +3612,7 @@ body.is-sorting .page-card.drag-source {
         frame.dataset.rendered = "true";
         return;
       }
-      if (!doc.pdfjsDoc) return;
+      if (!doc.pdfjsDoc) throw new Error(t("sourceMissing"));
       const pdfPage = await doc.pdfjsDoc.getPage(item.pageIndex + 1);
       if (!frame.isConnected) return;
 
