@@ -74,7 +74,7 @@ function harness(filename) {
         pointerDrag.dropIndex = dropIndex;
       }
     };`].join('\n'), ctx);
-  ctx.renderGrid = () => ctx.app.updateUiState();
+  ctx.renderGrid = () => { vm.runInContext('releaseUnusedDocuments()', ctx); ctx.app.updateUiState(); };
   ctx.refreshSelectionUi = () => ctx.app.updateUiState();
   return { source, app: ctx.app, elements, logs, blobs, cleanup, document, Input,
     key: e => listeners.keydown({ target: {}, preventDefault() {}, ctrlKey: false, metaKey: false, shiftKey: false, ...e }),
@@ -247,6 +247,48 @@ for (const filename of targets) {
     assert.match(source, /moveSelectionEnd: "Move selection to end"/);
     assert.match(source, /moveSelectionStart: "選択ページを先頭へ"/);
     assert.match(source, /moveSelectionEnd: "選択ページを末尾へ"/);
+  });
+}
+
+// Source records must remain restorable for Undo/Redo, but must not accumulate forever.
+for (const filename of targets) {
+  const prefix = path.relative(root, filename) + ': ';
+  test(prefix + 'reclaims source data only after the last history reference expires', async () => {
+    const h = await setup(filename, []);
+    const state = h.app.state;
+    const docId = state.pages[0].docId;
+    let disposed = 0;
+    state.documents.get(docId).pdfjsDoc.destroy = () => { disposed += 1; };
+    h.app.selectAll();
+    h.app.deleteSelected();
+    assert.equal(state.pages.length, 0);
+    assert.equal(state.documents.has(docId), true, 'Undo still requires the source');
+    h.app.undo();
+    assert.equal(state.pages.length, 4);
+    h.app.redo();
+    assert.equal(state.documents.has(docId), true, 'Redo must not discard a restorable file');
+    for (let index = 0; index < 65; index++) h.app.performEdit(() => { state.pages = []; });
+    assert.equal(state.documents.has(docId), false, 'Evicted Undo history no longer holds the file');
+    assert.equal(disposed, 1, 'PDF document is destroyed once');
+  });
+  test(prefix + 'busy operations cannot change page order, selection, settings or history', async () => {
+    const h = await setup(filename, [1]);
+    const state = h.app.state;
+    const pageId = state.pages[1].id;
+    const before = JSON.stringify({ pages: state.pages, selection: [...state.selected], history: state.history });
+    h.app.setBusy(true);
+    h.app.rotateSelected(90);
+    h.app.deleteSelected();
+    h.app.selectAll();
+    h.app.clearSelection();
+    h.app.performEdit(() => { state.pages = []; });
+    h.layout(pageId, 'fill');
+    h.elements.clearAllButton.click();
+    assert.equal(JSON.stringify({ pages: state.pages, selection: [...state.selected], history: state.history }), before);
+    assert.equal(h.elements.deleteButton.disabled, true);
+    assert.equal(h.elements.filenameInput.disabled, true);
+    h.app.setBusy(false);
+    assert.equal(h.elements.filenameInput.disabled, false);
   });
 }
 
