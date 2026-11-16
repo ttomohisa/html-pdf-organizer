@@ -5,12 +5,13 @@ const vm = require('node:vm');
 const { test } = require('node:test');
 
 const root = path.join(__dirname, '..');
+const version = require(path.join(root, 'app.config.json')).version;
 const targets = process.env.PDF_ORGANIZER_HTML ? [process.env.PDF_ORGANIZER_HTML] : ['src/index.template.html', 'pdf-organizer.html'];
 
 for (const filename of targets) {
   const source = fs.readFileSync(path.resolve(root, filename), 'utf8');
   test(`${filename}: header shows the canonical patch version`, () => {
-    assert.match(source, /class="version-badge" title="Version 1\.2\.6">v1\.2\.6<\/span>/);
+    assert.ok(source.includes(`class="version-badge" title="Version ${version}">v${version}</span>`));
     assert.match(source, /data-i18n="privacyNote">完全ローカル処理<\/span>/);
   });
   test(`${filename}: repeated language changes preserve privacy and accessible header controls`, () => {
