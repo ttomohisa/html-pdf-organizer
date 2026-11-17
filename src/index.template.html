@@ -3532,7 +3532,16 @@ body.is-sorting .page-card.drag-source {
       });
     }
 
-    function deleteSelected() {
+    let pendingDeleteAction = null;
+
+    function askToDeleteAll(action) {
+      if (state.isBusy || elements.deleteConfirmDialog.open) return;
+      pendingDeleteAction = action;
+      elements.deleteConfirmDialog.showModal();
+      elements.deleteConfirmCancelButton.focus();
+    }
+
+    function commitDeleteSelected() {
       if (!state.selected.size || state.isBusy) return;
       const count = state.selected.size;
       performEdit(() => {
@@ -3541,6 +3550,15 @@ body.is-sorting .page-card.drag-source {
         state.lastSelectedId = null;
       });
       showToast(t("deletedPages", { count }), "info", 2400);
+    }
+
+    function deleteSelected() {
+      if (!state.selected.size || state.isBusy) return;
+      if (state.selected.size === state.pages.length) {
+        askToDeleteAll(commitDeleteSelected);
+        return;
+      }
+      commitDeleteSelected();
     }
 
     function selectAll() {
@@ -3681,6 +3699,93 @@ body.is-sorting .page-card.drag-source {
       frame.dataset.rendered = "true";
     }
 
+    const PREVIEW_ZOOM_MIN = 0.75;
+    const PREVIEW_ZOOM_MAX = 3;
+    let previewZoom = 1;
+    let previewDetailTimer = 0;
+    let previewDetailRerender = false;
+    const previewPointers = new Map();
+    let previewPinch = null;
+
+    function updatePreviewZoomControls() {
+      elements.previewZoomResetButton.textContent = `${Math.round(previewZoom * 100)}%`;
+      elements.previewZoomOutButton.disabled = previewZoom <= PREVIEW_ZOOM_MIN;
+      elements.previewZoomInButton.disabled = previewZoom >= PREVIEW_ZOOM_MAX;
+      elements.previewStage.classList.toggle("is-zoomed", previewZoom > 1.01);
+    }
+
+    function mountPreviewContent(content) {
+      if (!content) return;
+      const host = elements.previewCanvasHost;
+      const stage = elements.previewStage;
+      const previousLeft = stage.scrollLeft;
+      const previousTop = stage.scrollTop;
+      const width = parseFloat(content.style.width) || content.getBoundingClientRect().width;
+      const height = parseFloat(content.style.height) || content.getBoundingClientRect().height;
+      const frame = document.createElement("div");
+      frame.className = "preview-content-frame";
+      frame.dataset.baseWidth = String(Math.max(1, width));
+      frame.dataset.baseHeight = String(Math.max(1, height));
+      frame.append(content);
+      host.replaceChildren(frame);
+      resizePreviewContent();
+      host.hidden = false;
+      stage.scrollLeft = previousLeft;
+      stage.scrollTop = previousTop;
+    }
+
+    function resizePreviewContent() {
+      const frame = elements.previewCanvasHost.querySelector(".preview-content-frame");
+      if (!frame) return;
+      const width = Number(frame.dataset.baseWidth);
+      const height = Number(frame.dataset.baseHeight);
+      frame.style.width = `${width * previewZoom}px`;
+      frame.style.height = `${height * previewZoom}px`;
+      const child = frame.firstElementChild;
+      if (child) child.style.transform = `scale(${previewZoom})`;
+    }
+
+    function schedulePreviewDetail() {
+      clearTimeout(previewDetailTimer);
+      if (!elements.previewDialog.open || !state.previewPageId) return;
+      const item = state.pages.find((page) => page.id === state.previewPageId);
+      if (state.documents.get(item?.docId)?.kind === "pptx") return; // DOM slide stays crisp when scaled.
+      previewDetailTimer = setTimeout(() => {
+        if (!elements.previewDialog.open || !state.previewPageId) return;
+        previewDetailRerender = true;
+        renderPreview(state.previewPageId);
+      }, 220);
+    }
+
+    function setPreviewZoom(value, anchor = null, refreshDetail = true) {
+      const next = Math.round(Math.max(PREVIEW_ZOOM_MIN, Math.min(PREVIEW_ZOOM_MAX, value)) * 100) / 100;
+      if (next === previewZoom) return;
+      const stage = elements.previewStage;
+      const oldZoom = previewZoom;
+      const rect = stage.getBoundingClientRect();
+      const localX = anchor ? Math.max(0, Math.min(rect.width, anchor.clientX - rect.left)) : rect.width / 2;
+      const localY = anchor ? Math.max(0, Math.min(rect.height, anchor.clientY - rect.top)) : rect.height / 2;
+      const targetX = stage.scrollLeft + localX;
+      const targetY = stage.scrollTop + localY;
+      previewZoom = next;
+      resizePreviewContent();
+      stage.scrollLeft = Math.max(0, targetX * next / oldZoom - localX);
+      stage.scrollTop = Math.max(0, targetY * next / oldZoom - localY);
+      updatePreviewZoomControls();
+      if (refreshDetail) schedulePreviewDetail();
+    }
+
+    function resetPreviewZoom() {
+      clearTimeout(previewDetailTimer);
+      previewDetailRerender = false;
+      previewZoom = 1;
+      previewPointers.clear();
+      previewPinch = null;
+      updatePreviewZoomControls();
+      elements.previewStage.scrollLeft = 0;
+      elements.previewStage.scrollTop = 0;
+    }
+
     function updatePreviewUi() {
       const index = state.pages.findIndex((page) => page.id === state.previewPageId);
       if (index < 0) return;
@@ -3706,8 +3811,10 @@ body.is-sorting .page-card.drag-source {
       const token = ++state.previewRenderToken;
       try { state.previewRenderTask?.cancel(); } catch {}
       state.previewRenderTask = null;
-      elements.previewLoading.hidden = false;
-      elements.previewCanvasHost.hidden = true;
+      const keepExistingPage = previewDetailRerender && !elements.previewCanvasHost.hidden;
+      previewDetailRerender = false;
+      elements.previewLoading.hidden = keepExistingPage;
+      if (!keepExistingPage) elements.previewCanvasHost.hidden = true;
       elements.previewError.hidden = true;
       elements.previewError.textContent = "";
 
@@ -3715,11 +3822,10 @@ body.is-sorting .page-card.drag-source {
         if (doc.kind === "image") {
           const stageWidth = Math.max(260, elements.previewStage.clientWidth - 40);
           const stageHeight = Math.max(300, elements.previewStage.clientHeight - 40);
-          const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+          const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
           const canvas = await renderImagePageCanvas(item, doc, stageWidth, stageHeight, pixelRatio);
           if (token !== state.previewRenderToken || !elements.previewDialog.open) return;
-          elements.previewCanvasHost.replaceChildren(canvas);
-          elements.previewCanvasHost.hidden = false;
+          mountPreviewContent(canvas);
           return;
         }
         if (doc.kind === "pptx") {
@@ -3728,7 +3834,7 @@ body.is-sorting .page-card.drag-source {
           disposePreviewPptxHandle();
           await mountPptxSlide(doc, item, elements.previewCanvasHost, stageWidth, stageHeight, "preview");
           if (token !== state.previewRenderToken || !elements.previewDialog.open) { disposePreviewPptxHandle(); return; }
-          elements.previewCanvasHost.hidden = false;
+          mountPreviewContent(elements.previewCanvasHost.firstElementChild);
           return;
         }
         if (!doc.pdfjsDoc) throw new Error(t("previewError"));
@@ -3741,7 +3847,7 @@ body.is-sorting .page-card.drag-source {
         const stageHeight = Math.max(300, elements.previewStage.clientHeight - 40);
         const scale = Math.min(stageWidth / baseViewport.width, stageHeight / baseViewport.height, 3);
         const viewport = pdfPage.getViewport({ scale, rotation });
-        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
 
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d", { alpha: false });
@@ -3760,14 +3866,15 @@ body.is-sorting .page-card.drag-source {
         await renderTask.promise;
         if (token !== state.previewRenderToken || !elements.previewDialog.open) return;
 
-        elements.previewCanvasHost.replaceChildren(canvas);
-        elements.previewCanvasHost.hidden = false;
+        mountPreviewContent(canvas);
       } catch (error) {
         if (error?.name === "RenderingCancelledException") return;
         console.error("Preview render failed", error);
         if (token === state.previewRenderToken) {
-          elements.previewError.textContent = t("previewError");
-          elements.previewError.hidden = false;
+          if (!keepExistingPage) {
+            elements.previewError.textContent = t("previewError");
+            elements.previewError.hidden = false;
+          }
         }
       } finally {
         if (token === state.previewRenderToken) {
@@ -3779,6 +3886,7 @@ body.is-sorting .page-card.drag-source {
 
     function openPreview(pageId) {
       if (!state.pages.some((page) => page.id === pageId)) return;
+      resetPreviewZoom();
       state.previewPageId = pageId;
       updatePreviewUi();
       if (!elements.previewDialog.open) elements.previewDialog.showModal();
@@ -3789,6 +3897,7 @@ body.is-sorting .page-card.drag-source {
       const index = state.pages.findIndex((page) => page.id === state.previewPageId);
       const next = state.pages[index + delta];
       if (index < 0 || !next) return;
+      resetPreviewZoom();
       state.previewPageId = next.id;
       updatePreviewUi();
       renderPreview(next.id);
@@ -5092,15 +5201,27 @@ body.is-sorting .page-card.drag-source {
     elements.outputPasswordDialog.addEventListener("cancel", () => { resetOutputPasswordVisibility(); showOutputPasswordError(""); });
     elements.outputPasswordDialog.addEventListener("close", resetOutputPasswordVisibility);
 
+    elements.deleteConfirmCancelButton.addEventListener("click", () => elements.deleteConfirmDialog.close());
+    elements.deleteConfirmApplyButton.addEventListener("click", () => {
+      const action = pendingDeleteAction;
+      pendingDeleteAction = null;
+      elements.deleteConfirmDialog.close();
+      if (!state.isBusy) action?.();
+    });
+    elements.deleteConfirmDialog.addEventListener("close", () => { pendingDeleteAction = null; });
+
     elements.clearAllButton.addEventListener("click", () => {
       if (!state.pages.length || state.isBusy) return;
-      const count = state.pages.length;
-      performEdit(() => {
-        state.pages = [];
-        state.selected.clear();
-        state.lastSelectedId = null;
+      askToDeleteAll(() => {
+        if (!state.pages.length || state.isBusy) return;
+        const count = state.pages.length;
+        performEdit(() => {
+          state.pages = [];
+          state.selected.clear();
+          state.lastSelectedId = null;
+        });
+        showToast(t("clearedAll", { count }));
       });
-      showToast(t("clearedAll", { count }));
     });
 
     elements.zoomSlider.addEventListener("input", () => {
@@ -5112,10 +5233,58 @@ body.is-sorting .page-card.drag-source {
       elements.filenameInput.value = sanitizeFilename(elements.filenameInput.value);
     });
 
+    elements.previewZoomOutButton.addEventListener("click", () => setPreviewZoom(previewZoom - .25));
+    elements.previewZoomInButton.addEventListener("click", () => setPreviewZoom(previewZoom + .25));
+    elements.previewZoomResetButton.addEventListener("click", () => setPreviewZoom(1));
+
+    elements.previewStage.addEventListener("wheel", (event) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+      setPreviewZoom(previewZoom * Math.exp(-event.deltaY * .003), event);
+    }, { passive: false });
+
+    function pointerSeparation(points) {
+      const [a, b] = points;
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    elements.previewStage.addEventListener("pointerdown", (event) => {
+      if (!elements.previewDialog.open || !state.previewPageId || event.pointerType === "mouse" && event.button !== 0) return;
+      previewPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      elements.previewStage.setPointerCapture(event.pointerId);
+      if (previewPointers.size === 2) {
+        previewPinch = { distance: Math.max(1, pointerSeparation([...previewPointers.values()])), zoom: previewZoom };
+      }
+    });
+    elements.previewStage.addEventListener("pointermove", (event) => {
+      const previous = previewPointers.get(event.pointerId);
+      if (!previous) return;
+      previewPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (previewPointers.size >= 2 && previewPinch) {
+        const points = [...previewPointers.values()];
+        const midpoint = { clientX: (points[0].x + points[1].x) / 2, clientY: (points[0].y + points[1].y) / 2 };
+        setPreviewZoom(previewPinch.zoom * pointerSeparation(points) / previewPinch.distance, midpoint, false);
+      } else if (previewZoom > 1 && previewPointers.size === 1) {
+        elements.previewStage.scrollLeft -= event.clientX - previous.x;
+        elements.previewStage.scrollTop -= event.clientY - previous.y;
+      }
+    });
+    function releasePreviewPointer(event) {
+      previewPointers.delete(event.pointerId);
+      if (previewPointers.size < 2 && previewPinch) {
+        previewPinch = null;
+        schedulePreviewDetail();
+      }
+    }
+    elements.previewStage.addEventListener("pointerup", releasePreviewPointer);
+    elements.previewStage.addEventListener("pointercancel", releasePreviewPointer);
+    elements.previewStage.addEventListener("lostpointercapture", releasePreviewPointer);
+
     elements.previewPreviousButton.addEventListener("click", () => movePreview(-1));
     elements.previewNextButton.addEventListener("click", () => movePreview(1));
     elements.closePreviewButton.addEventListener("click", closePreview);
     elements.previewDialog.addEventListener("close", () => {
+      resetPreviewZoom();
       state.previewRenderToken += 1;
       try { state.previewRenderTask?.cancel(); } catch {}
       state.previewRenderTask = null;
@@ -5137,6 +5306,21 @@ body.is-sorting .page-card.drag-source {
       clearTimeout(previewResizeTimer);
       previewResizeTimer = setTimeout(() => renderPreview(state.previewPageId), 120);
     });
+
+    let lastHeaderScrollY = window.scrollY;
+    function updateMobileHeaderVisibility() {
+      const y = Math.max(0, window.scrollY);
+      const delta = y - lastHeaderScrollY;
+      lastHeaderScrollY = y;
+      if (!window.matchMedia("(max-width: 760px)").matches || y < 96 || document.querySelector("dialog[open]")) {
+        document.body.classList.remove("mobile-header-hidden");
+        return;
+      }
+      if (delta > 5 && y > 160) document.body.classList.add("mobile-header-hidden");
+      if (delta < -5) document.body.classList.remove("mobile-header-hidden");
+    }
+    window.addEventListener("scroll", updateMobileHeaderVisibility, { passive: true });
+    window.addEventListener("resize", updateMobileHeaderVisibility);
 
     elements.languageButton.addEventListener("click", () => applyLanguage(currentLanguage === "ja" ? "en" : "ja"));
     elements.helpButton.addEventListener("click", () => elements.helpDialog.showModal());
