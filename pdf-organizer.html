@@ -335,7 +335,8 @@
       font-size: 13px;
       transition: .18s ease;
     }
-    .compact-drop.is-dragover { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+    .compact-drop { padding: 0; border: 0; background: transparent; }
+    .compact-drop.is-dragover { outline: 2px dashed var(--accent); outline-offset: 4px; color: var(--text); }
 
     .toolbar {
       position: sticky;
@@ -401,6 +402,14 @@
     .button.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
     .button.danger { color: var(--danger); }
     .button.ghost { border-color: transparent; background: transparent; }
+    .app-header .language-button, .app-header #helpButton,
+    .app-header .language-button:hover:not(:disabled), .app-header #helpButton:hover:not(:disabled),
+    .app-header .language-button:active:not(:disabled), .app-header #helpButton:active:not(:disabled) {
+      border-color: transparent; background: transparent; box-shadow: none;
+    }
+    .app-header .language-button:hover, .app-header #helpButton:hover { color: var(--accent); }
+    .app-header .language-button:focus:not(:focus-visible), .app-header #helpButton:focus:not(:focus-visible) { outline: none; }
+    .app-header .language-button:active:not(:disabled), .app-header #helpButton:active:not(:disabled) { transform: none; }
     .button.icon-only { width: 38px; padding-inline: 0; }
     .button svg, .icon-button svg, .brand-mark svg, .drop-icon svg { width: 18px; height: 18px; display: block; }
 
@@ -1082,6 +1091,30 @@
     }
     .preview-canvas-host { display: grid; place-items: center; min-width: 100%; min-height: 100%; }
     .preview-canvas-host[hidden] { display: none; }
+    .preview-content-frame { position: relative; flex: none; }
+    .preview-content-frame > * { transform-origin: top left; }
+    .preview-stage { touch-action: none; }
+    .preview-stage.is-zoomed { cursor: grab; }
+    .preview-stage.is-zoomed:active { cursor: grabbing; }
+    .preview-zoom-tools {
+      display: inline-flex; align-items: center; gap: 3px;
+      border: 1px solid var(--line); border-radius: 999px;
+      padding: 3px; background: var(--surface);
+      box-shadow: 0 2px 7px rgba(0, 0, 0, .06);
+    }
+    .preview-zoom-button, .preview-zoom-level {
+      display: inline-grid; place-items: center;
+      min-width: 34px; min-height: 32px; padding: 3px 7px;
+      border: none; border-radius: 999px;
+      background: transparent; color: var(--text);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .preview-zoom-button:hover:not(:disabled), .preview-zoom-level:hover:not(:disabled) { background: var(--surface-muted); }
+    .preview-zoom-button:disabled { opacity: .3; cursor: default; }
+    .preview-zoom-button svg { width: 17px; height: 17px; }
+    .preview-zoom-level { min-width: 54px; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .button.confirm-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+    .button.confirm-danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 86%, black); border-color: transparent; }
     .preview-canvas-host canvas {
       display: block;
       background: #fff;
@@ -1220,7 +1253,9 @@
       .export-bar { gap: 7px; padding: 8px; border-radius: 14px; }
       .preview-dialog { width: calc(100% - 12px); height: calc(100dvh - 12px); max-height: calc(100dvh - 12px); border-radius: 13px; }
       .preview-dialog .dialog-header { padding: 11px 12px; }
-      .preview-subtitle, .preview-footer span:first-child { display: none; }
+       .preview-subtitle, .preview-footer > span { display: none; }
+      .preview-footer { justify-content: center; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); }
+      .preview-zoom-button, .preview-zoom-level { min-width: 40px; min-height: 38px; }
       .preview-stage { padding: 10px; }
       .preview-counter { min-width: 54px; }
       .card-actions { left: 11px; right: 11px; justify-content: flex-end; }
@@ -1635,6 +1670,11 @@ body.is-sorting .page-card.drag-source {
   .mobile-edit-dock { position: static; }
 }
 
+  @media (max-width: 760px) {
+    .app-header { transition: transform .18s ease; will-change: transform; }
+    body.mobile-header-hidden .app-header { transform: translateY(-100%); }
+    body.mobile-header-hidden .mobile-edit-dock { top: 7px; }
+  }
 </style>
 </head>
 <body>
@@ -1707,8 +1747,6 @@ body.is-sorting .page-card.drag-source {
           </div>
         </div>
         <div class="compact-drop" id="compactDropZone">
-          <span id="compactAddIcon" aria-hidden="true"></span>
-          <span data-i18n="dropMorePdf">ここにPDF・画像を追加ドロップ</span>
           <button class="button" id="addButton" type="button" data-i18n="addPdf">ファイルを追加</button>
         </div>
       </div>
@@ -1838,6 +1876,15 @@ body.is-sorting .page-card.drag-source {
     </form>
   </dialog>
 
+  <dialog class="password-dialog delete-confirm-dialog" id="deleteConfirmDialog" aria-labelledby="deleteConfirmTitle">
+    <div class="dialog-header"><h2 id="deleteConfirmTitle" data-i18n="deleteAllConfirmTitle">すべてのページを削除しますか？</h2></div>
+    <div class="dialog-body"><p data-i18n="deleteAllConfirmBody">一覧からすべてのページを削除します。「元に戻す」で復元できます。</p></div>
+    <div class="dialog-actions">
+      <button class="button ghost" id="deleteConfirmCancelButton" type="button" data-i18n="cancel">キャンセル</button>
+      <button class="button confirm-danger" id="deleteConfirmApplyButton" type="button" data-i18n="deleteAllConfirmAction">削除する</button>
+    </div>
+  </dialog>
+
   <dialog class="preview-dialog" id="previewDialog" aria-labelledby="previewTitle">
     <div class="dialog-header">
       <div class="preview-title">
@@ -1861,6 +1908,11 @@ body.is-sorting .page-card.drag-source {
     </div>
     <div class="preview-footer">
       <span data-i18n="previewFooterOpen">カードの拡大ボタンまたはダブルクリックで表示</span>
+      <div class="preview-zoom-tools" role="group" data-i18n-aria-label="previewZoomControls" aria-label="プレビューの拡大縮小">
+        <button class="preview-zoom-button" id="previewZoomOutButton" type="button" data-i18n-title="previewZoomOut" data-i18n-aria-label="previewZoomOut" title="縮小" aria-label="縮小"></button>
+        <button class="preview-zoom-level" id="previewZoomResetButton" type="button" data-i18n-title="previewZoomReset" data-i18n-aria-label="previewZoomReset" title="画面に合わせる" aria-label="画面に合わせる">100%</button>
+        <button class="preview-zoom-button" id="previewZoomInButton" type="button" data-i18n-title="previewZoomIn" data-i18n-aria-label="previewZoomIn" title="拡大" aria-label="拡大"></button>
+      </div>
       <span data-i18n="previewFooterKeys">← → でページ移動・Escで閉じる</span>
     </div>
   </dialog>
@@ -2199,6 +2251,8 @@ body.is-sorting .page-card.drag-source {
       preview: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>`,
       previous: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
       next: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`,
+      previewZoomIn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+      previewZoomOut: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
       close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`,
       file: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M9 12h6M9 15.5h4"/></svg>`,
       image: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m5.5 17 4.2-4 3 2.7 2.7-2.4 3.1 3.7"/></svg>`,
@@ -2261,6 +2315,12 @@ body.is-sorting .page-card.drag-source {
       helpButton: $("#helpButton"),
       languageButton: $("#languageButton"),
       closeHelpButton: $("#closeHelpButton"),
+      deleteConfirmDialog: $("#deleteConfirmDialog"),
+      deleteConfirmCancelButton: $("#deleteConfirmCancelButton"),
+      deleteConfirmApplyButton: $("#deleteConfirmApplyButton"),
+      previewZoomInButton: $("#previewZoomInButton"),
+      previewZoomOutButton: $("#previewZoomOutButton"),
+      previewZoomResetButton: $("#previewZoomResetButton"),
       previewDialog: $("#previewDialog"),
       previewTitle: $("#previewTitle"),
       previewSubtitle: $("#previewSubtitle"),
@@ -2312,7 +2372,8 @@ body.is-sorting .page-card.drag-source {
       ["zoomLargeIcon", "zoomLarge"], ["clearAllIcon", "trash"], ["emptyIcon", "file"], ["emptyAddIcon", "addFile"],
       ["saveSelectedIcon", "download"], ["saveAllIcon", "download"], ["outputPasswordIcon", "lockOpen"],
       ["outputPasswordVisibilityIcon", "eye"], ["outputPasswordConfirmVisibilityIcon", "eye"], ["closeHelpButton", "close"],
-      ["previewPreviousButton", "previous"], ["previewNextButton", "next"], ["closePreviewButton", "close"]
+      ["previewPreviousButton", "previous"], ["previewNextButton", "next"], ["closePreviewButton", "close"],
+      ["previewZoomInButton", "previewZoomIn"], ["previewZoomOutButton", "previewZoomOut"]
     ].forEach(([id, name]) => setIcon(id, name));
 
     const translations = {
@@ -2387,6 +2448,11 @@ body.is-sorting .page-card.drag-source {
         outputPasswordProtectionFailed: "PDFのパスワード保護に失敗しました",
         busyDefault: "処理しています",
         previewHeading: "ページプレビュー",
+        previewZoomControls: "プレビューの拡大縮小",
+        previewZoomIn: "拡大", previewZoomOut: "縮小", previewZoomReset: "画面に合わせる",
+        deleteAllConfirmTitle: "すべてのページを削除しますか？",
+        deleteAllConfirmBody: "一覧からすべてのページを削除します。「元に戻す」で復元できます。",
+        deleteAllConfirmAction: "削除する",
         previousPage: "前のページ",
         previousPageTitle: "前のページ (←)",
         nextPage: "次のページ",
@@ -2556,6 +2622,11 @@ body.is-sorting .page-card.drag-source {
         outputPasswordProtectionFailed: "Failed to password-protect the PDF",
         busyDefault: "Working",
         previewHeading: "Page preview",
+        previewZoomControls: "Preview zoom",
+        previewZoomIn: "Zoom in", previewZoomOut: "Zoom out", previewZoomReset: "Fit to window",
+        deleteAllConfirmTitle: "Remove every page?",
+        deleteAllConfirmBody: "This removes every page from the list. You can undo the change.",
+        deleteAllConfirmAction: "Remove all",
         previousPage: "Previous page",
         previousPageTitle: "Previous page (←)",
         nextPage: "Next page",
@@ -3461,7 +3532,16 @@ body.is-sorting .page-card.drag-source {
       });
     }
 
-    function deleteSelected() {
+    let pendingDeleteAction = null;
+
+    function askToDeleteAll(action) {
+      if (state.isBusy || elements.deleteConfirmDialog.open) return;
+      pendingDeleteAction = action;
+      elements.deleteConfirmDialog.showModal();
+      elements.deleteConfirmCancelButton.focus();
+    }
+
+    function commitDeleteSelected() {
       if (!state.selected.size || state.isBusy) return;
       const count = state.selected.size;
       performEdit(() => {
@@ -3470,6 +3550,15 @@ body.is-sorting .page-card.drag-source {
         state.lastSelectedId = null;
       });
       showToast(t("deletedPages", { count }), "info", 2400);
+    }
+
+    function deleteSelected() {
+      if (!state.selected.size || state.isBusy) return;
+      if (state.selected.size === state.pages.length) {
+        askToDeleteAll(commitDeleteSelected);
+        return;
+      }
+      commitDeleteSelected();
     }
 
     function selectAll() {
@@ -3610,6 +3699,93 @@ body.is-sorting .page-card.drag-source {
       frame.dataset.rendered = "true";
     }
 
+    const PREVIEW_ZOOM_MIN = 0.75;
+    const PREVIEW_ZOOM_MAX = 3;
+    let previewZoom = 1;
+    let previewDetailTimer = 0;
+    let previewDetailRerender = false;
+    const previewPointers = new Map();
+    let previewPinch = null;
+
+    function updatePreviewZoomControls() {
+      elements.previewZoomResetButton.textContent = `${Math.round(previewZoom * 100)}%`;
+      elements.previewZoomOutButton.disabled = previewZoom <= PREVIEW_ZOOM_MIN;
+      elements.previewZoomInButton.disabled = previewZoom >= PREVIEW_ZOOM_MAX;
+      elements.previewStage.classList.toggle("is-zoomed", previewZoom > 1.01);
+    }
+
+    function mountPreviewContent(content) {
+      if (!content) return;
+      const host = elements.previewCanvasHost;
+      const stage = elements.previewStage;
+      const previousLeft = stage.scrollLeft;
+      const previousTop = stage.scrollTop;
+      const width = parseFloat(content.style.width) || content.getBoundingClientRect().width;
+      const height = parseFloat(content.style.height) || content.getBoundingClientRect().height;
+      const frame = document.createElement("div");
+      frame.className = "preview-content-frame";
+      frame.dataset.baseWidth = String(Math.max(1, width));
+      frame.dataset.baseHeight = String(Math.max(1, height));
+      frame.append(content);
+      host.replaceChildren(frame);
+      resizePreviewContent();
+      host.hidden = false;
+      stage.scrollLeft = previousLeft;
+      stage.scrollTop = previousTop;
+    }
+
+    function resizePreviewContent() {
+      const frame = elements.previewCanvasHost.querySelector(".preview-content-frame");
+      if (!frame) return;
+      const width = Number(frame.dataset.baseWidth);
+      const height = Number(frame.dataset.baseHeight);
+      frame.style.width = `${width * previewZoom}px`;
+      frame.style.height = `${height * previewZoom}px`;
+      const child = frame.firstElementChild;
+      if (child) child.style.transform = `scale(${previewZoom})`;
+    }
+
+    function schedulePreviewDetail() {
+      clearTimeout(previewDetailTimer);
+      if (!elements.previewDialog.open || !state.previewPageId) return;
+      const item = state.pages.find((page) => page.id === state.previewPageId);
+      if (state.documents.get(item?.docId)?.kind === "pptx") return; // DOM slide stays crisp when scaled.
+      previewDetailTimer = setTimeout(() => {
+        if (!elements.previewDialog.open || !state.previewPageId) return;
+        previewDetailRerender = true;
+        renderPreview(state.previewPageId);
+      }, 220);
+    }
+
+    function setPreviewZoom(value, anchor = null, refreshDetail = true) {
+      const next = Math.round(Math.max(PREVIEW_ZOOM_MIN, Math.min(PREVIEW_ZOOM_MAX, value)) * 100) / 100;
+      if (next === previewZoom) return;
+      const stage = elements.previewStage;
+      const oldZoom = previewZoom;
+      const rect = stage.getBoundingClientRect();
+      const localX = anchor ? Math.max(0, Math.min(rect.width, anchor.clientX - rect.left)) : rect.width / 2;
+      const localY = anchor ? Math.max(0, Math.min(rect.height, anchor.clientY - rect.top)) : rect.height / 2;
+      const targetX = stage.scrollLeft + localX;
+      const targetY = stage.scrollTop + localY;
+      previewZoom = next;
+      resizePreviewContent();
+      stage.scrollLeft = Math.max(0, targetX * next / oldZoom - localX);
+      stage.scrollTop = Math.max(0, targetY * next / oldZoom - localY);
+      updatePreviewZoomControls();
+      if (refreshDetail) schedulePreviewDetail();
+    }
+
+    function resetPreviewZoom() {
+      clearTimeout(previewDetailTimer);
+      previewDetailRerender = false;
+      previewZoom = 1;
+      previewPointers.clear();
+      previewPinch = null;
+      updatePreviewZoomControls();
+      elements.previewStage.scrollLeft = 0;
+      elements.previewStage.scrollTop = 0;
+    }
+
     function updatePreviewUi() {
       const index = state.pages.findIndex((page) => page.id === state.previewPageId);
       if (index < 0) return;
@@ -3635,8 +3811,10 @@ body.is-sorting .page-card.drag-source {
       const token = ++state.previewRenderToken;
       try { state.previewRenderTask?.cancel(); } catch {}
       state.previewRenderTask = null;
-      elements.previewLoading.hidden = false;
-      elements.previewCanvasHost.hidden = true;
+      const keepExistingPage = previewDetailRerender && !elements.previewCanvasHost.hidden;
+      previewDetailRerender = false;
+      elements.previewLoading.hidden = keepExistingPage;
+      if (!keepExistingPage) elements.previewCanvasHost.hidden = true;
       elements.previewError.hidden = true;
       elements.previewError.textContent = "";
 
@@ -3644,11 +3822,10 @@ body.is-sorting .page-card.drag-source {
         if (doc.kind === "image") {
           const stageWidth = Math.max(260, elements.previewStage.clientWidth - 40);
           const stageHeight = Math.max(300, elements.previewStage.clientHeight - 40);
-          const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+          const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
           const canvas = await renderImagePageCanvas(item, doc, stageWidth, stageHeight, pixelRatio);
           if (token !== state.previewRenderToken || !elements.previewDialog.open) return;
-          elements.previewCanvasHost.replaceChildren(canvas);
-          elements.previewCanvasHost.hidden = false;
+          mountPreviewContent(canvas);
           return;
         }
         if (doc.kind === "pptx") {
@@ -3657,7 +3834,7 @@ body.is-sorting .page-card.drag-source {
           disposePreviewPptxHandle();
           await mountPptxSlide(doc, item, elements.previewCanvasHost, stageWidth, stageHeight, "preview");
           if (token !== state.previewRenderToken || !elements.previewDialog.open) { disposePreviewPptxHandle(); return; }
-          elements.previewCanvasHost.hidden = false;
+          mountPreviewContent(elements.previewCanvasHost.firstElementChild);
           return;
         }
         if (!doc.pdfjsDoc) throw new Error(t("previewError"));
@@ -3670,7 +3847,7 @@ body.is-sorting .page-card.drag-source {
         const stageHeight = Math.max(300, elements.previewStage.clientHeight - 40);
         const scale = Math.min(stageWidth / baseViewport.width, stageHeight / baseViewport.height, 3);
         const viewport = pdfPage.getViewport({ scale, rotation });
-        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
 
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d", { alpha: false });
@@ -3689,14 +3866,15 @@ body.is-sorting .page-card.drag-source {
         await renderTask.promise;
         if (token !== state.previewRenderToken || !elements.previewDialog.open) return;
 
-        elements.previewCanvasHost.replaceChildren(canvas);
-        elements.previewCanvasHost.hidden = false;
+        mountPreviewContent(canvas);
       } catch (error) {
         if (error?.name === "RenderingCancelledException") return;
         console.error("Preview render failed", error);
         if (token === state.previewRenderToken) {
-          elements.previewError.textContent = t("previewError");
-          elements.previewError.hidden = false;
+          if (!keepExistingPage) {
+            elements.previewError.textContent = t("previewError");
+            elements.previewError.hidden = false;
+          }
         }
       } finally {
         if (token === state.previewRenderToken) {
@@ -3708,6 +3886,7 @@ body.is-sorting .page-card.drag-source {
 
     function openPreview(pageId) {
       if (!state.pages.some((page) => page.id === pageId)) return;
+      resetPreviewZoom();
       state.previewPageId = pageId;
       updatePreviewUi();
       if (!elements.previewDialog.open) elements.previewDialog.showModal();
@@ -3718,6 +3897,7 @@ body.is-sorting .page-card.drag-source {
       const index = state.pages.findIndex((page) => page.id === state.previewPageId);
       const next = state.pages[index + delta];
       if (index < 0 || !next) return;
+      resetPreviewZoom();
       state.previewPageId = next.id;
       updatePreviewUi();
       renderPreview(next.id);
@@ -5021,15 +5201,27 @@ body.is-sorting .page-card.drag-source {
     elements.outputPasswordDialog.addEventListener("cancel", () => { resetOutputPasswordVisibility(); showOutputPasswordError(""); });
     elements.outputPasswordDialog.addEventListener("close", resetOutputPasswordVisibility);
 
+    elements.deleteConfirmCancelButton.addEventListener("click", () => elements.deleteConfirmDialog.close());
+    elements.deleteConfirmApplyButton.addEventListener("click", () => {
+      const action = pendingDeleteAction;
+      pendingDeleteAction = null;
+      elements.deleteConfirmDialog.close();
+      if (!state.isBusy) action?.();
+    });
+    elements.deleteConfirmDialog.addEventListener("close", () => { pendingDeleteAction = null; });
+
     elements.clearAllButton.addEventListener("click", () => {
       if (!state.pages.length || state.isBusy) return;
-      const count = state.pages.length;
-      performEdit(() => {
-        state.pages = [];
-        state.selected.clear();
-        state.lastSelectedId = null;
+      askToDeleteAll(() => {
+        if (!state.pages.length || state.isBusy) return;
+        const count = state.pages.length;
+        performEdit(() => {
+          state.pages = [];
+          state.selected.clear();
+          state.lastSelectedId = null;
+        });
+        showToast(t("clearedAll", { count }));
       });
-      showToast(t("clearedAll", { count }));
     });
 
     elements.zoomSlider.addEventListener("input", () => {
@@ -5041,10 +5233,58 @@ body.is-sorting .page-card.drag-source {
       elements.filenameInput.value = sanitizeFilename(elements.filenameInput.value);
     });
 
+    elements.previewZoomOutButton.addEventListener("click", () => setPreviewZoom(previewZoom - .25));
+    elements.previewZoomInButton.addEventListener("click", () => setPreviewZoom(previewZoom + .25));
+    elements.previewZoomResetButton.addEventListener("click", () => setPreviewZoom(1));
+
+    elements.previewStage.addEventListener("wheel", (event) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+      setPreviewZoom(previewZoom * Math.exp(-event.deltaY * .003), event);
+    }, { passive: false });
+
+    function pointerSeparation(points) {
+      const [a, b] = points;
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    elements.previewStage.addEventListener("pointerdown", (event) => {
+      if (!elements.previewDialog.open || !state.previewPageId || event.pointerType === "mouse" && event.button !== 0) return;
+      previewPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      elements.previewStage.setPointerCapture(event.pointerId);
+      if (previewPointers.size === 2) {
+        previewPinch = { distance: Math.max(1, pointerSeparation([...previewPointers.values()])), zoom: previewZoom };
+      }
+    });
+    elements.previewStage.addEventListener("pointermove", (event) => {
+      const previous = previewPointers.get(event.pointerId);
+      if (!previous) return;
+      previewPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (previewPointers.size >= 2 && previewPinch) {
+        const points = [...previewPointers.values()];
+        const midpoint = { clientX: (points[0].x + points[1].x) / 2, clientY: (points[0].y + points[1].y) / 2 };
+        setPreviewZoom(previewPinch.zoom * pointerSeparation(points) / previewPinch.distance, midpoint, false);
+      } else if (previewZoom > 1 && previewPointers.size === 1) {
+        elements.previewStage.scrollLeft -= event.clientX - previous.x;
+        elements.previewStage.scrollTop -= event.clientY - previous.y;
+      }
+    });
+    function releasePreviewPointer(event) {
+      previewPointers.delete(event.pointerId);
+      if (previewPointers.size < 2 && previewPinch) {
+        previewPinch = null;
+        schedulePreviewDetail();
+      }
+    }
+    elements.previewStage.addEventListener("pointerup", releasePreviewPointer);
+    elements.previewStage.addEventListener("pointercancel", releasePreviewPointer);
+    elements.previewStage.addEventListener("lostpointercapture", releasePreviewPointer);
+
     elements.previewPreviousButton.addEventListener("click", () => movePreview(-1));
     elements.previewNextButton.addEventListener("click", () => movePreview(1));
     elements.closePreviewButton.addEventListener("click", closePreview);
     elements.previewDialog.addEventListener("close", () => {
+      resetPreviewZoom();
       state.previewRenderToken += 1;
       try { state.previewRenderTask?.cancel(); } catch {}
       state.previewRenderTask = null;
@@ -5066,6 +5306,25 @@ body.is-sorting .page-card.drag-source {
       clearTimeout(previewResizeTimer);
       previewResizeTimer = setTimeout(() => renderPreview(state.previewPageId), 120);
     });
+
+    let lastHeaderScrollY = window.scrollY;
+    let headerScrollTravel = 0;
+    function updateMobileHeaderVisibility() {
+      const y = Math.max(0, window.scrollY);
+      const delta = y - lastHeaderScrollY;
+      lastHeaderScrollY = y;
+      if (!window.matchMedia("(max-width: 760px)").matches || y < 96 || document.querySelector("dialog[open]")) {
+        headerScrollTravel = 0;
+        document.body.classList.remove("mobile-header-hidden");
+        return;
+      }
+      if (Math.sign(delta) !== Math.sign(headerScrollTravel)) headerScrollTravel = 0;
+      headerScrollTravel = Math.max(-60, Math.min(60, headerScrollTravel + delta));
+      if (headerScrollTravel > 18 && y > 160) document.body.classList.add("mobile-header-hidden");
+      if (headerScrollTravel < -12) document.body.classList.remove("mobile-header-hidden");
+    }
+    window.addEventListener("scroll", updateMobileHeaderVisibility, { passive: true });
+    window.addEventListener("resize", updateMobileHeaderVisibility);
 
     elements.languageButton.addEventListener("click", () => applyLanguage(currentLanguage === "ja" ? "en" : "ja"));
     elements.helpButton.addEventListener("click", () => elements.helpDialog.showModal());
