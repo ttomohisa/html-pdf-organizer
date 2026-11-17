@@ -5201,14 +5201,20 @@ body.is-sorting .page-card.drag-source {
     elements.outputPasswordDialog.addEventListener("cancel", () => { resetOutputPasswordVisibility(); showOutputPasswordError(""); });
     elements.outputPasswordDialog.addEventListener("close", resetOutputPasswordVisibility);
 
-    elements.deleteConfirmCancelButton.addEventListener("click", () => elements.deleteConfirmDialog.close());
+    elements.deleteConfirmCancelButton.addEventListener("click", () => {
+      pendingDeleteAction = null;
+      elements.deleteConfirmDialog.close();
+    });
     elements.deleteConfirmApplyButton.addEventListener("click", () => {
       const action = pendingDeleteAction;
       pendingDeleteAction = null;
       elements.deleteConfirmDialog.close();
       if (!state.isBusy) action?.();
     });
-    elements.deleteConfirmDialog.addEventListener("close", () => { pendingDeleteAction = null; });
+    elements.deleteConfirmDialog.addEventListener("close", () => {
+      // A delayed close event from a canceled dialog must not clear a newer confirmation.
+      if (!elements.deleteConfirmDialog.open) pendingDeleteAction = null;
+    });
 
     elements.clearAllButton.addEventListener("click", () => {
       if (!state.pages.length || state.isBusy) return;
