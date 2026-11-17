@@ -1,0 +1,62 @@
+name: Release after merge
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pdf-organizer-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    runs-on: windows-latest
+    steps:
+      - name: Check out merged commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Restore dependency cache
+        uses: actions/cache@v5
+        with:
+          path: .cache
+          key: pdf-organizer-${{ runner.os }}-${{ hashFiles('versions.json') }}
+
+      - name: Build standalone HTML
+        shell: pwsh
+        run: ./build-offline.ps1
+
+      - name: Run regressions against the built release
+        shell: pwsh
+        run: |
+          Copy-Item -LiteralPath dist/index.html -Destination pdf-organizer.html -Force
+          node --test
+          if ($LASTEXITCODE -ne 0) { throw "Regression tests failed. No release created." }
+
+      - name: Publish versioned GitHub Release and tag
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          $version = [string]((Get-Content -Raw -Encoding UTF8 app.config.json | ConvertFrom-Json).version)
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid SemVer release version: $version" }
+          $tag = "v$version"
+          $remoteTag = git ls-remote --refs --tags origin "refs/tags/$tag"
+          if ($LASTEXITCODE -ne 0) { throw "Unable to check existing tags" }
+          if ($remoteTag) { throw "Tag $tag already exists. Release not modified; increment the version to publish again." }
+          Copy-Item -LiteralPath dist/index.html -Destination pdf-organizer.html -Force
+          gh release create $tag ./pdf-organizer.html --target $env:MERGE_SHA --title "PDF Organizer $tag" --generate-notes
+          if ($LASTEXITCODE -ne 0) { throw "GitHub Release creation failed" }
