@@ -293,6 +293,9 @@
       white-space: nowrap;
     }
     .privacy-promise svg { width: 15px; height: 15px; flex: 0 0 auto; }
+    .help-shortcuts { margin: 12px 0 18px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+    .help-shortcuts summary { color: var(--text); font-size: 13px; font-weight: 650; cursor: pointer; }
+    .help-shortcuts .shortcut-grid { margin-top: 12px; }
     .dialog-close { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; color: var(--text-muted); }
     .dialog-close svg { width: 18px; height: 18px; }
 
@@ -1868,42 +1871,38 @@ body.is-sorting .page-card.drag-source {
       <button class="dialog-close" id="closeHelpButton" type="button" data-i18n-aria-label="close" aria-label="閉じる"></button>
     </div>
     <div class="dialog-body">
-      <h3 data-i18n="basicOperations">基本操作</h3>
+      <h3 data-i18n="basicOperations">使い方</h3>
+      <ol>
+        <li data-i18n="helpAdd">PDF・画像・PowerPointファイルを追加します。各ページやスライドが一覧に並びます。</li>
+        <li data-i18n="helpDrag">ページをドラッグして順番を変更します。スマホでは長押ししてから動かします。</li>
+        <li data-i18n="helpEdit">不要なページは選んで削除。回転や「元に戻す」も使えます。</li>
+        <li data-i18n="helpMerge">「すべて保存」または「選択ページを保存」でPDFを書き出します。</li>
+      </ol>
+      <h3 data-i18n="multipleSelection">ページの選び方</h3>
+      <p data-i18n-html="helpSelection">カードをクリックして選択します。複数ページは右上のチェックで追加できます。PCでは<kbd>Shift</kbd>＋クリックで範囲選択できます。</p>
+      <p data-i18n="helpPreview">拡大ボタンでページを大きく確認できます。</p>
+      <h3 data-i18n="imageLayoutHeading">画像の配置</h3>
+      <p data-i18n="helpImageLayout">画像のFitは全体をA4内に収め、FillはA4いっぱいに配置してはみ出す部分を切り取ります。Original Sizeは画像の大きさに合わせたページを作ります。</p>
+      <details class="help-shortcuts">
+        <summary data-i18n="keyboardShortcuts">PCのキーボード操作</summary>
+        <div class="shortcut-grid">
+          <kbd>Ctrl/⌘ A</kbd><span data-i18n="shortcutSelectAll">すべてのページを選択</span>
+          <kbd>Ctrl/⌘ Z</kbd><span data-i18n="undo">元に戻す</span>
+          <kbd>Ctrl/⌘ ⇧ Z</kbd><span data-i18n="redo">やり直す</span>
+          <kbd>Delete</kbd><span data-i18n="shortcutDelete">選択ページを削除</span>
+          <kbd>Esc</kbd><span data-i18n="shortcutClear">選択を解除</span>
+        </div>
+      </details>
+      <h3 data-i18n="limitations">保存前に知っておくこと</h3>
       <ul>
-        <li data-i18n="helpAdd">PDF・JPG・PNG・WebP・PowerPoint（PPTX）を追加すると、PDFの各ページ、画像、スライドが同じ一覧に表示されます。</li>
-        <li data-i18n="helpDrag">カードのどこをつかんでもドラッグでき、ページ順をすばやく変更できます。</li>
-        <li data-i18n="helpGroupDrag">複数ページを選択してから選択中のカードをドラッグすると、まとめて順番を移動できます。</li>
-        <li data-i18n="helpEdit">カードをクリックして選択し、複数ページをまとめて回転・削除できます。</li>
-        <li data-i18n="helpPreview">カードの拡大ボタン、またはカードをダブルクリックするとページを大きくプレビューできます。</li>
-        <li data-i18n="helpMerge">PDF・画像・PowerPointスライドを好きな順に並べて、1つのPDFとして保存できます。画像は Fit / Fill / Original Size を選べます。</li>
-        <li data-i18n="helpImageLayout">画像の Fit は全体をA4内に収め、Fill はA4いっぱいに中央配置してはみ出しを切り取り、Original Size は画像自体の大きさに合わせたページを作ります。</li>
+        <li data-i18n="limitPassword">パスワード付きPDFは、開くときにパスワードが必要です。保存するPDFにもパスワードを設定できます（AES-256）。</li>
+        <li data-i18n="limitMetadata">しおり・添付ファイル・フォームなどは、保存後のPDFに引き継がれないことがあります。</li>
+        <li data-i18n="limitSignature">電子署名の付いたPDFを編集すると、署名は無効になります。</li>
+        <li data-i18n="limitPptx">PowerPointはフォントや図形などの見た目が元ファイルと異なる場合があります。</li>
+        <li data-i18n="limitMemory">ページ数や画像の大きさによっては、端末のメモリ不足で処理できない場合があります。</li>
       </ul>
-
-      <h3 data-i18n="multipleSelection">複数選択</h3>
-      <p data-i18n-html="helpSelection">カード右上のチェックをクリックすると、<kbd>Ctrl</kbd> / <kbd>⌘</kbd> クリックと同様に現在の選択を残したまま追加・解除できます。<kbd>Shift</kbd> を押しながらカードをクリックすると範囲選択できます。</p>
-
-      <h3 data-i18n="keyboardShortcuts">キーボード操作</h3>
-      <div class="shortcut-grid">
-        <kbd>Ctrl/⌘ A</kbd><span data-i18n="shortcutSelectAll">すべてのページを選択</span>
-        <kbd>Ctrl/⌘ Z</kbd><span data-i18n="undo">元に戻す</span>
-        <kbd>Ctrl/⌘ ⇧ Z</kbd><span data-i18n="redo">やり直す</span>
-        <kbd>Delete</kbd><span data-i18n="shortcutDelete">選択ページを削除</span>
-        <kbd>Esc</kbd><span data-i18n="shortcutClear">選択を解除</span>
-      </div>
-
-      <p data-i18n="helpModals">プレビューのページ移動ボタンはEnterやSpaceでも操作できます。</p>
-
-      <h3 data-i18n="privacy">プライバシー</h3>
-      <p data-i18n="helpPrivacy">選択したPDF・画像・PowerPointの読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。</p>
-
-      <h3 data-i18n="limitations">制限事項</h3>
-      <ul>
-        <li data-i18n="limitPassword">パスワード付きPDFは正しいパスワードで開けます。出力PDFにも必要に応じてAES-256のパスワードを設定できます。</li>
-        <li data-i18n="limitMetadata">保存時に、しおり、添付ファイル、電子署名、フォームなどの文書レベル情報が引き継がれない場合があります。</li>
-        <li data-i18n="limitSignature">電子署名付きPDFを編集すると、署名は無効になります。</li>
-        <li data-i18n="limitMemory">ページ数が多いPDF、高解像度画像、スライド数や図表が多いPowerPointでは、端末のメモリを多く使用します。</li>
-      </ul>
-
+      <h3 data-i18n="privacy">ファイルの扱い</h3>
+      <p data-i18n="helpPrivacy">読み込みから編集・保存までブラウザ内で処理します。ファイルは外部サーバーへ送信しません。</p>
       <h3 data-i18n="openSource">オープンソース</h3>
       <p data-i18n="helpOpenSource">このHTMLはMIT Licenseで利用できます。PDF.js（Apache-2.0）、pdf-lib（MIT）、@pdfsmaller/pdf-encrypt（MIT）、@aiden0z/pptx-renderer（Apache-2.0）を使用しています。</p>
     </div>
@@ -2399,28 +2398,28 @@ body.is-sorting .page-card.drag-source {
         previewFooterOpen: "カードの拡大ボタンまたはダブルクリックで表示",
         previewFooterKeys: "← → でページ移動・Escで閉じる",
         close: "閉じる",
-        basicOperations: "基本操作",
-        helpAdd: "PDF・JPG・PNG・WebP・PowerPointを追加すると、PDFの各ページ、画像、PowerPointの各スライドが同じ一覧に表示されます。",
-        helpDrag: "カードのどこをつかんでもドラッグでき、ページ順をすばやく変更できます。",
-        helpGroupDrag: "複数ページを選択してから選択中のカードをドラッグすると、まとめて順番を移動できます。",
-        helpEdit: "カードをクリックして選択し、複数ページをまとめて回転・削除できます。",
-        helpPreview: "カードの拡大ボタン、またはカードをダブルクリックするとページを大きくプレビューできます。",
-        helpMerge: "PDF・画像・PowerPointスライドを好きな順に並べて、1つのPDFとして結合保存できます。PowerPointは文字選択を残し、対応できる基本図形はベクターとして重ねて出力します。",
-        helpImageLayout: "画像の Fit は全体をA4内に収め、Fill はA4いっぱいに中央配置してはみ出しを切り取り、Original Size は画像自体の大きさに合わせたページを作ります。",
-        multipleSelection: "複数選択",
-        helpSelection: "カード右上のチェックをクリックすると、<kbd>Ctrl</kbd> / <kbd>⌘</kbd> クリックと同様に現在の選択を残したまま追加・解除できます。<kbd>Shift</kbd> を押しながらカードをクリックすると範囲選択できます。",
-        keyboardShortcuts: "キーボード操作",
-        helpModals: "プレビューのページ移動ボタンはEnterやSpaceでも操作できます。",
+        basicOperations: "使い方",
+        helpAdd: "PDF・画像・PowerPointファイルを追加します。各ページやスライドが一覧に並びます。",
+        helpDrag: "ページをドラッグして順番を変更します。スマホでは長押ししてから動かします。",
+        helpEdit: "不要なページは選んで削除。回転や「元に戻す」も使えます。",
+        helpPreview: "拡大ボタンでページを大きく確認できます。",
+        helpMerge: "「すべて保存」または「選択ページを保存」でPDFを書き出します。",
+        helpImageLayout: "画像のFitは全体をA4内に収め、FillはA4いっぱいに配置してはみ出す部分を切り取ります。Original Sizeは画像の大きさに合わせたページを作ります。",
+        imageLayoutHeading: "画像の配置",
+        multipleSelection: "ページの選び方",
+        helpSelection: "カードをクリックして選択します。複数ページは右上のチェックで追加できます。PCでは<kbd>Shift</kbd>＋クリックで範囲選択できます。",
+        keyboardShortcuts: "PCのキーボード操作",
         shortcutSelectAll: "すべてのページを選択",
         shortcutDelete: "選択ページを削除",
         shortcutClear: "選択を解除",
-        privacy: "プライバシー",
-        helpPrivacy: "選択したPDF・画像・PowerPointの読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。",
-        limitations: "制限事項",
-        limitPassword: "パスワード付きPDFは正しいパスワードで開けます。出力PDFにも必要に応じてAES-256のパスワードを設定できます。",
-        limitMetadata: "保存時に、しおり、添付ファイル、電子署名、フォームなどの文書レベル情報が引き継がれない場合があります。",
-        limitSignature: "電子署名付きPDFを編集すると、署名は無効になります。",
-        limitMemory: "ページ数が多いPDF、高解像度画像、スライド数や図表が多いPowerPointでは、端末のメモリを多く使用します。",
+        privacy: "ファイルの扱い",
+        helpPrivacy: "読み込みから編集・保存までブラウザ内で処理します。ファイルは外部サーバーへ送信しません。",
+        limitations: "保存前に知っておくこと",
+        limitPassword: "パスワード付きPDFは、開くときにパスワードが必要です。保存するPDFにもパスワードを設定できます（AES-256）。",
+        limitMetadata: "しおり・添付ファイル・フォームなどは、保存後のPDFに引き継がれないことがあります。",
+        limitSignature: "電子署名の付いたPDFを編集すると、署名は無効になります。",
+        limitPptx: "PowerPointはフォントや図形などの見た目が元ファイルと異なる場合があります。",
+        limitMemory: "ページ数や画像の大きさによっては、端末のメモリ不足で処理できない場合があります。",
         openSource: "オープンソース",
         helpOpenSource: "このHTMLはMIT Licenseで利用できます。PDF.js（Apache-2.0）、pdf-lib（MIT）、@pdfsmaller/pdf-encrypt（MIT）、@aiden0z/pptx-renderer（Apache-2.0）を使用しています。",
         toastClose: "通知を閉じる",
@@ -2568,28 +2567,28 @@ body.is-sorting .page-card.drag-source {
         previewFooterOpen: "Open with the preview button or double-click a card",
         previewFooterKeys: "Use ← → to move · Esc to close",
         close: "Close",
-        basicOperations: "Basics",
-        helpAdd: "Add PDFs, JPGs, PNGs, WebP images, or PowerPoint files to display PDF pages, images, and slides together.",
-        helpDrag: "Grab anywhere on a card and drag to reorder pages quickly.",
-        helpGroupDrag: "Select multiple pages, then drag any selected card to move the whole selection together.",
-        helpEdit: "Select cards to rotate or delete multiple pages at once.",
-        helpPreview: "Use the preview button or double-click a card to inspect a page at a larger size.",
-        helpMerge: "Mix PDF pages, images, and PowerPoint slides in any order and save them as one PDF. PowerPoint export keeps selectable text and overlays supported basic shapes as vectors.",
-        helpImageLayout: "Fit keeps the whole image inside an automatically oriented A4 page. Fill covers the A4 page and center-crops overflow. Original Size creates a page that follows the image size.",
-        multipleSelection: "Multiple selection",
-        helpSelection: "Click the check button to add or remove a page without clearing the current selection, just like <kbd>Ctrl</kbd> / <kbd>⌘</kbd> click. Hold <kbd>Shift</kbd> while clicking a card to select a range.",
-        keyboardShortcuts: "Keyboard shortcuts",
-        helpModals: "Preview navigation buttons also work with Enter or Space.",
+        basicOperations: "How to use",
+        helpAdd: "Add PDFs, images, or PowerPoint files. Their pages and slides appear in one list.",
+        helpDrag: "Drag pages to reorder them. On a phone, touch and hold before moving.",
+        helpEdit: "Select pages to remove or rotate them. You can undo changes.",
+        helpPreview: "Use the expand button to inspect a page more closely.",
+        helpMerge: "Use Save all or Save selected to download a PDF.",
+        helpImageLayout: "Fit keeps an entire image inside an A4 page. Fill covers the A4 page and crops the excess. Original Size creates a page sized to the image.",
+        imageLayoutHeading: "Image placement",
+        multipleSelection: "Selecting pages",
+        helpSelection: "Click a card to select it. Use its checkbox to add more pages. On a computer, <kbd>Shift</kbd>-click to select a range.",
+        keyboardShortcuts: "Keyboard shortcuts (desktop)",
         shortcutSelectAll: "Select every page",
         shortcutDelete: "Delete selected pages",
         shortcutClear: "Clear selection",
-        privacy: "Privacy",
-        helpPrivacy: "PDF, image, and PowerPoint loading, preview, editing, and export all happen in your browser. Files and actions are never sent outside the device, and the required libraries and rendering assets are embedded in this HTML file.",
-        limitations: "Limitations",
-        limitPassword: "Password-protected PDFs can be opened with the correct password. You can optionally protect the exported PDF with an AES-256 password.",
-        limitMetadata: "Document-level data such as bookmarks, attachments, digital signatures, and forms may not be retained in the exported PDF.",
-        limitSignature: "Editing a digitally signed PDF invalidates its signature.",
-        limitMemory: "Large PDFs, high-resolution images, and PowerPoint decks with many slides or charts may use significant device memory.",
+        privacy: "Your files",
+        helpPrivacy: "Files are opened, edited, and saved in your browser. They are not uploaded to an external server.",
+        limitations: "Before saving",
+        limitPassword: "Password-protected PDFs need a password to open. You can also set an AES-256 password on the PDF you save.",
+        limitMetadata: "Bookmarks, attachments, forms, and other document information may not carry over to the saved PDF.",
+        limitSignature: "Editing a digitally signed PDF invalidates the signature.",
+        limitPptx: "PowerPoint fonts, shapes, and other visual details may differ from the original.",
+        limitMemory: "Large documents and images may exceed your device's available memory.",
         openSource: "Open source",
         helpOpenSource: "This HTML is available under the MIT License. It uses PDF.js (Apache-2.0), pdf-lib (MIT), @pdfsmaller/pdf-encrypt (MIT), and @aiden0z/pptx-renderer (Apache-2.0).",
         toastClose: "Close notification",
