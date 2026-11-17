@@ -5308,16 +5308,20 @@ body.is-sorting .page-card.drag-source {
     });
 
     let lastHeaderScrollY = window.scrollY;
+    let headerScrollTravel = 0;
     function updateMobileHeaderVisibility() {
       const y = Math.max(0, window.scrollY);
       const delta = y - lastHeaderScrollY;
       lastHeaderScrollY = y;
       if (!window.matchMedia("(max-width: 760px)").matches || y < 96 || document.querySelector("dialog[open]")) {
+        headerScrollTravel = 0;
         document.body.classList.remove("mobile-header-hidden");
         return;
       }
-      if (delta > 5 && y > 160) document.body.classList.add("mobile-header-hidden");
-      if (delta < -5) document.body.classList.remove("mobile-header-hidden");
+      if (Math.sign(delta) !== Math.sign(headerScrollTravel)) headerScrollTravel = 0;
+      headerScrollTravel = Math.max(-60, Math.min(60, headerScrollTravel + delta));
+      if (headerScrollTravel > 18 && y > 160) document.body.classList.add("mobile-header-hidden");
+      if (headerScrollTravel < -12) document.body.classList.remove("mobile-header-hidden");
     }
     window.addEventListener("scroll", updateMobileHeaderVisibility, { passive: true });
     window.addEventListener("resize", updateMobileHeaderVisibility);
