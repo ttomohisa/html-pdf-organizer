@@ -79,7 +79,7 @@ function harness(filename) {
   ctx.refreshSelectionUi = () => ctx.app.updateUiState();
   return { source, app: ctx.app, elements, logs, blobs, cleanup, document, Input,
     confirmDelete: () => { if (source.includes('let pendingDeleteAction = null;')) vm.runInContext('if (pendingDeleteAction) { const action = pendingDeleteAction; pendingDeleteAction = null; action(); }', ctx); },
-    cancelDelete: () => { if (source.includes('let pendingDeleteAction = null;')) vm.runInContext('pendingDeleteAction = null;', ctx); },
+    cancelDelete: () => { if (source.includes('let pendingDeleteAction = null;')) { vm.runInContext('pendingDeleteAction = null;', ctx); elements.deleteConfirmDialog.close(); } },
     key: e => listeners.keydown({ target: {}, preventDefault() {}, ctrlKey: false, metaKey: false, shiftKey: false, ...e }),
     cancel: name => name === 'visibilitychange' ? (document.hidden = true, listeners[name]()) : windowListeners[name]({ pointerId: 1, key: 'Escape', preventDefault() {} }),
     layout: (id, value) => elements.pagesGrid.handlers.change[0]({ target: { closest: () => ({ dataset: { imageLayout: id }, value }) } }) };
