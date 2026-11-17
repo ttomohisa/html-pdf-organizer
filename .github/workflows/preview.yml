@@ -47,6 +47,7 @@ jobs:
         env:
           PDF_ICON_REQUIRE_BUILD: '1'
         run: |
+          Copy-Item -LiteralPath dist/index.html -Destination pdf-organizer.html -Force
           node --test
           if ($LASTEXITCODE -ne 0) { throw 'Generated release regression checks failed.' }
 
