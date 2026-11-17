@@ -22,7 +22,8 @@ async function exercise(browser, buffer, width, height, mobile) {
   page.on('pageerror', error => errors.push(error.message));
   try {
     await page.goto(pathToFileURL(path.resolve(__dirname, '../dist/index.html')).href);
-    await page.waitForFunction(() => document.getElementById('languageButton')?.textContent.trim() === (document.documentElement.lang === 'ja' ? 'EN' : 'JA'));
+    // The initial HTML already has a Japanese label; wait for the embedded runtime to finish initializing.
+    await page.waitForFunction(() => !!document.querySelector('#initialDropIcon svg') && !!document.querySelector('#helpButton svg'), null, { timeout: 30000 });
     await page.locator('#fileInput').setInputFiles(buffer);
     try {
       await page.waitForFunction(() => document.querySelectorAll('.page-card').length === 12, null, { timeout: 15000 });
