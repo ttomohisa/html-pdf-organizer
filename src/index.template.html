@@ -214,14 +214,6 @@
     }
     .initial-overview[hidden] { display: none !important; }
     .overview-copy { min-width: 0; }
-    .overview-label {
-      display: block;
-      margin-bottom: 4px;
-      color: var(--accent);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .02em;
-    }
     .initial-overview h2 {
       margin: 0;
       font-size: clamp(16px, 1.5vw, 20px);
@@ -301,13 +293,8 @@
       white-space: nowrap;
     }
     .privacy-promise svg { width: 15px; height: 15px; flex: 0 0 auto; }
-    footer { width: min(1480px, 100%); margin: 0 auto; padding: 18px clamp(14px, 2.8vw, 30px) 34px; color: var(--text-muted); font-size: 12px; text-align: left; }
     .dialog-close { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; color: var(--text-muted); }
     .dialog-close svg { width: 18px; height: 18px; }
-    .file-fallback-button { display: none; }
-    @media (max-width: 767px), (pointer: coarse) and (max-height: 600px) {
-      .file-fallback-button { display: block; width: 100%; margin-top: 8px; padding: 10px; border: 0; background: transparent; color: var(--accent); font-size: 13px; font-weight: 650; min-height: 44px; cursor: pointer; }
-    }
 
     .workspace[hidden], .drop-zone[hidden] { display: none !important; }
 
@@ -327,18 +314,6 @@
       margin-top: 6px;
       color: var(--text-muted);
     }
-    .workspace-guide-icon {
-      width: 25px;
-      height: 25px;
-      flex: 0 0 auto;
-      display: grid;
-      place-items: center;
-      margin-top: 1px;
-      border-radius: 8px;
-      background: var(--accent-soft);
-      color: var(--accent);
-    }
-    .workspace-guide-icon svg { width: 15px; height: 15px; }
     .workspace-guide p { margin: 0; font-size: 12px; line-height: 1.45; }
     .workspace-guide strong { display: block; color: var(--text); font-size: 13px; font-weight: 720; }
     .workspace-guide span { display: block; }
@@ -1174,6 +1149,7 @@
     }
 
     @media (max-width: 760px) {
+      .privacy-promise { display: none !important; }
       :root { --header-height: 58px; --thumb-width: 142px; }
       .header-inner { padding-block: 8px; }
       .brand-mark { width: 34px; height: 34px; border-radius:25%; }
@@ -1189,7 +1165,6 @@
         padding: 13px;
         border-radius: 14px;
       }
-      .overview-label { margin-bottom: 2px; font-size: 10px; }
       .initial-overview h2 { font-size: 16px; }
       .overview-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
       .overview-actions li { gap: 7px; padding: 8px; }
@@ -1221,13 +1196,6 @@
         margin-top: 4px;
         max-width: 44ch;
       }
-      .workspace-guide-icon {
-        width: 20px;
-        height: 20px;
-        margin-top: 0;
-        border-radius: 6px;
-      }
-      .workspace-guide-icon svg { width: 13px; height: 13px; }
       .workspace-guide p {
         margin-top: 1px;
         font-size: 10.5px;
@@ -1688,7 +1656,6 @@ body.is-sorting .page-card.drag-source {
   <main class="main">
     <section class="initial-overview" id="initialOverview" aria-labelledby="overviewHeading">
       <div class="overview-copy">
-        <span class="overview-label" data-i18n="overviewLabel">PDF Organizerでできること</span>
         <h2 id="overviewHeading" data-i18n="overviewHeading">ページを見ながら、整理・結合・保存</h2>
         <div class="privacy-promise"><span id="shieldIcon" aria-hidden="true"></span><span data-i18n="privacyNote">完全ローカル処理</span></div>
       </div>
@@ -1730,17 +1697,16 @@ body.is-sorting .page-card.drag-source {
         <div class="workspace-title">
           <h2 data-i18n="pageListHeading">ページ一覧</h2>
           <div class="workspace-guide">
-            <span class="workspace-guide-icon" id="workspaceGuideIcon" aria-hidden="true"></span>
             <p>
-              <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。</span>
-              <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">ドラッグで並び替え。複数選択はまとめて移動できます。</span>
+              <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">ドラッグして並び替え。選択したページもまとめて動かせます。</span>
+              <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">長押しして並び替え</span>
             </p>
           </div>
         </div>
         <div class="compact-drop" id="compactDropZone">
           <span id="compactAddIcon" aria-hidden="true"></span>
           <span data-i18n="dropMorePdf">ここにPDF・画像を追加ドロップ</span>
-          <button class="button" id="addButton" type="button" data-i18n="addPdf">PDF・画像を追加</button>
+          <button class="button" id="addButton" type="button" data-i18n="addPdf">ファイルを追加</button>
         </div>
       </div>
 
@@ -1780,14 +1746,12 @@ body.is-sorting .page-card.drag-source {
           <p data-i18n="noPagesBody">PDF・画像を追加するか、元に戻してください。</p>
           <button class="button primary" id="emptyAddButton" type="button">
             <span id="emptyAddIcon" aria-hidden="true"></span>
-            <span data-i18n="addPdf">PDF・画像を追加</span>
+            <span data-i18n="addPdf">ファイルを追加</span>
           </button>
         </div>
       </div>
-      <button class="file-fallback-button" id="fileFallbackButton" type="button" data-i18n="fileFallback">ファイルから選択</button>
     </section>
   </main>
-  <footer>PDF Organizer · MIT License · <span data-i18n="footerNote">PDFの整理はブラウザー内で完結</span></footer>
 
   <div class="export-bar" id="exportBar" hidden>
     <div class="filename-wrap">
@@ -1802,7 +1766,6 @@ body.is-sorting .page-card.drag-source {
   <div id="pptxExportSandbox" aria-hidden="true"></div>
 
   <input class="sr-only" id="fileInput" type="file" accept="application/pdf,image/jpeg,image/png,image/webp,application/vnd.openxmlformats-officedocument.presentationml.presentation,.pdf,.jpg,.jpeg,.png,.webp,.pptx" multiple>
-<input class="sr-only" id="fileFallbackInput" type="file" multiple>
 
   <div class="busy-overlay" id="busyOverlay" hidden role="status" aria-live="assertive">
     <div class="busy-card">
@@ -2350,8 +2313,7 @@ body.is-sorting .page-card.drag-source {
       ["zoomLargeIcon", "zoomLarge"], ["clearAllIcon", "trash"], ["emptyIcon", "file"], ["emptyAddIcon", "addFile"],
       ["saveSelectedIcon", "download"], ["saveAllIcon", "download"], ["outputPasswordIcon", "lockOpen"],
       ["outputPasswordVisibilityIcon", "eye"], ["outputPasswordConfirmVisibilityIcon", "eye"], ["closeHelpButton", "close"],
-      ["previewPreviousButton", "previous"], ["previewNextButton", "next"], ["closePreviewButton", "close"],
-      ["workspaceGuideIcon", "dragGroup"]
+      ["previewPreviousButton", "previous"], ["previewNextButton", "next"], ["closePreviewButton", "close"]
     ].forEach(([id, name]) => setIcon(id, name));
 
     const translations = {
@@ -2362,7 +2324,6 @@ body.is-sorting .page-card.drag-source {
         switchLanguage: "Switch to English",
         helpTitle: "使い方と注意事項",
         addPdfAria: "PDF・JPG・PNG・WebP・PowerPointファイルを追加",
-        overviewLabel: "PDF Organizerでできること",
         overviewHeading: "ページを見ながら、整理・結合・保存",
         overviewReorder: "並べ替え",
         overviewReorderNote: "ドラッグで順番変更",
@@ -2376,12 +2337,12 @@ body.is-sorting .page-card.drag-source {
         dropDescription: "PDF・JPG・PNG・WebP・PowerPointをまとめて、そのまま追加できます。",
         dropHint: "または、この枠内にPDF・画像・PowerPointをドラッグ＆ドロップ",
         choosePdf: "PDF・画像・PowerPointを選択",
-        privacyNote: "完全ローカル処理", footerNote: "PDFの整理はブラウザー内で完結", fileFallback: "ファイルから選択",
+        privacyNote: "完全ローカル処理",
         pageListHeading: "ページ一覧",
         workspaceGuideBody: "カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。",
         workspaceGuideBodyMobile: "ドラッグで並び替え。複数選択はまとめて移動できます。",
         dropMorePdf: "ここにPDF・画像・PowerPointを追加ドロップ",
-        addPdf: "PDF・画像・PowerPointを追加",
+        addPdf: "ファイルを追加",
         pageEditing: "ページ編集",
         selectAll: "すべて選択",
         clearSelection: "選択解除",
@@ -2532,7 +2493,6 @@ body.is-sorting .page-card.drag-source {
         switchLanguage: "日本語に切り替え",
         helpTitle: "How to use & notes",
         addPdfAria: "Add PDF, JPG, PNG, WebP, or PowerPoint files",
-        overviewLabel: "What PDF Organizer can do",
         overviewHeading: "Review pages, organize, merge, and save",
         overviewReorder: "Reorder",
         overviewReorderNote: "Drag pages into place",
@@ -2546,12 +2506,12 @@ body.is-sorting .page-card.drag-source {
         dropDescription: "Add PDFs, JPGs, PNGs, WebP images, and PowerPoint files together.",
         dropHint: "Or drag and drop PDFs, images, and PowerPoint files anywhere in this box",
         choosePdf: "Choose PDFs, images & PowerPoint",
-        privacyNote: "Fully local processing", footerNote: "PDF organizing stays in the browser", fileFallback: "Choose from files",
+        privacyNote: "Fully local processing",
         pageListHeading: "Pages",
-        workspaceGuideBody: "Drag any card to reorder. Selected pages move together as one group.",
-        workspaceGuideBodyMobile: "Drag to reorder. Multiple selections move together.",
+        workspaceGuideBody: "Drag to reorder. Selected pages can move together.",
+        workspaceGuideBodyMobile: "Touch and hold to reorder",
         dropMorePdf: "Drop more PDFs, images & PowerPoint here",
-        addPdf: "Add PDFs, images & PowerPoint",
+        addPdf: "Add files",
         pageEditing: "Page editing",
         selectAll: "Select all",
         clearSelection: "Clear selection",
@@ -5039,8 +4999,6 @@ body.is-sorting .page-card.drag-source {
     elements.addButton.addEventListener("click", () => elements.fileInput.click());
     elements.emptyAddButton.addEventListener("click", () => elements.fileInput.click());
     elements.fileInput.addEventListener("change", () => addFiles(elements.fileInput.files));
-    document.getElementById("fileFallbackButton").addEventListener("click", () => document.getElementById("fileFallbackInput").click());
-    document.getElementById("fileFallbackInput").addEventListener("change", (event) => { addFiles(event.target.files); event.target.value = ""; });
 
     elements.selectAllButton.addEventListener("click", selectAll);
     elements.clearSelectionButton.addEventListener("click", clearSelection);
