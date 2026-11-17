@@ -31,7 +31,21 @@ async function exercise(browser, buffer, width, height, mobile) {
     await page.goto(pathToFileURL(path.resolve(__dirname, '../dist/index.html')).href);
     await page.waitForFunction(() => document.getElementById('languageButton')?.textContent.trim() === (document.documentElement.lang === 'ja' ? 'EN' : 'JA'));
     await page.locator('#fileInput').setInputFiles({ name: 'pages.pdf', mimeType: 'application/pdf', buffer });
-    await page.waitForFunction(() => document.querySelectorAll('.page-card').length === 12, { timeout: 30000 });
+    try {
+      await page.waitForFunction(() => document.querySelectorAll('.page-card').length === 12, null, { timeout: 15000 });
+    } catch (error) {
+      console.error('Import diagnostics', JSON.stringify(await page.evaluate(() => ({
+        lang: document.documentElement.lang,
+        cards: document.querySelectorAll('.page-card').length,
+        notice: document.querySelector('#toastRegion')?.innerText,
+        busy: document.querySelector('#busyOverlay')?.hidden,
+        workspace: document.querySelector('#workspace')?.hidden,
+        error: document.querySelector('#previewError')?.innerText,
+        bodyText: document.body?.innerText?.slice(0, 1200)
+      }))));
+      console.error('Unhandled errors', errors);
+      throw error;
+    }
     assert.equal(await page.locator('.compact-drop > span').count(), 0, 'No verbose desktop drop hint');
     await page.locator('.page-card [data-action="preview"]').first().click({ force: true });
     await page.locator('#previewDialog[open] .preview-content-frame').waitFor({ timeout: 30000 });
