@@ -1,22 +1,15 @@
 // Browser-level confirmation, pinch zoom, responsive layout and mobile header checks.
 'use strict';
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
 const path = require('node:path');
-const vm = require('node:vm');
-const zlib = require('node:zlib');
 const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
 
-async function fixture() {
-  const html = fs.readFileSync(path.resolve(__dirname, '../dist/index.html'), 'utf8');
-  const payload = html.match(/id="vendorPdfLibGzipBase64">([^<]+)<\/script>/);
-  assert.ok(payload, 'Embedded pdf-lib is available');
-  const sandbox = vm.createContext({ Uint8Array, ArrayBuffer, Array, Date, setTimeout });
-  vm.runInContext(zlib.gunzipSync(Buffer.from(payload[1], 'base64')).toString(), sandbox);
-  const pdf = await sandbox.PDFLib.PDFDocument.create();
-  for (let n = 0; n < 12; n++) pdf.addPage([300, 420]);
-  return Buffer.from(await pdf.save());
+function fixture() {
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAwAAAAQCAIAAACtAwlQAAAAG0lEQVR4nGP8//8/AyHARFqKJRRQwMDAwMAArPAx3ZYoM8AAAAAElFTkSuQmCC', 'base64');
+  return Array.from({ length: 12 }, (_, index) => ({
+    name: `page-${index+1}.png`, mimeType: 'image/png', buffer: png
+  }));
 }
 
 async function exercise(browser, buffer, width, height, mobile) {
@@ -30,7 +23,7 @@ async function exercise(browser, buffer, width, height, mobile) {
   try {
     await page.goto(pathToFileURL(path.resolve(__dirname, '../dist/index.html')).href);
     await page.waitForFunction(() => document.getElementById('languageButton')?.textContent.trim() === (document.documentElement.lang === 'ja' ? 'EN' : 'JA'));
-    await page.locator('#fileInput').setInputFiles({ name: 'pages.pdf', mimeType: 'application/pdf', buffer });
+    await page.locator('#fileInput').setInputFiles(buffer);
     try {
       await page.waitForFunction(() => document.querySelectorAll('.page-card').length === 12, null, { timeout: 15000 });
     } catch (error) {
@@ -97,7 +90,7 @@ async function exercise(browser, buffer, width, height, mobile) {
 (async () => {
   const browser = await chromium.launch();
   try {
-    const buffer = await fixture();
+    const buffer = fixture();
     await exercise(browser, buffer, 1360, 900, false);
     await exercise(browser, buffer, 393, 852, true);
   } finally {
