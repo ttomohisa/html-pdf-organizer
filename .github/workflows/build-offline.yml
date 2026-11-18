@@ -23,7 +23,11 @@ jobs:
         shell: powershell
         run: .\build-offline.ps1
       - name: Verify source and generated release
-        run: node --test
+        shell: pwsh
+        run: |
+          Copy-Item -LiteralPath dist/index.html -Destination pdf-organizer.html -Force
+          node --test
+          if ($LASTEXITCODE -ne 0) { throw "Regression tests failed." }
       - name: Verify mobile label in Chromium
         if: github.event_name == 'pull_request'
         shell: pwsh
@@ -39,6 +43,8 @@ jobs:
           New-Item -ItemType Directory -Force -Path test-results/mobile-label | Out-Null
           node scripts/mobile-label.browser.cjs 2>&1 | Tee-Object -FilePath test-results/mobile-label/results.log
           if ($LASTEXITCODE -ne 0) { throw "Mobile label browser regression failed." }
+          node scripts/preview-interaction.browser.cjs 2>&1 | Tee-Object -FilePath test-results/mobile-label/preview-interaction.log
+          if ($LASTEXITCODE -ne 0) { throw "Preview interaction browser regression failed." }
       - name: Upload mobile label browser evidence
         if: always() && github.event_name == 'pull_request'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

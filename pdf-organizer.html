@@ -202,80 +202,26 @@
       font-size: 13px;
     }
     .initial-overview {
-      display: grid;
-      grid-template-columns: minmax(210px, .72fr) minmax(0, 1.6fr);
+      display: flex;
       align-items: center;
-      gap: 18px;
-      margin-bottom: 12px;
-      padding: 15px 17px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--surface);
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 6px;
+      padding: 3px 0 17px;
     }
     .initial-overview[hidden] { display: none !important; }
     .overview-copy { min-width: 0; }
-    .overview-label {
-      display: block;
-      margin-bottom: 4px;
-      color: var(--accent);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .02em;
-    }
     .initial-overview h2 {
       margin: 0;
-      font-size: clamp(16px, 1.5vw, 20px);
-      letter-spacing: -.015em;
+      font-size: clamp(18px, 1.6vw, 22px);
+      letter-spacing: -.018em;
       line-height: 1.35;
     }
-    .overview-actions {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 7px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-    .overview-actions li {
-      min-width: 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 10px;
-      border-radius: 11px;
-      background: var(--surface-muted);
-    }
-    .overview-action-icon {
-      width: 28px;
-      height: 28px;
-      flex: 0 0 auto;
-      display: grid;
-      place-items: center;
-      border-radius: 9px;
-      background: var(--accent-soft);
-      color: var(--accent);
-    }
-    .overview-action-icon svg { width: 16px; height: 16px; display: block; }
-    .overview-action-copy { min-width: 0; }
-    .overview-action-copy strong,
-    .overview-action-copy small { display: block; }
-    .overview-action-copy strong {
-      overflow: hidden;
-      color: var(--text);
-      font-size: 11px;
-      font-weight: 780;
-      line-height: 1.25;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .overview-action-copy small {
-      margin-top: 2px;
-      overflow: hidden;
+    .overview-summary {
+      margin: 5px 0 0;
       color: var(--text-muted);
-      font-size: 9px;
-      line-height: 1.25;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      font-size: 13px;
+      line-height: 1.5;
     }
     .drop-hint {
       margin-top: 8px;
@@ -301,13 +247,11 @@
       white-space: nowrap;
     }
     .privacy-promise svg { width: 15px; height: 15px; flex: 0 0 auto; }
-    footer { width: min(1480px, 100%); margin: 0 auto; padding: 18px clamp(14px, 2.8vw, 30px) 34px; color: var(--text-muted); font-size: 12px; text-align: left; }
+    .help-shortcuts { margin: 12px 0 18px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+    .help-shortcuts summary { color: var(--text); font-size: 13px; font-weight: 650; cursor: pointer; }
+    .help-shortcuts .shortcut-grid { margin-top: 12px; }
     .dialog-close { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; color: var(--text-muted); }
     .dialog-close svg { width: 18px; height: 18px; }
-    .file-fallback-button { display: none; }
-    @media (max-width: 767px), (pointer: coarse) and (max-height: 600px) {
-      .file-fallback-button { display: block; width: 100%; margin-top: 8px; padding: 10px; border: 0; background: transparent; color: var(--accent); font-size: 13px; font-weight: 650; min-height: 44px; cursor: pointer; }
-    }
 
     .workspace[hidden], .drop-zone[hidden] { display: none !important; }
 
@@ -327,18 +271,6 @@
       margin-top: 6px;
       color: var(--text-muted);
     }
-    .workspace-guide-icon {
-      width: 25px;
-      height: 25px;
-      flex: 0 0 auto;
-      display: grid;
-      place-items: center;
-      margin-top: 1px;
-      border-radius: 8px;
-      background: var(--accent-soft);
-      color: var(--accent);
-    }
-    .workspace-guide-icon svg { width: 15px; height: 15px; }
     .workspace-guide p { margin: 0; font-size: 12px; line-height: 1.45; }
     .workspace-guide strong { display: block; color: var(--text); font-size: 13px; font-weight: 720; }
     .workspace-guide span { display: block; }
@@ -357,7 +289,8 @@
       font-size: 13px;
       transition: .18s ease;
     }
-    .compact-drop.is-dragover { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+    .compact-drop { padding: 0; border: 0; background: transparent; }
+    .compact-drop.is-dragover { outline: 2px dashed var(--accent); outline-offset: 4px; color: var(--text); }
 
     .toolbar {
       position: sticky;
@@ -423,6 +356,14 @@
     .button.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
     .button.danger { color: var(--danger); }
     .button.ghost { border-color: transparent; background: transparent; }
+    .app-header .language-button, .app-header #helpButton,
+    .app-header .language-button:hover:not(:disabled), .app-header #helpButton:hover:not(:disabled),
+    .app-header .language-button:active:not(:disabled), .app-header #helpButton:active:not(:disabled) {
+      border-color: transparent; background: transparent; box-shadow: none;
+    }
+    .app-header .language-button:hover, .app-header #helpButton:hover { color: var(--accent); }
+    .app-header .language-button:focus:not(:focus-visible), .app-header #helpButton:focus:not(:focus-visible) { outline: none; }
+    .app-header .language-button:active:not(:disabled), .app-header #helpButton:active:not(:disabled) { transform: none; }
     .button.icon-only { width: 38px; padding-inline: 0; }
     .button svg, .icon-button svg, .brand-mark svg, .drop-icon svg { width: 18px; height: 18px; display: block; }
 
@@ -630,6 +571,31 @@
         linear-gradient(90deg, transparent 49.6%, color-mix(in srgb, var(--line) 55%, transparent) 50%, transparent 50.4%),
         var(--surface-muted);
     }
+
+    .thumbnail-error {
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.4;
+      text-align: center;
+    }
+    .thumbnail-retry {
+      min-height: 36px;
+      padding: 6px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      color: var(--accent);
+      background: var(--surface);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .thumbnail-retry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     .thumb-frame canvas {
       display: block;
@@ -1079,6 +1045,30 @@
     }
     .preview-canvas-host { display: grid; place-items: center; min-width: 100%; min-height: 100%; }
     .preview-canvas-host[hidden] { display: none; }
+    .preview-content-frame { position: relative; flex: none; }
+    .preview-content-frame > * { transform-origin: top left; }
+    .preview-stage { touch-action: none; }
+    .preview-stage.is-zoomed { cursor: grab; }
+    .preview-stage.is-zoomed:active { cursor: grabbing; }
+    .preview-zoom-tools {
+      display: inline-flex; align-items: center; gap: 3px;
+      border: 1px solid var(--line); border-radius: 999px;
+      padding: 3px; background: var(--surface);
+      box-shadow: 0 2px 7px rgba(0, 0, 0, .06);
+    }
+    .preview-zoom-button, .preview-zoom-level {
+      display: inline-grid; place-items: center;
+      min-width: 34px; min-height: 32px; padding: 3px 7px;
+      border: none; border-radius: 999px;
+      background: transparent; color: var(--text);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .preview-zoom-button:hover:not(:disabled), .preview-zoom-level:hover:not(:disabled) { background: var(--surface-muted); }
+    .preview-zoom-button:disabled { opacity: .3; cursor: default; }
+    .preview-zoom-button svg { width: 17px; height: 17px; }
+    .preview-zoom-level { min-width: 54px; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .button.confirm-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+    .button.confirm-danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 86%, black); border-color: transparent; }
     .preview-canvas-host canvas {
       display: block;
       background: #fff;
@@ -1149,6 +1139,8 @@
     }
 
     @media (max-width: 760px) {
+      .privacy-promise { display: none !important; }
+      .app-header { position: static; }
       :root { --header-height: 58px; --thumb-width: 142px; }
       .header-inner { padding-block: 8px; }
       .brand-mark { width: 34px; height: 34px; border-radius:25%; }
@@ -1157,20 +1149,9 @@
       .header-actions .button-label { display: none; }
       .language-button { min-width: 43px; padding-inline: 8px; }
       .main { padding-top: 15px; }
-      .initial-overview {
-        grid-template-columns: 1fr;
-        gap: 10px;
-        margin-bottom: 10px;
-        padding: 13px;
-        border-radius: 14px;
-      }
-      .overview-label { margin-bottom: 2px; font-size: 10px; }
-      .initial-overview h2 { font-size: 16px; }
-      .overview-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-      .overview-actions li { gap: 7px; padding: 8px; }
-      .overview-action-icon { width: 26px; height: 26px; border-radius: 8px; }
-      .overview-action-copy strong { font-size: 10px; }
-      .overview-action-copy small { font-size: 8px; }
+      .initial-overview { gap: 8px; padding: 2px 0 16px; }
+      .initial-overview h2 { font-size: 19px; }
+      .overview-summary { font-size: 12px; }
       .privacy-promise { margin-top: 8px; padding: 6px 0; font-size: 10px; }
       .drop-zone { min-height: 210px; padding: 20px 14px; }
       .drop-zone h2 { font-size: 18px; }
@@ -1196,13 +1177,6 @@
         margin-top: 4px;
         max-width: 44ch;
       }
-      .workspace-guide-icon {
-        width: 20px;
-        height: 20px;
-        margin-top: 0;
-        border-radius: 6px;
-      }
-      .workspace-guide-icon svg { width: 13px; height: 13px; }
       .workspace-guide p {
         margin-top: 1px;
         font-size: 10.5px;
@@ -1224,7 +1198,9 @@
       .export-bar { gap: 7px; padding: 8px; border-radius: 14px; }
       .preview-dialog { width: calc(100% - 12px); height: calc(100dvh - 12px); max-height: calc(100dvh - 12px); border-radius: 13px; }
       .preview-dialog .dialog-header { padding: 11px 12px; }
-      .preview-subtitle, .preview-footer span:first-child { display: none; }
+       .preview-subtitle, .preview-footer > span { display: none; }
+      .preview-footer { justify-content: center; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); }
+      .preview-zoom-button, .preview-zoom-level { min-width: 40px; min-height: 38px; }
       .preview-stage { padding: 10px; }
       .preview-counter { min-width: 54px; }
       .card-actions { left: 11px; right: 11px; justify-content: flex-end; }
@@ -1297,7 +1273,7 @@ body.is-sorting .page-card.drag-source {
   .mobile-edit-dock {
     position: sticky;
     z-index: 25;
-    top: calc(var(--header-height) + 7px);
+    top: 7px;
     display: block;
     margin: 0 -2px 12px;
     padding: 7px;
@@ -1639,6 +1615,7 @@ body.is-sorting .page-card.drag-source {
   .mobile-edit-dock { position: static; }
 }
 
+
 </style>
 </head>
 <body>
@@ -1649,7 +1626,7 @@ body.is-sorting .page-card.drag-source {
           <svg class="brand-favicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#16624f"/><path d="M18 14h20l8 8v28H18z" fill="#fff" opacity=".96"/><path d="M38 14v8h8" fill="#dbe9e5"/><text x="32" y="39" text-anchor="middle" fill="#16624f" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="-.4">PDF</text></svg>
         </div>
         <div class="brand-copy">
-          <h1>PDF Organizer <span class="version-badge" title="Version 1.2.6">v1.2.6</span></h1>
+          <h1>PDF Organizer <span class="version-badge" title="Version 1.2.7">v1.2.7</span></h1>
           <p data-i18n="brandSubtitle">PDF・画像ページの並び替え・回転・削除・結合</p>
         </div>
       </div>
@@ -1663,38 +1640,19 @@ body.is-sorting .page-card.drag-source {
   <main class="main">
     <section class="initial-overview" id="initialOverview" aria-labelledby="overviewHeading">
       <div class="overview-copy">
-        <span class="overview-label" data-i18n="overviewLabel">PDF Organizerでできること</span>
-        <h2 id="overviewHeading" data-i18n="overviewHeading">ページを見ながら、整理・結合・保存</h2>
-        <div class="privacy-promise"><span id="shieldIcon" aria-hidden="true"></span><span data-i18n="privacyNote">完全ローカル処理</span></div>
+        <h2 id="overviewHeading" data-i18n="overviewHeading">PDFのページを整理・結合</h2>
+        <p class="overview-summary" data-i18n="overviewSummary">並べ替えや回転、削除をして、1つのPDFに保存できます。</p>
       </div>
-      <ul class="overview-actions">
-        <li>
-          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h9l3 3v15H9z"/><path d="M18 3v4h3M4 4v16M2 6l2-2 2 2M2 18l2 2 2-2"/></svg></span>
-          <span class="overview-action-copy"><strong data-i18n="overviewReorder">並べ替え</strong><small data-i18n="overviewReorderNote">ドラッグで順番変更</small></span>
-        </li>
-        <li>
-          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l3 3v4M14 3v4h3M5 3v18h7"/><path d="m14 18 6-6 2 2-6 6-3 1z"/></svg></span>
-          <span class="overview-action-copy"><strong data-i18n="overviewEdit">回転・削除</strong><small data-i18n="overviewEditNote">不要ページも整理</small></span>
-        </li>
-        <li>
-          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h9l3 3v15H8z"/><path d="M17 3v4h3M4 7v14M11 14h6M14 11v6"/></svg></span>
-          <span class="overview-action-copy"><strong data-i18n="overviewMerge">PDFを結合</strong><small data-i18n="overviewMergeNote">複数ファイルをひとつに</small></span>
-        </li>
-        <li>
-          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3h10l3 3v5M14 3v4h3M4 3v18h6"/><path d="M17 12v9m-4-4 4 4 4-4"/></svg></span>
-          <span class="overview-action-copy"><strong data-i18n="overviewExport">必要なページを保存</strong><small data-i18n="overviewExportNote">全部・選択だけ両対応</small></span>
-        </li>
-      </ul>
+      <div class="privacy-promise"><span id="shieldIcon" aria-hidden="true"></span><span data-i18n="privacyNote">完全ローカル処理</span></div>
     </section>
 
     <section class="drop-zone" id="initialDropZone" tabindex="0" role="button" data-i18n-aria-label="addPdfAria" aria-label="PDF・JPG・PNG・WebP・PowerPointファイルを追加">
       <div class="drop-content">
         <div class="drop-icon" id="initialDropIcon" aria-hidden="true"></div>
         <h2 data-i18n="dropHeading">PDF・画像を追加して始める</h2>
-        <p data-i18n="dropDescription">PDF・JPG・PNG・WebPをまとめて、そのまま追加できます。</p>
         <button class="button primary" id="initialAddButton" type="button">
           <span id="initialAddIcon" aria-hidden="true"></span>
-          <span data-i18n="choosePdf">PDF・画像を選択</span>
+          <span data-i18n="choosePdf">ファイルを選択</span>
         </button>
         <div class="drop-hint" data-i18n="dropHint">または、この枠内にPDF・JPG・PNG・WebPをドラッグ＆ドロップ</div>
       </div>
@@ -1705,17 +1663,14 @@ body.is-sorting .page-card.drag-source {
         <div class="workspace-title">
           <h2 data-i18n="pageListHeading">ページ一覧</h2>
           <div class="workspace-guide">
-            <span class="workspace-guide-icon" id="workspaceGuideIcon" aria-hidden="true"></span>
             <p>
-              <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。</span>
-              <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">ドラッグで並び替え。複数選択はまとめて移動できます。</span>
+              <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">ドラッグして並び替え。選択したページもまとめて動かせます。</span>
+              <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">長押しして並び替え</span>
             </p>
           </div>
         </div>
         <div class="compact-drop" id="compactDropZone">
-          <span id="compactAddIcon" aria-hidden="true"></span>
-          <span data-i18n="dropMorePdf">ここにPDF・画像を追加ドロップ</span>
-          <button class="button" id="addButton" type="button" data-i18n="addPdf">PDF・画像を追加</button>
+          <button class="button" id="addButton" type="button" data-i18n="addPdf">ファイルを追加</button>
         </div>
       </div>
 
@@ -1755,14 +1710,12 @@ body.is-sorting .page-card.drag-source {
           <p data-i18n="noPagesBody">PDF・画像を追加するか、元に戻してください。</p>
           <button class="button primary" id="emptyAddButton" type="button">
             <span id="emptyAddIcon" aria-hidden="true"></span>
-            <span data-i18n="addPdf">PDF・画像を追加</span>
+            <span data-i18n="addPdf">ファイルを追加</span>
           </button>
         </div>
       </div>
-      <button class="file-fallback-button" id="fileFallbackButton" type="button" data-i18n="fileFallback">ファイルから選択</button>
     </section>
   </main>
-  <footer>PDF Organizer · MIT License · <span data-i18n="footerNote">PDFの整理はブラウザー内で完結</span></footer>
 
   <div class="export-bar" id="exportBar" hidden>
     <div class="filename-wrap">
@@ -1777,7 +1730,6 @@ body.is-sorting .page-card.drag-source {
   <div id="pptxExportSandbox" aria-hidden="true"></div>
 
   <input class="sr-only" id="fileInput" type="file" accept="application/pdf,image/jpeg,image/png,image/webp,application/vnd.openxmlformats-officedocument.presentationml.presentation,.pdf,.jpg,.jpeg,.png,.webp,.pptx" multiple>
-<input class="sr-only" id="fileFallbackInput" type="file" multiple>
 
   <div class="busy-overlay" id="busyOverlay" hidden role="status" aria-live="assertive">
     <div class="busy-card">
@@ -1847,6 +1799,15 @@ body.is-sorting .page-card.drag-source {
     </form>
   </dialog>
 
+  <dialog class="password-dialog delete-confirm-dialog" id="deleteConfirmDialog" aria-labelledby="deleteConfirmTitle">
+    <div class="dialog-header"><h2 id="deleteConfirmTitle" data-i18n="deleteAllConfirmTitle">すべてのページを削除しますか？</h2></div>
+    <div class="dialog-body"><p data-i18n="deleteAllConfirmBody">一覧からすべてのページを削除します。「元に戻す」で復元できます。</p></div>
+    <div class="dialog-actions">
+      <button class="button ghost" id="deleteConfirmCancelButton" type="button" data-i18n="cancel">キャンセル</button>
+      <button class="button confirm-danger" id="deleteConfirmApplyButton" type="button" data-i18n="deleteAllConfirmAction">削除する</button>
+    </div>
+  </dialog>
+
   <dialog class="preview-dialog" id="previewDialog" aria-labelledby="previewTitle">
     <div class="dialog-header">
       <div class="preview-title">
@@ -1870,6 +1831,11 @@ body.is-sorting .page-card.drag-source {
     </div>
     <div class="preview-footer">
       <span data-i18n="previewFooterOpen">カードの拡大ボタンまたはダブルクリックで表示</span>
+      <div class="preview-zoom-tools" role="group" data-i18n-aria-label="previewZoomControls" aria-label="プレビューの拡大縮小">
+        <button class="preview-zoom-button" id="previewZoomOutButton" type="button" data-i18n-title="previewZoomOut" data-i18n-aria-label="previewZoomOut" title="縮小" aria-label="縮小"></button>
+        <button class="preview-zoom-level" id="previewZoomResetButton" type="button" data-i18n-title="previewZoomReset" data-i18n-aria-label="previewZoomReset" title="画面に合わせる" aria-label="画面に合わせる">100%</button>
+        <button class="preview-zoom-button" id="previewZoomInButton" type="button" data-i18n-title="previewZoomIn" data-i18n-aria-label="previewZoomIn" title="拡大" aria-label="拡大"></button>
+      </div>
       <span data-i18n="previewFooterKeys">← → でページ移動・Escで閉じる</span>
     </div>
   </dialog>
@@ -1880,42 +1846,38 @@ body.is-sorting .page-card.drag-source {
       <button class="dialog-close" id="closeHelpButton" type="button" data-i18n-aria-label="close" aria-label="閉じる"></button>
     </div>
     <div class="dialog-body">
-      <h3 data-i18n="basicOperations">基本操作</h3>
+      <h3 data-i18n="basicOperations">使い方</h3>
+      <ol>
+        <li data-i18n="helpAdd">PDF・画像・PowerPointファイルを追加します。各ページやスライドが一覧に並びます。</li>
+        <li data-i18n="helpDrag">ページをドラッグして順番を変更します。スマホでは長押ししてから動かします。</li>
+        <li data-i18n="helpEdit">不要なページは選んで削除。回転や「元に戻す」も使えます。</li>
+        <li data-i18n="helpMerge">「すべて保存」または「選択ページを保存」でPDFを書き出します。</li>
+      </ol>
+      <h3 data-i18n="multipleSelection">ページの選び方</h3>
+      <p data-i18n-html="helpSelection">カードをクリックして選択します。複数ページは右上のチェックで追加できます。PCでは<kbd>Shift</kbd>＋クリックで範囲選択できます。</p>
+      <p data-i18n="helpPreview">拡大ボタンでページを大きく確認できます。</p>
+      <h3 data-i18n="imageLayoutHeading">画像の配置</h3>
+      <p data-i18n="helpImageLayout">画像のFitは全体をA4内に収め、FillはA4いっぱいに配置してはみ出す部分を切り取ります。Original Sizeは画像の大きさに合わせたページを作ります。</p>
+      <details class="help-shortcuts">
+        <summary data-i18n="keyboardShortcuts">PCのキーボード操作</summary>
+        <div class="shortcut-grid">
+          <kbd>Ctrl/⌘ A</kbd><span data-i18n="shortcutSelectAll">すべてのページを選択</span>
+          <kbd>Ctrl/⌘ Z</kbd><span data-i18n="undo">元に戻す</span>
+          <kbd>Ctrl/⌘ ⇧ Z</kbd><span data-i18n="redo">やり直す</span>
+          <kbd>Delete</kbd><span data-i18n="shortcutDelete">選択ページを削除</span>
+          <kbd>Esc</kbd><span data-i18n="shortcutClear">選択を解除</span>
+        </div>
+      </details>
+      <h3 data-i18n="limitations">保存前に知っておくこと</h3>
       <ul>
-        <li data-i18n="helpAdd">PDF・JPG・PNG・WebPを追加すると、PDFの各ページと画像が同じ一覧にサムネイルで表示されます。</li>
-        <li data-i18n="helpDrag">カードのどこをつかんでもドラッグでき、ページ順をすばやく変更できます。</li>
-        <li data-i18n="helpGroupDrag">複数ページを選択してから選択中のカードをドラッグすると、まとめて順番を移動できます。</li>
-        <li data-i18n="helpEdit">カードをクリックして選択し、複数ページをまとめて回転・削除できます。</li>
-        <li data-i18n="helpPreview">カードの拡大ボタン、またはカードをダブルクリックするとページを大きくプレビューできます。</li>
-        <li data-i18n="helpMerge">PDFと画像を好きな順に並べて、1つのPDFとして結合保存できます。画像は Fit / Fill / Original Size を選べます。</li>
-        <li data-i18n="helpImageLayout">画像の Fit は全体をA4内に収め、Fill はA4いっぱいに中央配置してはみ出しを切り取り、Original Size は画像自体の大きさに合わせたページを作ります。</li>
+        <li data-i18n="limitPassword">パスワード付きPDFは、開くときにパスワードが必要です。保存するPDFにもパスワードを設定できます（AES-256）。</li>
+        <li data-i18n="limitMetadata">しおり・添付ファイル・フォームなどは、保存後のPDFに引き継がれないことがあります。</li>
+        <li data-i18n="limitSignature">電子署名の付いたPDFを編集すると、署名は無効になります。</li>
+        <li data-i18n="limitPptx">PowerPointはフォントや図形などの見た目が元ファイルと異なる場合があります。</li>
+        <li data-i18n="limitMemory">ページ数や画像の大きさによっては、端末のメモリ不足で処理できない場合があります。</li>
       </ul>
-
-      <h3 data-i18n="multipleSelection">複数選択</h3>
-      <p data-i18n-html="helpSelection">カード右上のチェックをクリックすると、<kbd>Ctrl</kbd> / <kbd>⌘</kbd> クリックと同様に現在の選択を残したまま追加・解除できます。<kbd>Shift</kbd> を押しながらカードをクリックすると範囲選択できます。</p>
-
-      <h3 data-i18n="keyboardShortcuts">キーボード操作</h3>
-      <div class="shortcut-grid">
-        <kbd>Ctrl/⌘ A</kbd><span data-i18n="shortcutSelectAll">すべてのページを選択</span>
-        <kbd>Ctrl/⌘ Z</kbd><span data-i18n="undo">元に戻す</span>
-        <kbd>Ctrl/⌘ ⇧ Z</kbd><span data-i18n="redo">やり直す</span>
-        <kbd>Delete</kbd><span data-i18n="shortcutDelete">選択ページを削除</span>
-        <kbd>Esc</kbd><span data-i18n="shortcutClear">選択を解除</span>
-      </div>
-
-      <p data-i18n="helpModals">プレビューのページ移動ボタンはEnterやSpaceでも操作できます。</p>
-
-      <h3 data-i18n="privacy">プライバシー</h3>
-      <p data-i18n="helpPrivacy">選択したPDF・画像の読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。</p>
-
-      <h3 data-i18n="limitations">制限事項</h3>
-      <ul>
-        <li data-i18n="limitPassword">パスワード付きPDFは正しいパスワードで開けます。出力PDFにも必要に応じてAES-256のパスワードを設定できます。</li>
-        <li data-i18n="limitMetadata">保存時に、しおり、添付ファイル、電子署名、フォームなどの文書レベル情報が引き継がれない場合があります。</li>
-        <li data-i18n="limitSignature">電子署名付きPDFを編集すると、署名は無効になります。</li>
-        <li data-i18n="limitMemory">ページ数や画像量が多いPDFでは、端末のメモリを多く使用します。</li>
-      </ul>
-
+      <h3 data-i18n="privacy">ファイルの扱い</h3>
+      <p data-i18n="helpPrivacy">読み込みから編集・保存までブラウザ内で処理します。ファイルは外部サーバーへ送信しません。</p>
       <h3 data-i18n="openSource">オープンソース</h3>
       <p data-i18n="helpOpenSource">このHTMLはMIT Licenseで利用できます。PDF.js（Apache-2.0）、pdf-lib（MIT）、@pdfsmaller/pdf-encrypt（MIT）、@aiden0z/pptx-renderer（Apache-2.0）を使用しています。</p>
     </div>
@@ -2189,7 +2151,7 @@ body.is-sorting .page-card.drag-source {
 
     const icons = {
       help: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.3 2.3 0 1 1 3.75 1.78c-.91.69-1.55 1.16-1.55 2.22"/><path d="M12 17h.01"/></svg>`,
-      upload: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7.5 8.5 4.5-4.5 4.5 4.5"/><path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/></svg>`,
+      upload: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="m7.5 11.5 4.5 4.5 4.5-4.5"/><path d="M5 17v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2"/></svg>`,
       addFile: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M12 11v6M9 14h6"/></svg>`,
       shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.6 2.8 8 7 10 4.2-2 7-5.4 7-10V6z"/><path d="m9 12 2 2 4-5"/></svg>`,
       selectAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="m8.8 12 2 2 4.5-4.5"/></svg>`,
@@ -2212,6 +2174,8 @@ body.is-sorting .page-card.drag-source {
       preview: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>`,
       previous: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
       next: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`,
+      previewZoomIn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+      previewZoomOut: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
       close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`,
       file: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M9 12h6M9 15.5h4"/></svg>`,
       image: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m5.5 17 4.2-4 3 2.7 2.7-2.4 3.1 3.7"/></svg>`,
@@ -2274,6 +2238,12 @@ body.is-sorting .page-card.drag-source {
       helpButton: $("#helpButton"),
       languageButton: $("#languageButton"),
       closeHelpButton: $("#closeHelpButton"),
+      deleteConfirmDialog: $("#deleteConfirmDialog"),
+      deleteConfirmCancelButton: $("#deleteConfirmCancelButton"),
+      deleteConfirmApplyButton: $("#deleteConfirmApplyButton"),
+      previewZoomInButton: $("#previewZoomInButton"),
+      previewZoomOutButton: $("#previewZoomOutButton"),
+      previewZoomResetButton: $("#previewZoomResetButton"),
       previewDialog: $("#previewDialog"),
       previewTitle: $("#previewTitle"),
       previewSubtitle: $("#previewSubtitle"),
@@ -2326,19 +2296,19 @@ body.is-sorting .page-card.drag-source {
       ["saveSelectedIcon", "download"], ["saveAllIcon", "download"], ["outputPasswordIcon", "lockOpen"],
       ["outputPasswordVisibilityIcon", "eye"], ["outputPasswordConfirmVisibilityIcon", "eye"], ["closeHelpButton", "close"],
       ["previewPreviousButton", "previous"], ["previewNextButton", "next"], ["closePreviewButton", "close"],
-      ["workspaceGuideIcon", "dragGroup"]
+      ["previewZoomInButton", "previewZoomIn"], ["previewZoomOutButton", "previewZoomOut"]
     ].forEach(([id, name]) => setIcon(id, name));
 
     const translations = {
       ja: {
         documentTitle: "PDF Organizer — ページ整理ツール",
-        metaDescription: "PDF・JPG・PNG・WebPをブラウザ内だけでページとしてまとめ、並び替え・回転・削除・結合・保存できるツールです。",
+        metaDescription: "PDF・画像・PowerPoint（PPTX）のページをブラウザ内で並び替え・回転・削除・結合・保存できるツールです。",
         brandSubtitle: "PDF・画像ページの並び替え・回転・削除・結合",
         switchLanguage: "Switch to English",
         helpTitle: "使い方と注意事項",
         addPdfAria: "PDF・JPG・PNG・WebP・PowerPointファイルを追加",
-        overviewLabel: "PDF Organizerでできること",
-        overviewHeading: "ページを見ながら、整理・結合・保存",
+        overviewHeading: "PDFのページを整理・結合",
+        overviewSummary: "並べ替えや回転、削除をして、1つのPDFに保存できます。",
         overviewReorder: "並べ替え",
         overviewReorderNote: "ドラッグで順番変更",
         overviewEdit: "回転・削除",
@@ -2348,15 +2318,14 @@ body.is-sorting .page-card.drag-source {
         overviewExport: "必要なページを保存",
         overviewExportNote: "全部・選択だけ両対応",
         dropHeading: "PDF・画像・PowerPointを追加して始める",
-        dropDescription: "PDF・JPG・PNG・WebP・PowerPointをまとめて、そのまま追加できます。",
         dropHint: "または、この枠内にPDF・画像・PowerPointをドラッグ＆ドロップ",
-        choosePdf: "PDF・画像・PowerPointを選択",
-        privacyNote: "完全ローカル処理", footerNote: "PDFの整理はブラウザー内で完結", fileFallback: "ファイルから選択",
+        choosePdf: "ファイルを選択",
+        privacyNote: "完全ローカル処理",
         pageListHeading: "ページ一覧",
         workspaceGuideBody: "カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。",
         workspaceGuideBodyMobile: "ドラッグで並び替え。複数選択はまとめて移動できます。",
         dropMorePdf: "ここにPDF・画像・PowerPointを追加ドロップ",
-        addPdf: "PDF・画像・PowerPointを追加",
+        addPdf: "ファイルを追加",
         pageEditing: "ページ編集",
         selectAll: "すべて選択",
         clearSelection: "選択解除",
@@ -2402,37 +2371,44 @@ body.is-sorting .page-card.drag-source {
         outputPasswordProtectionFailed: "PDFのパスワード保護に失敗しました",
         busyDefault: "処理しています",
         previewHeading: "ページプレビュー",
+        previewZoomControls: "プレビューの拡大縮小",
+        previewZoomIn: "拡大", previewZoomOut: "縮小", previewZoomReset: "画面に合わせる",
+        deleteAllConfirmTitle: "すべてのページを削除しますか？",
+        deleteAllConfirmBody: "一覧からすべてのページを削除します。「元に戻す」で復元できます。",
+        deleteAllConfirmAction: "削除する",
         previousPage: "前のページ",
         previousPageTitle: "前のページ (←)",
         nextPage: "次のページ",
         nextPageTitle: "次のページ (→)",
         closePreview: "プレビューを閉じる",
         renderingPage: "ページを描画しています",
+        thumbnailFailed: "プレビューを表示できませんでした",
+        thumbnailRetry: "再試行",
         previewFooterOpen: "カードの拡大ボタンまたはダブルクリックで表示",
         previewFooterKeys: "← → でページ移動・Escで閉じる",
         close: "閉じる",
-        basicOperations: "基本操作",
-        helpAdd: "PDF・JPG・PNG・WebP・PowerPointを追加すると、PDFの各ページ、画像、PowerPointの各スライドが同じ一覧に表示されます。",
-        helpDrag: "カードのどこをつかんでもドラッグでき、ページ順をすばやく変更できます。",
-        helpGroupDrag: "複数ページを選択してから選択中のカードをドラッグすると、まとめて順番を移動できます。",
-        helpEdit: "カードをクリックして選択し、複数ページをまとめて回転・削除できます。",
-        helpPreview: "カードの拡大ボタン、またはカードをダブルクリックするとページを大きくプレビューできます。",
-        helpMerge: "PDF・画像・PowerPointスライドを好きな順に並べて、1つのPDFとして結合保存できます。PowerPointは文字選択を残し、対応できる基本図形はベクターとして重ねて出力します。",
-        helpImageLayout: "画像の Fit は全体をA4内に収め、Fill はA4いっぱいに中央配置してはみ出しを切り取り、Original Size は画像自体の大きさに合わせたページを作ります。",
-        multipleSelection: "複数選択",
-        helpSelection: "カード右上のチェックをクリックすると、<kbd>Ctrl</kbd> / <kbd>⌘</kbd> クリックと同様に現在の選択を残したまま追加・解除できます。<kbd>Shift</kbd> を押しながらカードをクリックすると範囲選択できます。",
-        keyboardShortcuts: "キーボード操作",
-        helpModals: "プレビューのページ移動ボタンはEnterやSpaceでも操作できます。",
+        basicOperations: "使い方",
+        helpAdd: "PDF・画像・PowerPointファイルを追加します。各ページやスライドが一覧に並びます。",
+        helpDrag: "ページをドラッグして順番を変更します。スマホでは長押ししてから動かします。",
+        helpEdit: "不要なページは選んで削除。回転や「元に戻す」も使えます。",
+        helpPreview: "拡大ボタンでページを大きく確認できます。",
+        helpMerge: "「すべて保存」または「選択ページを保存」でPDFを書き出します。",
+        helpImageLayout: "画像のFitは全体をA4内に収め、FillはA4いっぱいに配置してはみ出す部分を切り取ります。Original Sizeは画像の大きさに合わせたページを作ります。",
+        imageLayoutHeading: "画像の配置",
+        multipleSelection: "ページの選び方",
+        helpSelection: "カードをクリックして選択します。複数ページは右上のチェックで追加できます。PCでは<kbd>Shift</kbd>＋クリックで範囲選択できます。",
+        keyboardShortcuts: "PCのキーボード操作",
         shortcutSelectAll: "すべてのページを選択",
         shortcutDelete: "選択ページを削除",
         shortcutClear: "選択を解除",
-        privacy: "プライバシー",
-        helpPrivacy: "選択したPDF・画像・PowerPointの読み込み、プレビュー、編集、保存はすべてブラウザ内で行われます。ファイルや操作内容を外部へ送信せず、必要なライブラリと表示用データもこのHTML内に内包されています。",
-        limitations: "制限事項",
-        limitPassword: "パスワード付きPDFは正しいパスワードで開けます。出力PDFにも必要に応じてAES-256のパスワードを設定できます。",
-        limitMetadata: "保存時に、しおり、添付ファイル、電子署名、フォームなどの文書レベル情報が引き継がれない場合があります。",
-        limitSignature: "電子署名付きPDFを編集すると、署名は無効になります。",
-        limitMemory: "ページ数が多いPDF、高解像度画像、スライド数や図表が多いPowerPointでは、端末のメモリを多く使用します。",
+        privacy: "ファイルの扱い",
+        helpPrivacy: "読み込みから編集・保存までブラウザ内で処理します。ファイルは外部サーバーへ送信しません。",
+        limitations: "保存前に知っておくこと",
+        limitPassword: "パスワード付きPDFは、開くときにパスワードが必要です。保存するPDFにもパスワードを設定できます（AES-256）。",
+        limitMetadata: "しおり・添付ファイル・フォームなどは、保存後のPDFに引き継がれないことがあります。",
+        limitSignature: "電子署名の付いたPDFを編集すると、署名は無効になります。",
+        limitPptx: "PowerPointはフォントや図形などの見た目が元ファイルと異なる場合があります。",
+        limitMemory: "ページ数や画像の大きさによっては、端末のメモリ不足で処理できない場合があります。",
         openSource: "オープンソース",
         helpOpenSource: "このHTMLはMIT Licenseで利用できます。PDF.js（Apache-2.0）、pdf-lib（MIT）、@pdfsmaller/pdf-encrypt（MIT）、@aiden0z/pptx-renderer（Apache-2.0）を使用しています。",
         toastClose: "通知を閉じる",
@@ -2505,8 +2481,8 @@ body.is-sorting .page-card.drag-source {
         switchLanguage: "日本語に切り替え",
         helpTitle: "How to use & notes",
         addPdfAria: "Add PDF, JPG, PNG, WebP, or PowerPoint files",
-        overviewLabel: "What PDF Organizer can do",
-        overviewHeading: "Review pages, organize, merge, and save",
+        overviewHeading: "Organize and combine PDF pages",
+        overviewSummary: "Reorder, rotate, or remove pages, then save them as one PDF.",
         overviewReorder: "Reorder",
         overviewReorderNote: "Drag pages into place",
         overviewEdit: "Rotate & delete",
@@ -2516,15 +2492,14 @@ body.is-sorting .page-card.drag-source {
         overviewExport: "Save the pages you need",
         overviewExportNote: "All pages or selected only",
         dropHeading: "Add PDFs, images & PowerPoint to get started",
-        dropDescription: "Add PDFs, JPGs, PNGs, WebP images, and PowerPoint files together.",
         dropHint: "Or drag and drop PDFs, images, and PowerPoint files anywhere in this box",
-        choosePdf: "Choose PDFs, images & PowerPoint",
-        privacyNote: "Fully local processing", footerNote: "PDF organizing stays in the browser", fileFallback: "Choose from files",
+        choosePdf: "Choose files",
+        privacyNote: "Fully local processing",
         pageListHeading: "Pages",
-        workspaceGuideBody: "Drag any card to reorder. Selected pages move together as one group.",
-        workspaceGuideBodyMobile: "Drag to reorder. Multiple selections move together.",
+        workspaceGuideBody: "Drag to reorder. Selected pages can move together.",
+        workspaceGuideBodyMobile: "Touch and hold to reorder",
         dropMorePdf: "Drop more PDFs, images & PowerPoint here",
-        addPdf: "Add PDFs, images & PowerPoint",
+        addPdf: "Add files",
         pageEditing: "Page editing",
         selectAll: "Select all",
         clearSelection: "Clear selection",
@@ -2570,37 +2545,44 @@ body.is-sorting .page-card.drag-source {
         outputPasswordProtectionFailed: "Failed to password-protect the PDF",
         busyDefault: "Working",
         previewHeading: "Page preview",
+        previewZoomControls: "Preview zoom",
+        previewZoomIn: "Zoom in", previewZoomOut: "Zoom out", previewZoomReset: "Fit to window",
+        deleteAllConfirmTitle: "Remove every page?",
+        deleteAllConfirmBody: "This removes every page from the list. You can undo the change.",
+        deleteAllConfirmAction: "Remove all",
         previousPage: "Previous page",
         previousPageTitle: "Previous page (←)",
         nextPage: "Next page",
         nextPageTitle: "Next page (→)",
         closePreview: "Close preview",
         renderingPage: "Rendering page",
+        thumbnailFailed: "Could not display preview",
+        thumbnailRetry: "Retry",
         previewFooterOpen: "Open with the preview button or double-click a card",
         previewFooterKeys: "Use ← → to move · Esc to close",
         close: "Close",
-        basicOperations: "Basics",
-        helpAdd: "Add PDFs, JPGs, PNGs, WebP images, or PowerPoint files to display PDF pages, images, and slides together.",
-        helpDrag: "Grab anywhere on a card and drag to reorder pages quickly.",
-        helpGroupDrag: "Select multiple pages, then drag any selected card to move the whole selection together.",
-        helpEdit: "Select cards to rotate or delete multiple pages at once.",
-        helpPreview: "Use the preview button or double-click a card to inspect a page at a larger size.",
-        helpMerge: "Mix PDF pages, images, and PowerPoint slides in any order and save them as one PDF. PowerPoint export keeps selectable text and overlays supported basic shapes as vectors.",
-        helpImageLayout: "Fit keeps the whole image inside an automatically oriented A4 page. Fill covers the A4 page and center-crops overflow. Original Size creates a page that follows the image size.",
-        multipleSelection: "Multiple selection",
-        helpSelection: "Click the check button to add or remove a page without clearing the current selection, just like <kbd>Ctrl</kbd> / <kbd>⌘</kbd> click. Hold <kbd>Shift</kbd> while clicking a card to select a range.",
-        keyboardShortcuts: "Keyboard shortcuts",
-        helpModals: "Preview navigation buttons also work with Enter or Space.",
+        basicOperations: "How to use",
+        helpAdd: "Add PDFs, images, or PowerPoint files. Their pages and slides appear in one list.",
+        helpDrag: "Drag pages to reorder them. On a phone, touch and hold before moving.",
+        helpEdit: "Select pages to remove or rotate them. You can undo changes.",
+        helpPreview: "Use the expand button to inspect a page more closely.",
+        helpMerge: "Use Save all or Save selected to download a PDF.",
+        helpImageLayout: "Fit keeps an entire image inside an A4 page. Fill covers the A4 page and crops the excess. Original Size creates a page sized to the image.",
+        imageLayoutHeading: "Image placement",
+        multipleSelection: "Selecting pages",
+        helpSelection: "Click a card to select it. Use its checkbox to add more pages. On a computer, <kbd>Shift</kbd>-click to select a range.",
+        keyboardShortcuts: "Keyboard shortcuts (desktop)",
         shortcutSelectAll: "Select every page",
         shortcutDelete: "Delete selected pages",
         shortcutClear: "Clear selection",
-        privacy: "Privacy",
-        helpPrivacy: "PDF, image, and PowerPoint loading, preview, editing, and export all happen in your browser. Files and actions are never sent outside the device, and the required libraries and rendering assets are embedded in this HTML file.",
-        limitations: "Limitations",
-        limitPassword: "Password-protected PDFs can be opened with the correct password. You can optionally protect the exported PDF with an AES-256 password.",
-        limitMetadata: "Document-level data such as bookmarks, attachments, digital signatures, and forms may not be retained in the exported PDF.",
-        limitSignature: "Editing a digitally signed PDF invalidates its signature.",
-        limitMemory: "Large PDFs, high-resolution images, and PowerPoint decks with many slides or charts may use significant device memory.",
+        privacy: "Your files",
+        helpPrivacy: "Files are opened, edited, and saved in your browser. They are not uploaded to an external server.",
+        limitations: "Before saving",
+        limitPassword: "Password-protected PDFs need a password to open. You can also set an AES-256 password on the PDF you save.",
+        limitMetadata: "Bookmarks, attachments, forms, and other document information may not carry over to the saved PDF.",
+        limitSignature: "Editing a digitally signed PDF invalidates the signature.",
+        limitPptx: "PowerPoint fonts, shapes, and other visual details may differ from the original.",
+        limitMemory: "Large documents and images may exceed your device's available memory.",
         openSource: "Open source",
         helpOpenSource: "This HTML is available under the MIT License. It uses PDF.js (Apache-2.0), pdf-lib (MIT), @pdfsmaller/pdf-encrypt (MIT), and @aiden0z/pptx-renderer (Apache-2.0).",
         toastClose: "Close notification",
@@ -2715,6 +2697,24 @@ body.is-sorting .page-card.drag-source {
     };
     const isSupportedFile = (file) => isPdfFile(file) || isImageFile(file) || isPptxFile(file);
     const clonePages = () => state.pages.map((page) => ({ ...page }));
+    // Keep file data for pages still visible or reachable through Undo/Redo.
+    function releaseUnusedDocuments() {
+      const referenced = new Set(state.pages.map((page) => page.docId));
+      for (const snapshot of [...state.history, ...state.future]) {
+        for (const page of snapshot) referenced.add(page.docId);
+      }
+      for (const [id, source] of state.documents) {
+        if (referenced.has(id)) continue;
+        state.documents.delete(id);
+        if (source.pdfjsDoc?.destroy) {
+          try { Promise.resolve(source.pdfjsDoc.destroy()).catch((error) => console.warn("PDF dispose failed", error)); }
+          catch (error) { console.warn("PDF dispose failed", error); }
+        }
+        if (source.imageRenderablePromise) {
+          Promise.resolve(source.imageRenderablePromise).then((image) => image?.close?.()).catch(() => {});
+        }
+      }
+    }
     const IMAGE_LAYOUTS = new Set(["fit", "fill", "original"]);
     const A4_WIDTH = 595.28;
     const A4_HEIGHT = 841.89;
@@ -2983,6 +2983,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function performEdit(mutator) {
+      if (state.isBusy) return;
       cancelPointerDrag();
       const before = clonePages();
       mutator();
@@ -3039,13 +3040,14 @@ body.is-sorting .page-card.drag-source {
         ? `<strong>${selectedCount}</strong> ${t("selectedStatusRest", { total: pageCount })}`
         : `<strong>${pageCount}</strong> ${t("pageCountRest")}`;
 
+      const locked = state.isBusy;
       elements.moveStartButton.disabled = !canMoveSelectionToEdge("start");
       elements.moveEndButton.disabled = !canMoveSelectionToEdge("end");
-      elements.clearSelectionButton.disabled = !hasSelection;
-      elements.rotateLeftButton.disabled = !hasSelection;
-      elements.rotateRightButton.disabled = !hasSelection;
-      elements.deleteButton.disabled = !hasSelection;
-      elements.saveSelectedButton.disabled = !hasSelection;
+      elements.clearSelectionButton.disabled = locked || (!hasSelection);
+      elements.rotateLeftButton.disabled = locked || (!hasSelection);
+      elements.rotateRightButton.disabled = locked || (!hasSelection);
+      elements.deleteButton.disabled = locked || (!hasSelection);
+      elements.saveSelectedButton.disabled = locked || (!hasSelection);
       elements.saveSelectedButton.classList.toggle("has-selection", hasSelection);
       const saveSelectedLabel = elements.saveSelectedButton.querySelector(".button-label");
       const saveSelectedText = hasSelection ? t("saveSelectedCount", { count: selectedCount }) : t("saveSelected");
@@ -3053,12 +3055,14 @@ body.is-sorting .page-card.drag-source {
       if (saveSelectedLabel) saveSelectedLabel.textContent = window.matchMedia("(max-width: 760px)").matches ? saveSelectedCompactText : saveSelectedText;
       elements.saveSelectedButton.setAttribute("aria-label", saveSelectedText);
       elements.saveSelectedButton.title = saveSelectedText;
-      elements.selectAllButton.disabled = !hasPages || selectedCount === pageCount;
-      elements.clearAllButton.disabled = !hasPages;
-      elements.saveAllButton.disabled = !hasPages;
-      elements.undoButton.disabled = state.history.length === 0;
-      elements.redoButton.disabled = state.future.length === 0;
+      elements.selectAllButton.disabled = locked || (!hasPages || selectedCount === pageCount);
+      elements.clearAllButton.disabled = locked || (!hasPages);
+      elements.saveAllButton.disabled = locked || (!hasPages);
+      elements.undoButton.disabled = locked || (state.history.length === 0);
+      elements.redoButton.disabled = locked || (state.future.length === 0);
       updateOutputPasswordUi();
+      for (const control of [elements.addButton, elements.initialAddButton, elements.emptyAddButton,
+        elements.fileInput, elements.filenameInput, elements.outputPasswordButton]) control.disabled = locked;
     }
 
     function updatePasswordVisibilityButton(input, button, iconId) {
@@ -3117,6 +3121,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function openOutputPasswordDialog() {
+      if (state.isBusy) return;
       resetOutputPasswordVisibility();
       const available = !!globalThis.crypto?.subtle;
       elements.outputPasswordUnavailable.hidden = available;
@@ -3135,6 +3140,7 @@ body.is-sorting .page-card.drag-source {
 
     async function applyOutputPasswordSettings(event) {
       event.preventDefault();
+      if (state.isBusy) return;
       const enabled = elements.outputPasswordEnabled.checked && !elements.outputPasswordEnabled.disabled;
       if (!enabled) {
         const hadPassword = outputProtection.enabled;
@@ -3219,18 +3225,29 @@ body.is-sorting .page-card.drag-source {
 
     async function mountPptxSlide(source, item, host, maxWidth, maxHeight, mode = "thumbnail") {
       const handle = await createPptxSlideHandle(source, item.pageIndex);
-      const shell = createPptxScaledShell(handle.element, source, maxWidth, maxHeight, item.rotation);
-      host.replaceChildren(shell);
-      await handle.ready;
-      if (mode === "thumbnail") {
-        const previous = state.pptxThumbnailHandles.get(item.id);
-        if (previous && previous !== handle) disposePptxHandle(previous);
-        state.pptxThumbnailHandles.set(item.id, handle);
-      } else if (mode === "preview") {
-        disposePreviewPptxHandle();
-        state.pptxPreviewHandle = handle;
+      try {
+        const shell = createPptxScaledShell(handle.element, source, maxWidth, maxHeight, item.rotation);
+        host.replaceChildren(shell);
+        await handle.ready;
+        // A completed render from an earlier grid must not replace or dispose
+        // the handle belonging to the current thumbnail.
+        if (mode === "thumbnail" && !host.isConnected) {
+          disposePptxHandle(handle);
+          return null;
+        }
+        if (mode === "thumbnail") {
+          const previous = state.pptxThumbnailHandles.get(item.id);
+          if (previous && previous !== handle) disposePptxHandle(previous);
+          state.pptxThumbnailHandles.set(item.id, handle);
+        } else if (mode === "preview") {
+          disposePreviewPptxHandle();
+          state.pptxPreviewHandle = handle;
+        }
+        return handle;
+      } catch (error) {
+        disposePptxHandle(handle);
+        throw error;
       }
-      return handle;
     }
 
     function createPageCard(item, index) {
@@ -3356,6 +3373,7 @@ body.is-sorting .page-card.drag-source {
       const children = state.pages.map(createPageCard);
       if (state.pages.length) children.push(createAddPdfCard());
       elements.pagesGrid.replaceChildren(...children);
+      releaseUnusedDocuments();
       updateUiState();
       observeVisibleThumbnails();
     }
@@ -3372,6 +3390,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function selectPage(id, event = {}) {
+      if (state.isBusy) return;
       const index = state.pages.findIndex((page) => page.id === id);
       if (index < 0) return;
 
@@ -3396,6 +3415,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function ensureTargetSelected(id) {
+      if (state.isBusy) return;
       if (!state.selected.has(id)) {
         state.selected.clear();
         state.selected.add(id);
@@ -3426,7 +3446,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function rotateSelected(delta) {
-      if (!state.selected.size) return;
+      if (!state.selected.size || state.isBusy) return;
       performEdit(() => {
         state.pages = state.pages.map((page) => state.selected.has(page.id)
           ? { ...page, rotation: normalizeRotation(page.rotation + delta) }
@@ -3435,8 +3455,17 @@ body.is-sorting .page-card.drag-source {
       });
     }
 
-    function deleteSelected() {
-      if (!state.selected.size) return;
+    let pendingDeleteAction = null;
+
+    function askToDeleteAll(action) {
+      if (state.isBusy || elements.deleteConfirmDialog.open) return;
+      pendingDeleteAction = action;
+      elements.deleteConfirmDialog.showModal();
+      elements.deleteConfirmCancelButton.focus();
+    }
+
+    function commitDeleteSelected() {
+      if (!state.selected.size || state.isBusy) return;
       const count = state.selected.size;
       performEdit(() => {
         state.pages = state.pages.filter((page) => !state.selected.has(page.id));
@@ -3446,13 +3475,24 @@ body.is-sorting .page-card.drag-source {
       showToast(t("deletedPages", { count }), "info", 2400);
     }
 
+    function deleteSelected() {
+      if (!state.selected.size || state.isBusy) return;
+      if (state.selected.size === state.pages.length) {
+        askToDeleteAll(commitDeleteSelected);
+        return;
+      }
+      commitDeleteSelected();
+    }
+
     function selectAll() {
+      if (state.isBusy) return;
       state.selected = new Set(state.pages.map((page) => page.id));
       state.lastSelectedId = state.pages.at(-1)?.id || null;
       refreshSelectionUi();
     }
 
     function clearSelection() {
+      if (state.isBusy) return;
       state.selected.clear();
       state.lastSelectedId = null;
       refreshSelectionUi();
@@ -3481,12 +3521,39 @@ body.is-sorting .page-card.drag-source {
       processRenderQueue();
     }
 
+    function showThumbnailError(pageId, error, expectedFrame = null) {
+      console.warn("Thumbnail render failed", error);
+      const frame = elements.pagesGrid.querySelector(`.thumb-frame[data-page-id="${CSS.escape(pageId)}"]`);
+      if (!frame?.isConnected || (expectedFrame && frame !== expectedFrame) || !state.pages.some((page) => page.id === pageId)) return;
+      const wrapper = document.createElement("div");
+      wrapper.className = "thumbnail-error";
+      wrapper.setAttribute("role", "status");
+      const message = document.createElement("span");
+      message.textContent = t("thumbnailFailed");
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "thumbnail-retry";
+      retry.textContent = t("thumbnailRetry");
+      retry.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (state.isBusy) return;
+        frame.dataset.rendered = "";
+        frame.replaceChildren();
+        enqueueThumbnail(pageId);
+      });
+      wrapper.append(message, retry);
+      frame.dataset.rendered = "error";
+      frame.replaceChildren(wrapper);
+    }
+
     async function processRenderQueue() {
       while (state.activeRenders < state.maxConcurrentRenders && state.renderQueue.length) {
         const pageId = state.renderQueue.shift();
+        const expectedFrame = elements.pagesGrid.querySelector(`.thumb-frame[data-page-id="${CSS.escape(pageId)}"]`);
         state.activeRenders += 1;
         renderThumbnail(pageId)
-          .catch((error) => console.warn("Thumbnail render failed", error))
+          .catch((error) => showThumbnailError(pageId, error, expectedFrame))
           .finally(() => {
             state.activeRenders -= 1;
             processRenderQueue();
@@ -3500,7 +3567,7 @@ body.is-sorting .page-card.drag-source {
       if (!item || !frame || frame.dataset.rendered === "true") return;
 
       const doc = state.documents.get(item.docId);
-      if (!doc) return;
+      if (!doc) throw new Error(t("sourceMissing"));
       if (doc.kind === "image") {
         const frameWidth = Math.max(80, frame.clientWidth - 14);
         const frameHeight = Math.max(100, frame.clientHeight - 14);
@@ -3514,16 +3581,17 @@ body.is-sorting .page-card.drag-source {
       if (doc.kind === "pptx") {
         const frameWidth = Math.max(80, frame.clientWidth - 14);
         const frameHeight = Math.max(100, frame.clientHeight - 14);
-        await mountPptxSlide(doc, item, frame, frameWidth, frameHeight, "thumbnail");
+        const handle = await mountPptxSlide(doc, item, frame, frameWidth, frameHeight, "thumbnail");
+        if (!handle) return;
         if (!frame.isConnected || !state.pages.some((page) => page.id === pageId)) {
-          disposePptxHandle(state.pptxThumbnailHandles.get(item.id));
-          state.pptxThumbnailHandles.delete(item.id);
+          if (state.pptxThumbnailHandles.get(item.id) === handle) state.pptxThumbnailHandles.delete(item.id);
+          disposePptxHandle(handle);
           return;
         }
         frame.dataset.rendered = "true";
         return;
       }
-      if (!doc.pdfjsDoc) return;
+      if (!doc.pdfjsDoc) throw new Error(t("sourceMissing"));
       const pdfPage = await doc.pdfjsDoc.getPage(item.pageIndex + 1);
       if (!frame.isConnected) return;
 
@@ -3554,6 +3622,93 @@ body.is-sorting .page-card.drag-source {
       frame.dataset.rendered = "true";
     }
 
+    const PREVIEW_ZOOM_MIN = 0.75;
+    const PREVIEW_ZOOM_MAX = 3;
+    let previewZoom = 1;
+    let previewDetailTimer = 0;
+    let previewDetailRerender = false;
+    const previewPointers = new Map();
+    let previewPinch = null;
+
+    function updatePreviewZoomControls() {
+      elements.previewZoomResetButton.textContent = `${Math.round(previewZoom * 100)}%`;
+      elements.previewZoomOutButton.disabled = previewZoom <= PREVIEW_ZOOM_MIN;
+      elements.previewZoomInButton.disabled = previewZoom >= PREVIEW_ZOOM_MAX;
+      elements.previewStage.classList.toggle("is-zoomed", previewZoom > 1.01);
+    }
+
+    function mountPreviewContent(content) {
+      if (!content) return;
+      const host = elements.previewCanvasHost;
+      const stage = elements.previewStage;
+      const previousLeft = stage.scrollLeft;
+      const previousTop = stage.scrollTop;
+      const width = parseFloat(content.style.width) || content.getBoundingClientRect().width;
+      const height = parseFloat(content.style.height) || content.getBoundingClientRect().height;
+      const frame = document.createElement("div");
+      frame.className = "preview-content-frame";
+      frame.dataset.baseWidth = String(Math.max(1, width));
+      frame.dataset.baseHeight = String(Math.max(1, height));
+      frame.append(content);
+      host.replaceChildren(frame);
+      resizePreviewContent();
+      host.hidden = false;
+      stage.scrollLeft = previousLeft;
+      stage.scrollTop = previousTop;
+    }
+
+    function resizePreviewContent() {
+      const frame = elements.previewCanvasHost.querySelector(".preview-content-frame");
+      if (!frame) return;
+      const width = Number(frame.dataset.baseWidth);
+      const height = Number(frame.dataset.baseHeight);
+      frame.style.width = `${width * previewZoom}px`;
+      frame.style.height = `${height * previewZoom}px`;
+      const child = frame.firstElementChild;
+      if (child) child.style.transform = `scale(${previewZoom})`;
+    }
+
+    function schedulePreviewDetail() {
+      clearTimeout(previewDetailTimer);
+      if (!elements.previewDialog.open || !state.previewPageId) return;
+      const item = state.pages.find((page) => page.id === state.previewPageId);
+      if (state.documents.get(item?.docId)?.kind === "pptx") return; // DOM slide stays crisp when scaled.
+      previewDetailTimer = setTimeout(() => {
+        if (!elements.previewDialog.open || !state.previewPageId) return;
+        previewDetailRerender = true;
+        renderPreview(state.previewPageId);
+      }, 220);
+    }
+
+    function setPreviewZoom(value, anchor = null, refreshDetail = true) {
+      const next = Math.round(Math.max(PREVIEW_ZOOM_MIN, Math.min(PREVIEW_ZOOM_MAX, value)) * 100) / 100;
+      if (next === previewZoom) return;
+      const stage = elements.previewStage;
+      const oldZoom = previewZoom;
+      const rect = stage.getBoundingClientRect();
+      const localX = anchor ? Math.max(0, Math.min(rect.width, anchor.clientX - rect.left)) : rect.width / 2;
+      const localY = anchor ? Math.max(0, Math.min(rect.height, anchor.clientY - rect.top)) : rect.height / 2;
+      const targetX = stage.scrollLeft + localX;
+      const targetY = stage.scrollTop + localY;
+      previewZoom = next;
+      resizePreviewContent();
+      stage.scrollLeft = Math.max(0, targetX * next / oldZoom - localX);
+      stage.scrollTop = Math.max(0, targetY * next / oldZoom - localY);
+      updatePreviewZoomControls();
+      if (refreshDetail) schedulePreviewDetail();
+    }
+
+    function resetPreviewZoom() {
+      clearTimeout(previewDetailTimer);
+      previewDetailRerender = false;
+      previewZoom = 1;
+      previewPointers.clear();
+      previewPinch = null;
+      updatePreviewZoomControls();
+      elements.previewStage.scrollLeft = 0;
+      elements.previewStage.scrollTop = 0;
+    }
+
     function updatePreviewUi() {
       const index = state.pages.findIndex((page) => page.id === state.previewPageId);
       if (index < 0) return;
@@ -3579,8 +3734,10 @@ body.is-sorting .page-card.drag-source {
       const token = ++state.previewRenderToken;
       try { state.previewRenderTask?.cancel(); } catch {}
       state.previewRenderTask = null;
-      elements.previewLoading.hidden = false;
-      elements.previewCanvasHost.hidden = true;
+      const keepExistingPage = previewDetailRerender && !elements.previewCanvasHost.hidden;
+      previewDetailRerender = false;
+      elements.previewLoading.hidden = keepExistingPage;
+      if (!keepExistingPage) elements.previewCanvasHost.hidden = true;
       elements.previewError.hidden = true;
       elements.previewError.textContent = "";
 
@@ -3588,11 +3745,10 @@ body.is-sorting .page-card.drag-source {
         if (doc.kind === "image") {
           const stageWidth = Math.max(260, elements.previewStage.clientWidth - 40);
           const stageHeight = Math.max(300, elements.previewStage.clientHeight - 40);
-          const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+          const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
           const canvas = await renderImagePageCanvas(item, doc, stageWidth, stageHeight, pixelRatio);
           if (token !== state.previewRenderToken || !elements.previewDialog.open) return;
-          elements.previewCanvasHost.replaceChildren(canvas);
-          elements.previewCanvasHost.hidden = false;
+          mountPreviewContent(canvas);
           return;
         }
         if (doc.kind === "pptx") {
@@ -3601,7 +3757,7 @@ body.is-sorting .page-card.drag-source {
           disposePreviewPptxHandle();
           await mountPptxSlide(doc, item, elements.previewCanvasHost, stageWidth, stageHeight, "preview");
           if (token !== state.previewRenderToken || !elements.previewDialog.open) { disposePreviewPptxHandle(); return; }
-          elements.previewCanvasHost.hidden = false;
+          mountPreviewContent(elements.previewCanvasHost.firstElementChild);
           return;
         }
         if (!doc.pdfjsDoc) throw new Error(t("previewError"));
@@ -3614,7 +3770,7 @@ body.is-sorting .page-card.drag-source {
         const stageHeight = Math.max(300, elements.previewStage.clientHeight - 40);
         const scale = Math.min(stageWidth / baseViewport.width, stageHeight / baseViewport.height, 3);
         const viewport = pdfPage.getViewport({ scale, rotation });
-        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
 
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d", { alpha: false });
@@ -3633,14 +3789,15 @@ body.is-sorting .page-card.drag-source {
         await renderTask.promise;
         if (token !== state.previewRenderToken || !elements.previewDialog.open) return;
 
-        elements.previewCanvasHost.replaceChildren(canvas);
-        elements.previewCanvasHost.hidden = false;
+        mountPreviewContent(canvas);
       } catch (error) {
         if (error?.name === "RenderingCancelledException") return;
         console.error("Preview render failed", error);
         if (token === state.previewRenderToken) {
-          elements.previewError.textContent = t("previewError");
-          elements.previewError.hidden = false;
+          if (!keepExistingPage) {
+            elements.previewError.textContent = t("previewError");
+            elements.previewError.hidden = false;
+          }
         }
       } finally {
         if (token === state.previewRenderToken) {
@@ -3652,6 +3809,7 @@ body.is-sorting .page-card.drag-source {
 
     function openPreview(pageId) {
       if (!state.pages.some((page) => page.id === pageId)) return;
+      resetPreviewZoom();
       state.previewPageId = pageId;
       updatePreviewUi();
       if (!elements.previewDialog.open) elements.previewDialog.showModal();
@@ -3662,6 +3820,7 @@ body.is-sorting .page-card.drag-source {
       const index = state.pages.findIndex((page) => page.id === state.previewPageId);
       const next = state.pages[index + delta];
       if (index < 0 || !next) return;
+      resetPreviewZoom();
       state.previewPageId = next.id;
       updatePreviewUi();
       renderPreview(next.id);
@@ -3897,6 +4056,7 @@ body.is-sorting .page-card.drag-source {
         return;
       }
 
+      const firstImport = state.pages.length === 0;
       const before = clonePages();
       let addedPages = 0;
       let addedFiles = 0;
@@ -3953,7 +4113,22 @@ body.is-sorting .page-card.drag-source {
         showToast(t("addedFiles", { files: addedFiles, pages: addedPages }));
       }
       setBusy(false);
+      releaseUnusedDocuments();
       elements.fileInput.value = "";
+      if (addedPages > 0 && firstImport) {
+        requestAnimationFrame(() => {
+          if (elements.workspace.hidden) return;
+          // Align the actual editing toolbar with its responsive sticky inset.
+          // On phones, the page header scrolls away instead of occupying this space.
+          const mobile = window.matchMedia("(max-width: 760px)").matches;
+          const toolbar = document.querySelector(mobile ? ".mobile-edit-dock" : ".toolbar");
+          if (!toolbar || (mobile && toolbar.hidden)) return;
+          const styles = getComputedStyle(toolbar);
+          const toolbarInset = styles.position === "sticky" ? (parseFloat(styles.top) || 0) : 0;
+          const top = toolbar.getBoundingClientRect().top + window.scrollY - toolbarInset;
+          window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+        });
+      }
       if (errors.length) showToast(errors.join("\n"), "error", 0);
     }
 
@@ -3965,6 +4140,25 @@ body.is-sorting .page-card.drag-source {
       if (!match || Number(match[4] ?? 1) <= 0) return null;
       return rgb(Math.min(255, +match[1]) / 255, Math.min(255, +match[2]) / 255, Math.min(255, +match[3]) / 255);
     };
+
+    function pptxVectorPathIsOpaque(path, slideElement, style, fill, stroke) {
+      // The raster already contains these shapes. Drawing semi-transparent
+      // vectors again would darken them, including overlapping figures.
+      const alpha = (color) => {
+        const match = String(color || "").match(/^rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+(?:\s*,\s*([\d.]+))?\s*\)$/i);
+        return match ? Number(match[1] ?? 1) : 0;
+      };
+      if (fill && (alpha(style.fill) < 0.999 || Number(style.fillOpacity) < 0.999)) return false;
+      if (stroke && (alpha(style.stroke) < 0.999 || Number(style.strokeOpacity) < 0.999)) return false;
+      for (let node = path; node; node = node.parentElement) {
+        const computed = getComputedStyle(node);
+        if (Number(computed.opacity) < 0.999 ||
+            (computed.mixBlendMode && computed.mixBlendMode !== "normal") ||
+            (computed.filter && computed.filter !== "none")) return false;
+        if (node === slideElement) break;
+      }
+      return true;
+    }
 
     async function blobImageUrlToDataUrl(url) {
       if (!String(url || "").startsWith("blob:")) return url;
@@ -4219,7 +4413,17 @@ body.is-sorting .page-card.drag-source {
 
     function addPptxVectorOverlay(page, slideElement, pageHeight) {
       const rootRect = slideElement.getBoundingClientRect();
-      for (const path of slideElement.querySelectorAll("svg path[d]")) {
+      const paths = slideElement.querySelectorAll("svg path[d]");
+      // Even an opaque overlay can cover a translucent shape above it in
+      // the original slide. Keep the entire raster unchanged in that case.
+      for (const path of paths) {
+        if (path.closest("defs")) continue;
+        const style = getComputedStyle(path);
+        const fill = style.fill === "none" ? null : pptxCssColor(style.fill);
+        const stroke = style.stroke === "none" ? null : pptxCssColor(style.stroke);
+        if ((fill || stroke) && !pptxVectorPathIsOpaque(path, slideElement, style, fill, stroke)) return;
+      }
+      for (const path of paths) {
         const svg = path.closest("svg");
         if (!svg || path.closest("defs") || path.hasAttribute("transform") || path.closest("g[transform]")) continue;
         if (svg.querySelector("linearGradient,radialGradient,pattern,filter,mask,clipPath,image,foreignObject,text")) continue;
@@ -4233,7 +4437,7 @@ body.is-sorting .page-card.drag-source {
         const fill = style.fill === "none" ? null : pptxCssColor(style.fill);
         const stroke = style.stroke === "none" ? null : pptxCssColor(style.stroke);
         if (!fill && !stroke) continue;
-        const opacity = Math.max(0, Math.min(1, Number(style.opacity) || 1));
+        if (!pptxVectorPathIsOpaque(path, slideElement, style, fill, stroke)) continue;
         const borderWidthPx = parseFloat(style.strokeWidth) || 0;
         try {
           page.drawSvgPath(path.getAttribute("d"), {
@@ -4243,8 +4447,8 @@ body.is-sorting .page-card.drag-source {
             color: fill || undefined,
             borderColor: stroke || undefined,
             borderWidth: stroke ? borderWidthPx * PPTX_POINT_SCALE : 0,
-            opacity,
-            borderOpacity: opacity
+            opacity: 1,
+            borderOpacity: 1
           });
         } catch (error) { console.warn("PPTX vector overlay skipped", error); }
       }
@@ -4302,6 +4506,9 @@ body.is-sorting .page-card.drag-source {
         return;
       }
 
+      const outputFilename = sanitizeFilename(elements.filenameInput.value);
+      const exportPassword = outputProtection.enabled ? outputProtection.password : "";
+      const protectOutput = !!exportPassword;
       setBusy(true, t("generatingPdf"), t("pageCount", { count: targetPages.length }));
       try {
         const output = await PDFDocument.create();
@@ -4366,13 +4573,12 @@ body.is-sorting .page-card.drag-source {
         output.setModificationDate(new Date());
 
         let bytes = await output.save({ useObjectStreams: true });
-        const protectOutput = outputProtection.enabled && !!outputProtection.password;
         if (protectOutput) {
           elements.busyTitle.textContent = t("protectingPdf");
           elements.busyDetail.textContent = t("protectingPdfDetail");
           try {
             const encryptor = await ensurePdfEncrypt();
-            bytes = await encryptor.encryptPDF(new Uint8Array(bytes), outputProtection.password, { algorithm: "AES-256" });
+            bytes = await encryptor.encryptPDF(new Uint8Array(bytes), exportPassword, { algorithm: "AES-256" });
           } catch (error) {
             console.error(error);
             throw new Error(`${t("outputPasswordProtectionFailed")}: ${error?.message || ""}`.replace(/:\s*$/, ""));
@@ -4382,7 +4588,7 @@ body.is-sorting .page-card.drag-source {
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = url;
-        anchor.download = sanitizeFilename(elements.filenameInput.value);
+        anchor.download = outputFilename;
         document.body.append(anchor);
         anchor.click();
         anchor.remove();
@@ -4808,6 +5014,7 @@ body.is-sorting .page-card.drag-source {
     });
 
     elements.pagesGrid.addEventListener("change", (event) => {
+      if (state.isBusy) return;
       const select = event.target.closest("select[data-image-layout]");
       if (!select) return;
       const item = state.pages.find((page) => page.id === select.dataset.imageLayout);
@@ -4824,7 +5031,7 @@ body.is-sorting .page-card.drag-source {
     });
 
     elements.pagesGrid.addEventListener("click", (event) => {
-      if (Date.now() < state.suppressClickUntil) return;
+      if (state.isBusy || Date.now() < state.suppressClickUntil) return;
       const card = event.target.closest(".page-card");
       if (!card) return;
       if (event.target.closest("select")) return;
@@ -4909,8 +5116,6 @@ body.is-sorting .page-card.drag-source {
     elements.addButton.addEventListener("click", () => elements.fileInput.click());
     elements.emptyAddButton.addEventListener("click", () => elements.fileInput.click());
     elements.fileInput.addEventListener("change", () => addFiles(elements.fileInput.files));
-    document.getElementById("fileFallbackButton").addEventListener("click", () => document.getElementById("fileFallbackInput").click());
-    document.getElementById("fileFallbackInput").addEventListener("change", (event) => { addFiles(event.target.files); event.target.value = ""; });
 
     elements.selectAllButton.addEventListener("click", selectAll);
     elements.clearSelectionButton.addEventListener("click", clearSelection);
@@ -4934,15 +5139,33 @@ body.is-sorting .page-card.drag-source {
     elements.outputPasswordDialog.addEventListener("cancel", () => { resetOutputPasswordVisibility(); showOutputPasswordError(""); });
     elements.outputPasswordDialog.addEventListener("close", resetOutputPasswordVisibility);
 
+    elements.deleteConfirmCancelButton.addEventListener("click", () => {
+      pendingDeleteAction = null;
+      elements.deleteConfirmDialog.close();
+    });
+    elements.deleteConfirmApplyButton.addEventListener("click", () => {
+      const action = pendingDeleteAction;
+      pendingDeleteAction = null;
+      elements.deleteConfirmDialog.close();
+      if (!state.isBusy) action?.();
+    });
+    elements.deleteConfirmDialog.addEventListener("close", () => {
+      // A delayed close event from a canceled dialog must not clear a newer confirmation.
+      if (!elements.deleteConfirmDialog.open) pendingDeleteAction = null;
+    });
+
     elements.clearAllButton.addEventListener("click", () => {
-      if (!state.pages.length) return;
-      const count = state.pages.length;
-      performEdit(() => {
-        state.pages = [];
-        state.selected.clear();
-        state.lastSelectedId = null;
+      if (!state.pages.length || state.isBusy) return;
+      askToDeleteAll(() => {
+        if (!state.pages.length || state.isBusy) return;
+        const count = state.pages.length;
+        performEdit(() => {
+          state.pages = [];
+          state.selected.clear();
+          state.lastSelectedId = null;
+        });
+        showToast(t("clearedAll", { count }));
       });
-      showToast(t("clearedAll", { count }));
     });
 
     elements.zoomSlider.addEventListener("input", () => {
@@ -4954,10 +5177,58 @@ body.is-sorting .page-card.drag-source {
       elements.filenameInput.value = sanitizeFilename(elements.filenameInput.value);
     });
 
+    elements.previewZoomOutButton.addEventListener("click", () => setPreviewZoom(previewZoom - .25));
+    elements.previewZoomInButton.addEventListener("click", () => setPreviewZoom(previewZoom + .25));
+    elements.previewZoomResetButton.addEventListener("click", () => setPreviewZoom(1));
+
+    elements.previewStage.addEventListener("wheel", (event) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+      setPreviewZoom(previewZoom * Math.exp(-event.deltaY * .003), event);
+    }, { passive: false });
+
+    function pointerSeparation(points) {
+      const [a, b] = points;
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    elements.previewStage.addEventListener("pointerdown", (event) => {
+      if (!elements.previewDialog.open || !state.previewPageId || event.pointerType === "mouse" && event.button !== 0) return;
+      previewPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      elements.previewStage.setPointerCapture(event.pointerId);
+      if (previewPointers.size === 2) {
+        previewPinch = { distance: Math.max(1, pointerSeparation([...previewPointers.values()])), zoom: previewZoom };
+      }
+    });
+    elements.previewStage.addEventListener("pointermove", (event) => {
+      const previous = previewPointers.get(event.pointerId);
+      if (!previous) return;
+      previewPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (previewPointers.size >= 2 && previewPinch) {
+        const points = [...previewPointers.values()];
+        const midpoint = { clientX: (points[0].x + points[1].x) / 2, clientY: (points[0].y + points[1].y) / 2 };
+        setPreviewZoom(previewPinch.zoom * pointerSeparation(points) / previewPinch.distance, midpoint, false);
+      } else if (previewZoom > 1 && previewPointers.size === 1) {
+        elements.previewStage.scrollLeft -= event.clientX - previous.x;
+        elements.previewStage.scrollTop -= event.clientY - previous.y;
+      }
+    });
+    function releasePreviewPointer(event) {
+      previewPointers.delete(event.pointerId);
+      if (previewPointers.size < 2 && previewPinch) {
+        previewPinch = null;
+        schedulePreviewDetail();
+      }
+    }
+    elements.previewStage.addEventListener("pointerup", releasePreviewPointer);
+    elements.previewStage.addEventListener("pointercancel", releasePreviewPointer);
+    elements.previewStage.addEventListener("lostpointercapture", releasePreviewPointer);
+
     elements.previewPreviousButton.addEventListener("click", () => movePreview(-1));
     elements.previewNextButton.addEventListener("click", () => movePreview(1));
     elements.closePreviewButton.addEventListener("click", closePreview);
     elements.previewDialog.addEventListener("close", () => {
+      resetPreviewZoom();
       state.previewRenderToken += 1;
       try { state.previewRenderTask?.cancel(); } catch {}
       state.previewRenderTask = null;

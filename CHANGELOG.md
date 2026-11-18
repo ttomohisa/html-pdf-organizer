@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.7 - 2026-11-17
+
+- Simplify the bilingual UI and help: shorten file-adding and mobile sorting hints, remove redundant file picker and footer, and hide the local-processing badge on small screens without changing how files are processed.
+- Add a guarded GitHub Actions workflow that builds, tests, and publishes the merged version as a tagged GitHub Release with its standalone HTML.
+
+- Release source files only when neither current pages nor Undo/Redo snapshots still refer to them; dispose PDF.js documents and image bitmaps when no longer needed.
+- Prevent page edits, selection changes, image layout changes and output settings from changing during import or export; capture export options at the start.
+- Avoid double-compositing transparent PowerPoint graphics in exported PDFs while keeping opaque vector overlays where safe.
+- Show a retry control for failed thumbnails and ignore stale rendering results after page grid updates.
+- Update PowerPoint support in fallback help copy and require regression tests before GitHub Pages deployment.
+- Add regression tests for memory retention, busy-state protection, transparency and thumbnail retry.
+
 ## 1.2.6 - 2026-10-10
 
 - Track long-press touch reordering through the finger’s touch lifecycle so an accompanying pointer cancellation does not drop the active cards. Quick swipes still scroll normally; multiple touches and genuine interruptions cancel cleanly.

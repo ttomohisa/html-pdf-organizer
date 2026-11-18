@@ -33,6 +33,7 @@ function harness(filename) {
     return { handlers, textContent: '', value: '', disabled: false, open: false, hidden: false, dataset: {}, style: {},
       classList: { add: noop, remove: noop, toggle: noop }, querySelector: () => null, querySelectorAll: () => [],
       setAttribute: noop, append: noop, remove: noop, addEventListener: (name, fn) => { (handlers[name] ||= []).push(fn); },
+      showModal() { this.open = true; }, close() { this.open = false; }, focus() {},
       click() { if (!this.disabled) for (const fn of handlers.click || []) fn({}); } };
   }
   const elements = new Proxy({}, { get: (o, key) => o[key] ||= element() });
@@ -51,7 +52,7 @@ function harness(filename) {
     loadPdfForEditing: async buffer => ({ buffer, pdfjsDoc: { numPages: (await PDFLib.PDFDocument.load(new Uint8Array(buffer))).getPageCount() } })
   });
   const names = ['setBusy', 'pushHistory', 'performEdit', 'reconcileSelection', 'undo', 'redo', 'selectPage', 'ensureTargetSelected', 'rotateSelected', 'deleteSelected', 'selectAll', 'clearSelection', 'addFiles', 'beginPointerDrag', 'finishPointerDrag', 'exportPdf', 'sanitizeFilename', 'updateUiState'];
-  const optional = ['cancelPointerDrag', 'getSelectionEdgeOrder', 'canMoveSelectionToEdge', 'moveSelectionToEdge'];
+  const optional = ['cancelPointerDrag', 'getSelectionEdgeOrder', 'canMoveSelectionToEdge', 'moveSelectionToEdge', 'askToDeleteAll', 'commitDeleteSelected'];
   for (const name of optional) if (source.includes('function ' + name + '(')) names.push(name);
   const initial = source.slice(source.indexOf('    const state = {'), source.indexOf('    function setIcon'));
   const helpers = source.slice(source.indexOf('    const makeId = '), source.indexOf('    const A4_WIDTH = '));
@@ -63,7 +64,7 @@ function harness(filename) {
   const controlsStart = source.indexOf('    elements.selectAllButton.addEventListener("click"');
   const controls = source.slice(controlsStart, source.indexOf('    elements.saveSelectedButton.addEventListener', controlsStart));
   vm.runInContext(pdfLibSource, ctx);
-  vm.runInContext('const { PDFDocument, degrees } = PDFLib;\n' + [initial, helpers, 'let pointerDrag = null;', ...names.map(n => extract(source, n)), keyboard, layout, cancellations, controls, revisions,
+  vm.runInContext('const { PDFDocument, degrees } = PDFLib;\n' + [initial, helpers, 'let pointerDrag = null;', ...(source.includes('let pendingDeleteAction = null;') ? ['let pendingDeleteAction = null;'] : []), ...names.map(n => extract(source, n)), keyboard, layout, cancellations, controls, revisions,
     `globalThis.app = { state, setBusy, updateUiState, addFiles, selectPage, selectAll, clearSelection, rotateSelected, deleteSelected, undo, redo, exportPdf, beginPointerDrag, finishPointerDrag, performEdit, pushHistory,
       moveSelectionToEdge: typeof moveSelectionToEdge === 'function' ? moveSelectionToEdge : null,
       drag: () => pointerDrag,
@@ -74,13 +75,16 @@ function harness(filename) {
         pointerDrag.dropIndex = dropIndex;
       }
     };`].join('\n'), ctx);
-  ctx.renderGrid = () => ctx.app.updateUiState();
+  ctx.renderGrid = () => { vm.runInContext('releaseUnusedDocuments()', ctx); ctx.app.updateUiState(); };
   ctx.refreshSelectionUi = () => ctx.app.updateUiState();
   return { source, app: ctx.app, elements, logs, blobs, cleanup, document, Input,
+    confirmDelete: () => { if (source.includes('let pendingDeleteAction = null;')) vm.runInContext('if (pendingDeleteAction) { const action = pendingDeleteAction; pendingDeleteAction = null; action(); }', ctx); },
+    cancelDelete: () => { if (source.includes('let pendingDeleteAction = null;')) { vm.runInContext('pendingDeleteAction = null;', ctx); elements.deleteConfirmDialog.close(); } },
     key: e => listeners.keydown({ target: {}, preventDefault() {}, ctrlKey: false, metaKey: false, shiftKey: false, ...e }),
     cancel: name => name === 'visibilitychange' ? (document.hidden = true, listeners[name]()) : windowListeners[name]({ pointerId: 1, key: 'Escape', preventDefault() {} }),
     layout: (id, value) => elements.pagesGrid.handlers.change[0]({ target: { closest: () => ({ dataset: { imageLayout: id }, value }) } }) };
 }
+const sourceHasConfirmation = h => h.source.includes('let pendingDeleteAction = null;');
 const order = h => Array.from(h.app.state.pages, p => p.pageIndex);
 const selected = h => Array.from(h.app.state.selected);
 let fixturePromise;
@@ -250,6 +254,52 @@ for (const filename of targets) {
   });
 }
 
+// Source records must remain restorable for Undo/Redo, but must not accumulate forever.
+for (const filename of targets) {
+  const prefix = path.relative(root, filename) + ': ';
+  test(prefix + 'reclaims source data only after the last history reference expires', async () => {
+    const h = await setup(filename, []);
+    const state = h.app.state;
+    const docId = state.pages[0].docId;
+    let disposed = 0;
+    state.documents.get(docId).pdfjsDoc.destroy = () => { disposed += 1; };
+    h.app.selectAll();
+    h.app.deleteSelected();
+    if (sourceHasConfirmation(h)) {
+      assert.equal(state.pages.length, 4, 'All selected pages require confirmation');
+      h.confirmDelete();
+    }
+    assert.equal(state.pages.length, 0);
+    assert.equal(state.documents.has(docId), true, 'Undo still requires the source');
+    h.app.undo();
+    assert.equal(state.pages.length, 4);
+    h.app.redo();
+    assert.equal(state.documents.has(docId), true, 'Redo must not discard a restorable file');
+    for (let index = 0; index < 65; index++) h.app.performEdit(() => { state.pages = []; });
+    assert.equal(state.documents.has(docId), false, 'Evicted Undo history no longer holds the file');
+    assert.equal(disposed, 1, 'PDF document is destroyed once');
+  });
+  test(prefix + 'busy operations cannot change page order, selection, settings or history', async () => {
+    const h = await setup(filename, [1]);
+    const state = h.app.state;
+    const pageId = state.pages[1].id;
+    const before = JSON.stringify({ pages: state.pages, selection: [...state.selected], history: state.history });
+    h.app.setBusy(true);
+    h.app.rotateSelected(90);
+    h.app.deleteSelected();
+    h.app.selectAll();
+    h.app.clearSelection();
+    h.app.performEdit(() => { state.pages = []; });
+    h.layout(pageId, 'fill');
+    h.elements.clearAllButton.click();
+    assert.equal(JSON.stringify({ pages: state.pages, selection: [...state.selected], history: state.history }), before);
+    assert.equal(h.elements.deleteButton.disabled, true);
+    assert.equal(h.elements.filenameInput.disabled, true);
+    h.app.setBusy(false);
+    assert.equal(h.elements.filenameInput.disabled, false);
+  });
+}
+
 // Any modal must leave the background editor untouched; browser geometry/focus is checked separately.
 for (const filename of targets) {
   test(path.relative(root, filename) + ': native modal dialogs block background editing shortcuts', async () => {
@@ -265,5 +315,23 @@ for (const filename of targets) {
         assert.equal(prevented, false, `${dialog}: native modal keyboard behavior remains available`);
       }
     }
+  });
+}
+
+for (const filename of targets) {
+  if (!fs.readFileSync(filename, 'utf8').includes('let pendingDeleteAction = null;')) continue;
+  test(path.relative(root, filename) + ': deleting all selected pages is cancelable and undoable', async () => {
+    const h = await setup(filename, []);
+    h.app.selectAll();
+    h.app.deleteSelected();
+    assert.equal(h.app.state.pages.length, 4, 'Nothing is removed before confirmation');
+    assert.equal(h.elements.deleteConfirmDialog.open, true, 'Confirmation dialog is displayed');
+    h.cancelDelete();
+    assert.equal(h.app.state.pages.length, 4, 'Cancel preserves all pages');
+    h.app.deleteSelected();
+    h.confirmDelete();
+    assert.equal(h.app.state.pages.length, 0);
+    h.app.undo();
+    assert.equal(h.app.state.pages.length, 4, 'Deletion can be undone');
   });
 }
