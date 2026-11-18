@@ -7,10 +7,11 @@ for(const filename of targets){
   assert.doesNotMatch(html,/\.drop-zone::before\s*\{/);
   assert.match(html,/\.drop-zone\s*\{[^}]*background:\s*var\(--surface\)/);
  });
- test(prefix+'four overview icons use consistent page-based line artwork',()=>{
-  const icons=[...html.matchAll(/<span class="overview-action-icon" aria-hidden="true">(<svg[\s\S]*?<\/svg>)<\/span>/g)].map(m=>m[1]);
-  assert.equal(icons.length,4);assert.equal(new Set(icons).size,4);
-  for(const svg of icons){assert.match(svg,/viewBox="0 0 24 24"/);assert.match(svg,/stroke-width="1\.9"/);assert.match(svg,/stroke-linejoin="round"/);assert.match(svg,/<path d="M(?:9 3h9|5 3h9|8 3h9|4 3h10)/);}
+ test(prefix+'opening screen is plain and its import icon points down',()=>{
+  assert.doesNotMatch(html,/class="overview-actions"/);
+  assert.match(html,/data-i18n="overviewSummary"/);
+  assert.match(html,/upload: `<svg[^\n]+m7\.5 11\.5 4\.5 4\.5 4\.5-4\.5/);
+  assert.match(html,/data-i18n="choosePdf">ファイルを選択/);
  });
  test(prefix+'rotation arrows are clear mirrored paths reused by every action surface',()=>{
   const left=html.match(/rotateLeft: `([^`]+)`/)[1],right=html.match(/rotateRight: `([^`]+)`/)[1];

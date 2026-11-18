@@ -202,72 +202,26 @@
       font-size: 13px;
     }
     .initial-overview {
-      display: grid;
-      grid-template-columns: minmax(210px, .72fr) minmax(0, 1.6fr);
+      display: flex;
       align-items: center;
-      gap: 18px;
-      margin-bottom: 12px;
-      padding: 15px 17px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--surface);
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 6px;
+      padding: 3px 0 17px;
     }
     .initial-overview[hidden] { display: none !important; }
     .overview-copy { min-width: 0; }
     .initial-overview h2 {
       margin: 0;
-      font-size: clamp(16px, 1.5vw, 20px);
-      letter-spacing: -.015em;
+      font-size: clamp(18px, 1.6vw, 22px);
+      letter-spacing: -.018em;
       line-height: 1.35;
     }
-    .overview-actions {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 7px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-    .overview-actions li {
-      min-width: 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 10px;
-      border-radius: 11px;
-      background: var(--surface-muted);
-    }
-    .overview-action-icon {
-      width: 28px;
-      height: 28px;
-      flex: 0 0 auto;
-      display: grid;
-      place-items: center;
-      border-radius: 9px;
-      background: var(--accent-soft);
-      color: var(--accent);
-    }
-    .overview-action-icon svg { width: 16px; height: 16px; display: block; }
-    .overview-action-copy { min-width: 0; }
-    .overview-action-copy strong,
-    .overview-action-copy small { display: block; }
-    .overview-action-copy strong {
-      overflow: hidden;
-      color: var(--text);
-      font-size: 11px;
-      font-weight: 780;
-      line-height: 1.25;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .overview-action-copy small {
-      margin-top: 2px;
-      overflow: hidden;
+    .overview-summary {
+      margin: 5px 0 0;
       color: var(--text-muted);
-      font-size: 9px;
-      line-height: 1.25;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      font-size: 13px;
+      line-height: 1.5;
     }
     .drop-hint {
       margin-top: 8px;
@@ -1194,19 +1148,9 @@
       .header-actions .button-label { display: none; }
       .language-button { min-width: 43px; padding-inline: 8px; }
       .main { padding-top: 15px; }
-      .initial-overview {
-        grid-template-columns: 1fr;
-        gap: 10px;
-        margin-bottom: 10px;
-        padding: 13px;
-        border-radius: 14px;
-      }
-      .initial-overview h2 { font-size: 16px; }
-      .overview-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-      .overview-actions li { gap: 7px; padding: 8px; }
-      .overview-action-icon { width: 26px; height: 26px; border-radius: 8px; }
-      .overview-action-copy strong { font-size: 10px; }
-      .overview-action-copy small { font-size: 8px; }
+      .initial-overview { gap: 8px; padding: 2px 0 16px; }
+      .initial-overview h2 { font-size: 19px; }
+      .overview-summary { font-size: 12px; }
       .privacy-promise { margin-top: 8px; padding: 6px 0; font-size: 10px; }
       .drop-zone { min-height: 210px; padding: 20px 14px; }
       .drop-zone h2 { font-size: 18px; }
@@ -1670,11 +1614,7 @@ body.is-sorting .page-card.drag-source {
   .mobile-edit-dock { position: static; }
 }
 
-  @media (max-width: 760px) {
-    .app-header { transition: transform .18s ease; will-change: transform; }
-    body.mobile-header-hidden .app-header { transform: translateY(-100%); }
-    body.mobile-header-hidden .mobile-edit-dock { top: 7px; }
-  }
+
 </style>
 </head>
 <body>
@@ -1699,37 +1639,19 @@ body.is-sorting .page-card.drag-source {
   <main class="main">
     <section class="initial-overview" id="initialOverview" aria-labelledby="overviewHeading">
       <div class="overview-copy">
-        <h2 id="overviewHeading" data-i18n="overviewHeading">ページを見ながら、整理・結合・保存</h2>
-        <div class="privacy-promise"><span id="shieldIcon" aria-hidden="true"></span><span data-i18n="privacyNote">完全ローカル処理</span></div>
+        <h2 id="overviewHeading" data-i18n="overviewHeading">PDFのページを整理・結合</h2>
+        <p class="overview-summary" data-i18n="overviewSummary">並べ替えや回転、削除をして、1つのPDFに保存できます。</p>
       </div>
-      <ul class="overview-actions">
-        <li>
-          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h9l3 3v15H9z"/><path d="M18 3v4h3M4 4v16M2 6l2-2 2 2M2 18l2 2 2-2"/></svg></span>
-          <span class="overview-action-copy"><strong data-i18n="overviewReorder">並べ替え</strong><small data-i18n="overviewReorderNote">ドラッグで順番変更</small></span>
-        </li>
-        <li>
-          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l3 3v4M14 3v4h3M5 3v18h7"/><path d="m14 18 6-6 2 2-6 6-3 1z"/></svg></span>
-          <span class="overview-action-copy"><strong data-i18n="overviewEdit">回転・削除</strong><small data-i18n="overviewEditNote">不要ページも整理</small></span>
-        </li>
-        <li>
-          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h9l3 3v15H8z"/><path d="M17 3v4h3M4 7v14M11 14h6M14 11v6"/></svg></span>
-          <span class="overview-action-copy"><strong data-i18n="overviewMerge">PDFを結合</strong><small data-i18n="overviewMergeNote">複数ファイルをひとつに</small></span>
-        </li>
-        <li>
-          <span class="overview-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3h10l3 3v5M14 3v4h3M4 3v18h6"/><path d="M17 12v9m-4-4 4 4 4-4"/></svg></span>
-          <span class="overview-action-copy"><strong data-i18n="overviewExport">必要なページを保存</strong><small data-i18n="overviewExportNote">全部・選択だけ両対応</small></span>
-        </li>
-      </ul>
+      <div class="privacy-promise"><span id="shieldIcon" aria-hidden="true"></span><span data-i18n="privacyNote">完全ローカル処理</span></div>
     </section>
 
     <section class="drop-zone" id="initialDropZone" tabindex="0" role="button" data-i18n-aria-label="addPdfAria" aria-label="PDF・JPG・PNG・WebP・PowerPointファイルを追加">
       <div class="drop-content">
         <div class="drop-icon" id="initialDropIcon" aria-hidden="true"></div>
         <h2 data-i18n="dropHeading">PDF・画像を追加して始める</h2>
-        <p data-i18n="dropDescription">PDF・JPG・PNG・WebPをまとめて、そのまま追加できます。</p>
         <button class="button primary" id="initialAddButton" type="button">
           <span id="initialAddIcon" aria-hidden="true"></span>
-          <span data-i18n="choosePdf">PDF・画像を選択</span>
+          <span data-i18n="choosePdf">ファイルを選択</span>
         </button>
         <div class="drop-hint" data-i18n="dropHint">または、この枠内にPDF・JPG・PNG・WebPをドラッグ＆ドロップ</div>
       </div>
@@ -2228,7 +2150,7 @@ body.is-sorting .page-card.drag-source {
 
     const icons = {
       help: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.3 2.3 0 1 1 3.75 1.78c-.91.69-1.55 1.16-1.55 2.22"/><path d="M12 17h.01"/></svg>`,
-      upload: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7.5 8.5 4.5-4.5 4.5 4.5"/><path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/></svg>`,
+      upload: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="m7.5 11.5 4.5 4.5 4.5-4.5"/><path d="M5 17v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2"/></svg>`,
       addFile: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M12 11v6M9 14h6"/></svg>`,
       shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.6 2.8 8 7 10 4.2-2 7-5.4 7-10V6z"/><path d="m9 12 2 2 4-5"/></svg>`,
       selectAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="m8.8 12 2 2 4.5-4.5"/></svg>`,
@@ -2384,7 +2306,8 @@ body.is-sorting .page-card.drag-source {
         switchLanguage: "Switch to English",
         helpTitle: "使い方と注意事項",
         addPdfAria: "PDF・JPG・PNG・WebP・PowerPointファイルを追加",
-        overviewHeading: "ページを見ながら、整理・結合・保存",
+        overviewHeading: "PDFのページを整理・結合",
+        overviewSummary: "並べ替えや回転、削除をして、1つのPDFに保存できます。",
         overviewReorder: "並べ替え",
         overviewReorderNote: "ドラッグで順番変更",
         overviewEdit: "回転・削除",
@@ -2394,9 +2317,8 @@ body.is-sorting .page-card.drag-source {
         overviewExport: "必要なページを保存",
         overviewExportNote: "全部・選択だけ両対応",
         dropHeading: "PDF・画像・PowerPointを追加して始める",
-        dropDescription: "PDF・JPG・PNG・WebP・PowerPointをまとめて、そのまま追加できます。",
         dropHint: "または、この枠内にPDF・画像・PowerPointをドラッグ＆ドロップ",
-        choosePdf: "PDF・画像・PowerPointを選択",
+        choosePdf: "ファイルを選択",
         privacyNote: "完全ローカル処理",
         pageListHeading: "ページ一覧",
         workspaceGuideBody: "カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。",
@@ -2558,7 +2480,8 @@ body.is-sorting .page-card.drag-source {
         switchLanguage: "日本語に切り替え",
         helpTitle: "How to use & notes",
         addPdfAria: "Add PDF, JPG, PNG, WebP, or PowerPoint files",
-        overviewHeading: "Review pages, organize, merge, and save",
+        overviewHeading: "Organize and combine PDF pages",
+        overviewSummary: "Reorder, rotate, or remove pages, then save them as one PDF.",
         overviewReorder: "Reorder",
         overviewReorderNote: "Drag pages into place",
         overviewEdit: "Rotate & delete",
@@ -2568,9 +2491,8 @@ body.is-sorting .page-card.drag-source {
         overviewExport: "Save the pages you need",
         overviewExportNote: "All pages or selected only",
         dropHeading: "Add PDFs, images & PowerPoint to get started",
-        dropDescription: "Add PDFs, JPGs, PNGs, WebP images, and PowerPoint files together.",
         dropHint: "Or drag and drop PDFs, images, and PowerPoint files anywhere in this box",
-        choosePdf: "Choose PDFs, images & PowerPoint",
+        choosePdf: "Choose files",
         privacyNote: "Fully local processing",
         pageListHeading: "Pages",
         workspaceGuideBody: "Drag to reorder. Selected pages can move together.",
@@ -4133,6 +4055,7 @@ body.is-sorting .page-card.drag-source {
         return;
       }
 
+      const firstImport = state.pages.length === 0;
       const before = clonePages();
       let addedPages = 0;
       let addedFiles = 0;
@@ -4191,6 +4114,14 @@ body.is-sorting .page-card.drag-source {
       setBusy(false);
       releaseUnusedDocuments();
       elements.fileInput.value = "";
+      if (addedPages > 0 && firstImport) {
+        requestAnimationFrame(() => {
+          if (elements.workspace.hidden) return;
+          const headerHeight = document.querySelector(".app-header")?.getBoundingClientRect().height || 0;
+          const top = elements.workspace.getBoundingClientRect().top + window.scrollY - headerHeight - 10;
+          window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+        });
+      }
       if (errors.length) showToast(errors.join("\n"), "error", 0);
     }
 
@@ -5312,25 +5243,6 @@ body.is-sorting .page-card.drag-source {
       clearTimeout(previewResizeTimer);
       previewResizeTimer = setTimeout(() => renderPreview(state.previewPageId), 120);
     });
-
-    let lastHeaderScrollY = window.scrollY;
-    let headerScrollTravel = 0;
-    function updateMobileHeaderVisibility() {
-      const y = Math.max(0, window.scrollY);
-      const delta = y - lastHeaderScrollY;
-      lastHeaderScrollY = y;
-      if (!window.matchMedia("(max-width: 760px)").matches || y < 96 || document.querySelector("dialog[open]")) {
-        headerScrollTravel = 0;
-        document.body.classList.remove("mobile-header-hidden");
-        return;
-      }
-      if (Math.sign(delta) !== Math.sign(headerScrollTravel)) headerScrollTravel = 0;
-      headerScrollTravel = Math.max(-60, Math.min(60, headerScrollTravel + delta));
-      if (headerScrollTravel > 18 && y > 160) document.body.classList.add("mobile-header-hidden");
-      if (headerScrollTravel < -12) document.body.classList.remove("mobile-header-hidden");
-    }
-    window.addEventListener("scroll", updateMobileHeaderVisibility, { passive: true });
-    window.addEventListener("resize", updateMobileHeaderVisibility);
 
     elements.languageButton.addEventListener("click", () => applyLanguage(currentLanguage === "ja" ? "en" : "ja"));
     elements.helpButton.addEventListener("click", () => elements.helpDialog.showModal());

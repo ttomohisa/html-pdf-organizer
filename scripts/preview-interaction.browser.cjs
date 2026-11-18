@@ -65,11 +65,16 @@ async function exercise(browser, buffer, width, height, mobile) {
     }
     await page.locator('#closePreviewButton').click();
     await page.locator('#previewDialog').waitFor({ state: 'hidden' });
+    assert.equal(await page.locator('#initialOverview').isVisible(), false, 'Intro hides after import');
+    assert.equal(await page.locator('#initialDropZone').isVisible(), false, 'Drop area hides after import');
     if (mobile) {
       await page.evaluate(() => window.scrollTo({ top: 500, behavior: 'instant' }));
-      await page.waitForFunction(() => document.body.classList.contains('mobile-header-hidden'), { timeout: 5000 });
-      await page.evaluate(() => window.scrollBy({ top: -90, behavior: 'instant' }));
-      await page.waitForFunction(() => !document.body.classList.contains('mobile-header-hidden'), { timeout: 5000 });
+      const pinnedHeader = await page.locator('.app-header').evaluate(el => ({
+        position: getComputedStyle(el).position,
+        top: el.getBoundingClientRect().top
+      }));
+      assert.equal(pinnedHeader.position, 'sticky', 'Mobile header remains sticky');
+      assert.ok(Math.abs(pinnedHeader.top) < 2, 'Mobile header stays at the top while scrolling');
     }
     await page.evaluate(() => { document.getElementById('selectAllButton').click(); document.getElementById('deleteButton').click(); });
     await page.locator('#deleteConfirmDialog[open]').waitFor();

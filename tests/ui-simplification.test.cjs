@@ -11,6 +11,11 @@ for (const file of ['src/index.template.html', 'pdf-organizer.html']) {
     assert.doesNotMatch(html, /fileFallbackButton|fileFallbackInput|overviewLabel|workspaceGuideIcon/);
     assert.match(html, /data-i18n="addPdf">ファイルを追加/);
     assert.match(html, /workspaceGuideBodyMobile">長押しして並び替え/);
+    assert.match(html, /data-i18n="overviewSummary">並べ替えや回転、削除をして/);
+    assert.doesNotMatch(html, /<ul class="overview-actions">/);
+    assert.doesNotMatch(html, /data-i18n="dropDescription"/);
+    assert.match(html, /data-i18n="choosePdf">ファイルを選択/);
+    assert.doesNotMatch(html, /mobile-header-hidden/);
     assert.match(html, /@media \(max-width: 760px\) \{\s*\.privacy-promise \{ display: none !important; \}/);
     assert.match(html, /data-i18n="privacyNote">完全ローカル処理/);
     assert.match(html, /id="fileInput" type="file"/);
