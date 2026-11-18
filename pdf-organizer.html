@@ -1139,6 +1139,7 @@
     }
 
     @media (max-width: 760px) {
+      .app-header { position: static; }
       .privacy-promise { display: none !important; }
       :root { --header-height: 58px; --thumb-width: 142px; }
       .header-inner { padding-block: 8px; }
@@ -1272,7 +1273,7 @@ body.is-sorting .page-card.drag-source {
   .mobile-edit-dock {
     position: sticky;
     z-index: 25;
-    top: calc(var(--header-height) + 7px);
+    top: 7px;
     display: block;
     margin: 0 -2px 12px;
     padding: 7px;
@@ -4117,8 +4118,14 @@ body.is-sorting .page-card.drag-source {
       if (addedPages > 0 && firstImport) {
         requestAnimationFrame(() => {
           if (elements.workspace.hidden) return;
-          const headerHeight = document.querySelector(".app-header")?.getBoundingClientRect().height || 0;
-          const top = elements.workspace.getBoundingClientRect().top + window.scrollY - headerHeight - 10;
+          // Align the actual editing toolbar with its responsive sticky inset.
+          // On phones, the page header scrolls away instead of occupying this space.
+          const mobile = window.matchMedia("(max-width: 760px)").matches;
+          const toolbar = document.querySelector(mobile ? ".mobile-edit-dock" : ".toolbar");
+          if (!toolbar || (mobile && toolbar.hidden)) return;
+          const styles = getComputedStyle(toolbar);
+          const toolbarInset = styles.position === "sticky" ? (parseFloat(styles.top) || 0) : 0;
+          const top = toolbar.getBoundingClientRect().top + window.scrollY - toolbarInset;
           window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
         });
       }

@@ -41,6 +41,16 @@ async function exercise(browser, buffer, width, height, mobile) {
       throw error;
     }
     assert.equal(await page.locator('.compact-drop > span').count(), 0, 'No verbose desktop drop hint');
+    // The first import must land at the *visible* editing toolbar, not at the workspace heading.
+    await page.waitForFunction((isMobile) => {
+      const toolbar = document.querySelector(isMobile ? '.mobile-edit-dock' : '.toolbar');
+      const header = document.querySelector('.app-header');
+      if (!toolbar || (isMobile && toolbar.hidden) || !document.querySelector('#busyOverlay').hidden) return false;
+      const styles = getComputedStyle(toolbar);
+      const inset = styles.position === 'sticky' ? (parseFloat(styles.top) || 0) : 0;
+      return Math.abs(toolbar.getBoundingClientRect().top - inset) < 3 &&
+        (!isMobile || header.getBoundingClientRect().bottom < 0);
+    }, mobile, { timeout: 15000 });
     await page.locator('.page-card [data-action="preview"]').first().click({ force: true });
     await page.locator('#previewDialog[open] .preview-content-frame').waitFor({ timeout: 30000 });
     const level = page.locator('#previewZoomResetButton');
@@ -69,12 +79,15 @@ async function exercise(browser, buffer, width, height, mobile) {
     assert.equal(await page.locator('#initialDropZone').isVisible(), false, 'Drop area hides after import');
     if (mobile) {
       await page.evaluate(() => window.scrollTo({ top: 500, behavior: 'instant' }));
-      const pinnedHeader = await page.locator('.app-header').evaluate(el => ({
+      const scrolledHeader = await page.locator('.app-header').evaluate(el => ({
         position: getComputedStyle(el).position,
-        top: el.getBoundingClientRect().top
+        bottom: el.getBoundingClientRect().bottom
       }));
-      assert.equal(pinnedHeader.position, 'sticky', 'Mobile header remains sticky');
-      assert.ok(Math.abs(pinnedHeader.top) < 2, 'Mobile header stays at the top while scrolling');
+      assert.equal(scrolledHeader.position, 'static', 'Mobile header participates in normal scrolling');
+      assert.ok(scrolledHeader.bottom < 0, 'Mobile header leaves the viewport when scrolling down');
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      const restoredHeader = await page.locator('.app-header').boundingBox();
+      assert.ok(restoredHeader && restoredHeader.y >= -1, 'Mobile header returns at the top of the page');
     }
     await page.evaluate(() => { document.getElementById('selectAllButton').click(); document.getElementById('deleteButton').click(); });
     await page.locator('#deleteConfirmDialog[open]').waitFor();
