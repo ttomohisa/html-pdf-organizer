@@ -821,6 +821,7 @@
       color: var(--text-muted);
     }
     .output-password-button:hover { color: var(--text); background: var(--surface-hover); }
+    .output-password-button:active:not(:disabled) { transform: translateY(-50%); }
     .output-password-button.is-active {
       color: var(--accent);
       background: var(--accent-soft);
@@ -1110,6 +1111,15 @@
       display: block;
       background: #fff;
       box-shadow: 0 8px 32px rgba(0, 0, 0, .22);
+    }
+    .preview-content-frame > .preview-watermark-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: transparent;
+      box-shadow: none;
     }
     .preview-loading, .preview-error {
       display: grid;
@@ -3314,6 +3324,12 @@ body.is-sorting .page-card.drag-source {
       updateUiState();
     });
     $("#watermarkCancel").addEventListener("click", () => elements.watermarkDialog.close());
+    elements.watermarkDialog.addEventListener("click", (event) => {
+      if (event.target !== elements.watermarkDialog) return;
+      const rect = elements.watermarkDialog.getBoundingClientRect();
+      const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+      if (outside) elements.watermarkDialog.close();
+    });
     elements.watermarkDialog.addEventListener("close", () => {
       if (elements.watermarkDialog.open) return;
       closeWatermarkPreview();
@@ -3873,6 +3889,17 @@ body.is-sorting .page-card.drag-source {
       frame.dataset.baseWidth = String(Math.max(1, width));
       frame.dataset.baseHeight = String(Math.max(1, height));
       frame.append(content);
+      if (state.watermark) {
+        const layer = document.createElement("canvas");
+        const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
+        layer.className = "preview-watermark-layer";
+        layer.setAttribute("aria-hidden", "true");
+        layer.width = Math.max(1, Math.round(width * pixelRatio));
+        layer.height = Math.max(1, Math.round(height * pixelRatio));
+        const mark = createWatermarkCanvas(state.watermark);
+        drawWatermarkPreview(layer.getContext("2d"), mark, state.watermark, layer.width, layer.height);
+        frame.append(layer);
+      }
       host.replaceChildren(frame);
       resizePreviewContent();
       host.hidden = false;

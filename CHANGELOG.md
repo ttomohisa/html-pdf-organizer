@@ -3,6 +3,8 @@
 ## 1.3.0 - 2026-11-20
 
 - Preview a custom text watermark on your pages and include it when saving all or selected pages. Choose its position, color and opacity in the offline app.
+- Show applied watermarks in the regular page preview and close watermark settings when clicking outside the dialog.
+- Keep the password button centered when pressed.
 
 ## 1.2.7 - 2026-11-17
 

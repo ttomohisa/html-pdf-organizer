@@ -79,6 +79,17 @@ async function exercise(browser, mobile) {
       return Array.from(await doc.save());
     });
     await importPages(page, { name: 'report.pdf', mimeType: 'application/pdf', buffer: Buffer.from(fixture) }, 2);
+    const password = page.locator('#outputPasswordButton');
+    const passwordBox = await password.boundingBox();
+    await page.mouse.move(passwordBox.x + passwordBox.width / 2, passwordBox.y + passwordBox.height / 2);
+    await page.mouse.down();
+    await password.evaluate(el => Promise.all(el.getAnimations().map(animation => animation.finished)));
+    const pressedBox = await password.boundingBox();
+    await page.mouse.up();
+    assert.ok(Math.abs(pressedBox.y - passwordBox.y) < 0.5,
+      'Pressing the password button must keep it centered (offset ' + (pressedBox.y - passwordBox.y) + 'px)');
+    await page.locator('#outputPasswordDialog[open]').waitFor();
+    await page.keyboard.press('Escape');
     await openSettings(page, mobile);
     await page.locator('#watermarkEnabled').check();
     await page.locator('#watermarkText').fill('   ');
@@ -111,7 +122,30 @@ async function exercise(browser, mobile) {
     await page.locator('#watermarkCancel').click();
     await openSettings(page, mobile);
     assert.equal(await page.locator('#watermarkText').inputValue(), '山田様 配布用');
+    await page.locator('#watermarkText').fill('Discard this too');
+    await page.mouse.click(2, 2);
+    await page.locator('#watermarkDialog').waitFor({ state: 'hidden', timeout: 3000 });
+    await openSettings(page, mobile);
+    assert.equal(await page.locator('#watermarkText').inputValue(), '山田様 配布用');
     await page.locator('#watermarkCancel').click();
+
+    await page.locator('.page-card [data-action="preview"]').first().click();
+    const watermarkLayer = page.locator('.preview-content-frame canvas.preview-watermark-layer');
+    await watermarkLayer.waitFor({ timeout: 5000 });
+    const actual = await watermarkLayer.evaluate(redBounds);
+    assert.ok(actual, 'The normal page preview contains the applied watermark');
+    actual.forEach((value, i) => assert.ok(Math.abs(value - preview[i]) < 0.025, 'Both previews agree'));
+    await page.locator('#previewZoomInButton').click();
+    assert.equal(await page.locator('#previewZoomResetButton').textContent(), '125%');
+    assert.ok(await watermarkLayer.evaluate(layer => {
+      const canvas = layer.previousElementSibling.getBoundingClientRect();
+      const overlay = layer.getBoundingClientRect();
+      return Math.abs(overlay.width - canvas.width) < 1 && Math.abs(overlay.height - canvas.height) < 1;
+    }), 'The watermark zooms with the page');
+    await page.locator('#previewNextButton').click();
+    await page.locator('#previewCanvasHost:not([hidden]) .preview-watermark-layer').waitFor();
+    assert.ok(await watermarkLayer.evaluate(redBounds), 'The next page also has a watermark');
+    await page.locator('#closePreviewButton').click();
 
     await page.locator('.page-card').first().click();
     const output = await savePdf(page, '#saveSelectedButton');
@@ -130,6 +164,10 @@ async function exercise(browser, mobile) {
     await page.locator('#watermarkEnabled').uncheck();
     await page.locator('#watermarkApply').click();
     assert.equal(await page.locator('#exportBar').evaluate(bar => bar.classList.contains('has-watermark')), false);
+    await page.locator('.page-card [data-action="preview"]').first().click();
+    await page.locator('#previewCanvasHost:not([hidden]) .preview-content-frame canvas').waitFor();
+    assert.equal(await watermarkLayer.count(), 0, 'Turning off the watermark also clears it from the normal preview');
+    await page.locator('#closePreviewButton').click();
     if (!mobile) {
       await openSettings(page, false);
       await page.locator('#watermarkEnabled').check();
