@@ -117,6 +117,18 @@ async function exercise(browser, mobile) {
       await page.screenshot({ path: path.join(process.env.PDF_ORGANIZER_SCREENSHOTS, mobile ? 'mobile.png' : 'desktop.png') });
     }
     await page.locator('#watermarkApply').click();
+    const cardMarks = page.locator('.thumb-frame .thumbnail-watermark-layer');
+    await cardMarks.first().waitFor({ timeout: 3000 });
+    await page.waitForFunction(() => document.querySelectorAll('.thumbnail-watermark-layer').length === 2);
+    const cardMark = await cardMarks.first().evaluate(redBounds);
+    assert.ok(cardMark, 'The card contains the applied watermark');
+    cardMark.forEach((value, i) => assert.ok(Math.abs(value - preview[i]) < 0.04, 'The card and preview agree'));
+    assert.ok(await cardMarks.first().evaluate(layer => {
+      const page = layer.previousElementSibling.getBoundingClientRect();
+      const mark = layer.getBoundingClientRect();
+      return Math.abs(page.x - mark.x) < 1 && Math.abs(page.y - mark.y) < 1 &&
+        Math.abs(page.width - mark.width) < 1 && Math.abs(page.height - mark.height) < 1;
+    }), 'The watermark aligns to the page on the card');
     await openSettings(page, mobile);
     await page.locator('#watermarkText').fill('Discard this edit');
     await page.locator('#watermarkCancel').click();
@@ -128,6 +140,7 @@ async function exercise(browser, mobile) {
     await openSettings(page, mobile);
     assert.equal(await page.locator('#watermarkText').inputValue(), '山田様 配布用');
     await page.locator('#watermarkCancel').click();
+    assert.deepEqual(await cardMarks.first().evaluate(redBounds), cardMark, 'Unapplied edits leave the card unchanged');
 
     await page.locator('.page-card [data-action="preview"]').first().click();
     const watermarkLayer = page.locator('.preview-content-frame canvas.preview-watermark-layer');
@@ -164,6 +177,7 @@ async function exercise(browser, mobile) {
     await page.locator('#watermarkEnabled').uncheck();
     await page.locator('#watermarkApply').click();
     assert.equal(await page.locator('#exportBar').evaluate(bar => bar.classList.contains('has-watermark')), false);
+    assert.equal(await cardMarks.count(), 0, 'Turning off the watermark clears the cards');
     await page.locator('.page-card [data-action="preview"]').first().click();
     await page.locator('#previewCanvasHost:not([hidden]) .preview-content-frame canvas').waitFor();
     assert.equal(await watermarkLayer.count(), 0, 'Turning off the watermark also clears it from the normal preview');

@@ -605,6 +605,15 @@
       box-shadow: 0 2px 11px rgba(0, 0, 0, .16);
     }
 
+    .thumb-frame > canvas, .thumb-frame > .pptx-slide-shell { grid-area: 1 / 1; }
+    .thumb-frame > .thumbnail-watermark-layer {
+      position: relative;
+      pointer-events: none;
+      background: transparent;
+      box-shadow: none;
+    }
+    .thumb-frame > .pptx-slide-shell + .thumbnail-watermark-layer { max-width: none; max-height: none; }
+
     .thumb-placeholder {
       width: 58%;
       height: 76%;
@@ -3320,6 +3329,7 @@ body.is-sorting .page-card.drag-source {
       updateWatermarkFields();
       if (!elements.watermarkForm.reportValidity()) return;
       state.watermark = getWatermarkDraft();
+      elements.pagesGrid.querySelectorAll('.thumb-frame[data-rendered="true"]').forEach(updateThumbnailWatermark);
       elements.watermarkDialog.close();
       updateUiState();
     });
@@ -3800,6 +3810,19 @@ body.is-sorting .page-card.drag-source {
       }
     }
 
+    function updateThumbnailWatermark(frame) {
+      frame.querySelector(".thumbnail-watermark-layer")?.remove();
+      if (!state.watermark) return;
+      const page = frame.firstElementChild;
+      const width = parseFloat(page.style.width);
+      const height = parseFloat(page.style.height);
+      const layer = createAppliedWatermarkLayer(width, height, Math.min(window.devicePixelRatio || 1, 2));
+      layer.className = "thumbnail-watermark-layer";
+      layer.style.width = page.style.width;
+      layer.style.height = page.style.height;
+      frame.append(layer);
+    }
+
     async function renderThumbnail(pageId) {
       const item = state.pages.find((page) => page.id === pageId);
       const frame = elements.pagesGrid.querySelector(`.thumb-frame[data-page-id="${CSS.escape(pageId)}"]`);
@@ -3815,6 +3838,7 @@ body.is-sorting .page-card.drag-source {
         if (!frame.isConnected || !state.pages.some((page) => page.id === pageId)) return;
         frame.replaceChildren(canvas);
         frame.dataset.rendered = "true";
+        updateThumbnailWatermark(frame);
         return;
       }
       if (doc.kind === "pptx") {
@@ -3828,6 +3852,7 @@ body.is-sorting .page-card.drag-source {
           return;
         }
         frame.dataset.rendered = "true";
+        updateThumbnailWatermark(frame);
         return;
       }
       if (!doc.pdfjsDoc) throw new Error(t("sourceMissing"));
@@ -3859,6 +3884,7 @@ body.is-sorting .page-card.drag-source {
       if (!frame.isConnected || !state.pages.some((page) => page.id === pageId)) return;
       frame.replaceChildren(canvas);
       frame.dataset.rendered = "true";
+      updateThumbnailWatermark(frame);
     }
 
     const PREVIEW_ZOOM_MIN = 0.75;
@@ -3890,14 +3916,9 @@ body.is-sorting .page-card.drag-source {
       frame.dataset.baseHeight = String(Math.max(1, height));
       frame.append(content);
       if (state.watermark) {
-        const layer = document.createElement("canvas");
         const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
+        const layer = createAppliedWatermarkLayer(width, height, pixelRatio);
         layer.className = "preview-watermark-layer";
-        layer.setAttribute("aria-hidden", "true");
-        layer.width = Math.max(1, Math.round(width * pixelRatio));
-        layer.height = Math.max(1, Math.round(height * pixelRatio));
-        const mark = createWatermarkCanvas(state.watermark);
-        drawWatermarkPreview(layer.getContext("2d"), mark, state.watermark, layer.width, layer.height);
         frame.append(layer);
       }
       host.replaceChildren(frame);
@@ -4933,6 +4954,23 @@ body.is-sorting .page-card.drag-source {
       ctx.globalAlpha = settings.opacity / 100;
       ctx.drawImage(markCanvas, -mark.width / 2, -mark.height / 2, mark.width, mark.height);
       ctx.restore();
+    }
+
+    const appliedWatermarkCanvas = new WeakMap();
+
+    function createAppliedWatermarkLayer(width, height, pixelRatio) {
+      const settings = state.watermark;
+      let mark = appliedWatermarkCanvas.get(settings);
+      if (!mark) {
+        mark = createWatermarkCanvas(settings);
+        appliedWatermarkCanvas.set(settings, mark);
+      }
+      const layer = document.createElement("canvas");
+      layer.setAttribute("aria-hidden", "true");
+      layer.width = Math.max(1, Math.round(width * pixelRatio));
+      layer.height = Math.max(1, Math.round(height * pixelRatio));
+      drawWatermarkPreview(layer.getContext("2d"), mark, settings, layer.width, layer.height);
+      return layer;
     }
 
     function drawPdfWatermark(page, image, settings) {
