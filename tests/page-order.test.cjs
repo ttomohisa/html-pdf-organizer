@@ -52,7 +52,7 @@ function harness(filename) {
     loadPdfForEditing: async buffer => ({ buffer, pdfjsDoc: { numPages: (await PDFLib.PDFDocument.load(new Uint8Array(buffer))).getPageCount() } })
   });
   const names = ['setBusy', 'pushHistory', 'performEdit', 'reconcileSelection', 'undo', 'redo', 'selectPage', 'ensureTargetSelected', 'rotateSelected', 'deleteSelected', 'selectAll', 'clearSelection', 'addFiles', 'beginPointerDrag', 'finishPointerDrag', 'exportPdf', 'sanitizeFilename', 'updateUiState'];
-  const optional = ['cancelPointerDrag', 'getSelectionEdgeOrder', 'canMoveSelectionToEdge', 'moveSelectionToEdge', 'askToDeleteAll', 'commitDeleteSelected'];
+  const optional = ['cancelPointerDrag', 'getSelectionEdgeOrder', 'canMoveSelectionToEdge', 'moveSelectionToEdge', 'askToDeleteAll', 'commitDeleteSelected', 'getWatermarkPlacement', 'drawPdfWatermark'];
   for (const name of optional) if (source.includes('function ' + name + '(')) names.push(name);
   const initial = source.slice(source.indexOf('    const state = {'), source.indexOf('    function setIcon'));
   const helpers = source.slice(source.indexOf('    const makeId = '), source.indexOf('    const A4_WIDTH = '));
@@ -77,7 +77,7 @@ function harness(filename) {
     };`].join('\n'), ctx);
   ctx.renderGrid = () => { vm.runInContext('releaseUnusedDocuments()', ctx); ctx.app.updateUiState(); };
   ctx.refreshSelectionUi = () => ctx.app.updateUiState();
-  return { source, app: ctx.app, elements, logs, blobs, cleanup, document, Input,
+  return { source, app: ctx.app, elements, logs, blobs, cleanup, document, Input, ctx,
     confirmDelete: () => { if (source.includes('let pendingDeleteAction = null;')) vm.runInContext('if (pendingDeleteAction) { const action = pendingDeleteAction; pendingDeleteAction = null; action(); }', ctx); },
     cancelDelete: () => { if (source.includes('let pendingDeleteAction = null;')) { vm.runInContext('pendingDeleteAction = null;', ctx); elements.deleteConfirmDialog.close(); } },
     key: e => listeners.keydown({ target: {}, preventDefault() {}, ctrlKey: false, metaKey: false, shiftKey: false, ...e }),
@@ -87,6 +87,70 @@ function harness(filename) {
 const sourceHasConfirmation = h => h.source.includes('let pendingDeleteAction = null;');
 const order = h => Array.from(h.app.state.pages, p => p.pageIndex);
 const selected = h => Array.from(h.app.state.selected);
+for (const filename of targets) {
+  const prefix = path.relative(root, filename) + ': ';
+  test(prefix + 'all and selected exports each add one shared watermark without accumulating marks', async () => {
+    const h = await setup(filename, [1, 3]);
+    // Browser text rasterization ends at this boundary. The actual PDF writer embeds the PNG.
+    h.ctx.createWatermarkCanvas = () => ({
+      width: 12, height: 16,
+      toDataURL: () => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAQCAIAAACtAwlQAAAAG0lEQVR4nGP8//8/AyHARFqKJRRQwMDAwMAArPAx3ZYoM8AAAAAElFTkSuQmCC'
+    });
+    const settings = { text: 'Draft', placement: 'diagonal', color: '#555555', opacity: 35 };
+    for (const [selectedOnly, mark, pageCount] of [[false, settings, 4], [true, settings, 2], [false, null, 4]]) {
+      h.app.state.watermark = mark;
+      h.blobs.length = 0;
+      const pdf = await output(h, 'watermark', selectedOnly);
+      assert.equal(pdf.getPageCount(), pageCount);
+      const resources = new Set();
+      for (const page of pdf.getPages()) {
+        const entries = page.node.Resources().lookup(PDFLib.PDFName.of('XObject'))?.entries() || [];
+        assert.equal(entries.length, mark ? 1 : 0, 'one overlay per marked output page');
+        for (const [, ref] of entries) resources.add(ref.toString());
+      }
+      assert.equal(resources.size, mark ? 1 : 0, 'reuse the same embedded image throughout an export');
+    }
+  });
+
+  test(prefix + 'PDF watermark stays centered or padded inside the visible rotated page', () => {
+    const { ctx } = harness(filename);
+    assert.equal(typeof ctx.drawPdfWatermark, 'function');
+    for (const [width, height] of [[600, 400], [2200, 20], [20, 2200]]) {
+      const left = 40, bottom = -10;
+      for (const rotation of [0, 90, 180, 270]) {
+        const viewWidth = rotation % 180 ? height : width;
+        const viewHeight = rotation % 180 ? width : height;
+        const toView = (x, y) => {
+          x -= left; y -= bottom;
+          return { 0: [x, y], 90: [y, width - x], 180: [width - x, height - y], 270: [height - y, x] }[rotation];
+        };
+        for (const placement of ['diagonal', 'center', 'bottomRight']) {
+          let opts;
+          const page = {
+            getRotation: () => ({angle: rotation}),
+            getMediaBox: () => ({ x: left, y: bottom, width: width + 50, height: height + 50 }),
+            getCropBox: () => ({ x: left - 50, y: bottom - 50, width: width + 50, height: height + 50 }),
+            drawImage: (_mark, options) => { opts = options; }
+          };
+          ctx.drawPdfWatermark(page, { width: 280, height: 80 }, { placement, opacity: 37 });
+          const angle = opts.rotate.angle * Math.PI / 180;
+          const corners = [[0, 0], [opts.width, 0], [opts.width, opts.height], [0, opts.height]].map(([u, v]) =>
+            toView(opts.x + u * Math.cos(angle) - v * Math.sin(angle), opts.y + u * Math.sin(angle) + v * Math.cos(angle)));
+          assert.ok(corners.every(([x, y]) => x > 0 && y > 0 && x < viewWidth && y < viewHeight), 'all four corners visible');
+          const cx = (corners[0][0] + corners[2][0]) / 2, cy = (corners[0][1] + corners[2][1]) / 2;
+          if (placement === 'bottomRight') {
+            assert.ok(cx > viewWidth / 2 && cy < viewHeight / 2);
+          } else {
+            assert.ok(Math.abs(cx - viewWidth / 2) < 0.00001 && Math.abs(cy - viewHeight / 2) < 0.00001);
+          }
+          const dx = corners[1][0] - corners[0][0], dy = corners[1][1] - corners[0][1];
+          assert.ok(Math.abs(Math.atan2(dy, dx) * 180 / Math.PI - (placement === 'diagonal' ? 30 : 0)) < 0.00001);
+          assert.equal(opts.opacity, 0.37);
+        }
+      }
+    }
+  });
+}
 let fixturePromise;
 async function fixture() {
   fixturePromise ||= (async () => {

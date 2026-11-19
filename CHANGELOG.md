@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0 - 2026-11-20
+
+- Preview a custom text watermark on your pages and include it when saving all or selected pages. Choose its position, color and opacity in the offline app.
+
 ## 1.2.7 - 2026-11-17
 
 - Simplify the bilingual UI and help: shorten file-adding and mobile sorting hints, remove redundant file picker and footer, and hide the local-processing badge on small screens without changing how files are processed.

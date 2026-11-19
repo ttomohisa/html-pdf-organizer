@@ -45,6 +45,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Mobile label browser regression failed." }
           node scripts/preview-interaction.browser.cjs 2>&1 | Tee-Object -FilePath test-results/mobile-label/preview-interaction.log
           if ($LASTEXITCODE -ne 0) { throw "Preview interaction browser regression failed." }
+          $env:PDF_ORGANIZER_SCREENSHOTS = "test-results/mobile-label/watermark"
+          node scripts/watermark.browser.cjs
+          if ($LASTEXITCODE -ne 0) { throw "Watermark preview and export regression failed." }
       - name: Upload mobile label browser evidence
         if: always() && github.event_name == 'pull_request'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
