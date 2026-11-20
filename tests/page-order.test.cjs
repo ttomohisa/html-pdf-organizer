@@ -89,6 +89,19 @@ const order = h => Array.from(h.app.state.pages, p => p.pageIndex);
 const selected = h => Array.from(h.app.state.selected);
 for (const filename of targets) {
   const prefix = path.relative(root, filename) + ': ';
+  test(prefix + 'page range syntax validates every term before returning page indices', () => {
+    const source = fs.readFileSync(filename, 'utf8');
+    const context = vm.createContext({});
+    vm.runInContext(extract(source, 'parsePageRanges'), context);
+    const parse = (input, total = 12) => context.parsePageRanges(input, total);
+    assert.deepEqual(Array.from(parse('１２、 ２－４ , 3')).sort((a, b) => a - b), [1, 2, 3, 11]);
+    assert.deepEqual(Array.from(parse(' 1 ', 1)), [0]);
+    assert.deepEqual(Array.from(parse('10 – 12')), [9, 10, 11]);
+    for (const input of ['', '0', '-1', '4-2', '1,,2', '2-', '1,13', '1.5', '2 3', '1,', '1-999999999999999999999']) {
+      assert.equal(parse(input), null, input);
+    }
+  });
+
   test(prefix + 'all and selected exports each add one shared watermark without accumulating marks', async () => {
     const h = await setup(filename, [1, 3]);
     // Browser text rasterization ends at this boundary. The actual PDF writer embeds the PNG.

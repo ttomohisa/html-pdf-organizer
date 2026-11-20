@@ -69,6 +69,7 @@ Normal export saves an unprotected PDF. When needed, use the lock button in the 
 - Use the checkbox to add or remove that page without clearing the current selection.
 - Hold `Ctrl` / `⌘` while clicking to toggle pages.
 - Hold `Shift` while clicking to select a range.
+- Open **Select by page number** (under **More** on a phone) and enter numbers or ranges such as `2-5, 9, 12` to replace the current selection. Use the numbers shown on the cards. Overlapping entries count once.
 
 A selection move keeps rotations, image placement, and selection intact and can be undone in one step. The move controls are disabled when there is no change to make or while loading/exporting. Editing or deleting pages during a drag cancels that drag, so releasing the pointer cannot restore an older page list.
 
