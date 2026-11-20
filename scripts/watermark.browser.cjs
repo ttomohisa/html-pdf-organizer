@@ -106,6 +106,18 @@ async function exercise(browser, mobile) {
       assert.equal(await page.locator('#saveOptionsPanel').isVisible(), false);
     }
     await page.locator('#outputPasswordDialog[open]').waitFor();
+    await page.locator('#outputPasswordEnabled').check();
+    await page.locator('#outputPasswordInput').fill('Unapplied draft');
+    if (mobile) await page.touchscreen.tap(2, 2);
+    else await page.mouse.click(2, 2);
+    await page.locator('#outputPasswordDialog').waitFor({ state: 'hidden', timeout: 3000 });
+    if (mobile) await password.click();
+    else {
+      await page.locator('#saveOptionsButton').click();
+      await page.locator('#saveOptionsPasswordButton').click();
+    }
+    assert.equal(await page.locator('#outputPasswordEnabled').isChecked(), false);
+    assert.equal(await page.locator('#outputPasswordInput').inputValue(), '');
     await page.keyboard.press('Escape');
     await openSettings(page, mobile);
     await page.locator('#watermarkEnabled').check();
