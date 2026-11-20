@@ -160,6 +160,7 @@
       margin: 0 auto;
       padding: 22px clamp(14px, 2.8vw, 34px) calc(110px + env(safe-area-inset-bottom));
     }
+    .main:has(.workspace:not([hidden])) { padding-top: 14px; }
 
     .drop-zone {
       position: relative;
@@ -183,7 +184,14 @@
       transform: translateY(-1px);
     }
 
-    .drop-content { position: relative; width: 100%; max-width: 680px; }
+    .drop-content {
+      display: grid;
+      justify-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 680px;
+    }
+    .drop-content .drop-icon { margin: 0; }
     .drop-icon {
       width: 48px;
       height: 48px;
@@ -194,13 +202,7 @@
       background: var(--accent-soft);
       color: var(--accent);
     }
-    .drop-zone h2 { margin: 0; font-size: 21px; letter-spacing: -.01em; }
-    .drop-zone p {
-      max-width: 590px;
-      margin: 7px auto 12px;
-      color: var(--text-muted);
-      font-size: 13px;
-    }
+    .drop-zone h2 { margin: 0; font-size: 21px; line-height: 1.35; letter-spacing: -.01em; text-wrap: balance; }
     .initial-overview {
       display: flex;
       align-items: center;
@@ -224,7 +226,6 @@
       line-height: 1.5;
     }
     .drop-hint {
-      margin-top: 8px;
       color: var(--text-muted);
       font-size: 11px;
     }
@@ -255,37 +256,15 @@
 
     .workspace[hidden], .drop-zone[hidden] { display: none !important; }
 
-    .workspace-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 12px;
-    }
-
     .workspace-guide {
-      min-width: 0;
-      margin: 0;
+      margin: 0 0 8px;
       color: var(--text-muted);
       font-size: 12px;
       line-height: 1.45;
     }
     .workspace-guide-mobile { display: none !important; }
 
-    .compact-drop {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border: 1px dashed var(--line-strong);
-      border-radius: var(--radius);
-      background: var(--surface);
-      color: var(--text-muted);
-      font-size: 13px;
-      transition: .18s ease;
-    }
-    .compact-drop { padding: 0; border: 0; background: transparent; }
-    .compact-drop.is-dragover { outline: 2px dashed var(--accent); outline-offset: 4px; color: var(--text); }
+    #addButton.is-dragover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 
     .toolbar {
       position: sticky;
@@ -1189,6 +1168,14 @@
       overflow: visible;
     }
 
+    @media (761px <= width <= 1450px) {
+      .toolbar :is(#moveStartButton, #moveEndButton, #rotateLeftButton, #rotateRightButton) .button-label { display: none; }
+    }
+    @media (761px <= width <= 1220px) {
+      .toolbar .button-label.optional { display: none; }
+      .toolbar-spacer { flex-basis: 0; }
+      .zoom-control input { width: 70px; }
+    }
     @media (max-width: 760px) {
       .privacy-promise { display: none !important; }
       .app-header { position: static; }
@@ -1206,7 +1193,6 @@
       .privacy-promise { margin-top: 8px; padding: 6px 0; font-size: 10px; }
       .drop-zone { min-height: 210px; padding: 20px 14px; }
       .drop-zone h2 { font-size: 18px; }
-      .drop-zone p { margin-bottom: 13px; font-size: 12px; }
       .drop-hint { display: none; }
       #helpDialog {
         width: calc(100% - 16px);
@@ -1223,7 +1209,6 @@
       .workspace-guide { font-size: 11px; }
       .workspace-guide-desktop { display: none !important; }
       .workspace-guide-mobile { display: block !important; }
-      .compact-drop { display: none; }
       .toolbar { top: calc(var(--header-height) + 7px); margin-inline: -4px; border-radius: 12px; }
       .toolbar .button-label.optional { display: none; }
       .toolbar-spacer { display: none; }
@@ -1298,10 +1283,6 @@ body.is-sorting .page-card.drag-source {
   .main {
     padding-inline: 10px;
     padding-bottom: calc(122px + env(safe-area-inset-bottom));
-  }
-
-  .workspace-header {
-    margin-bottom: 8px;
   }
 
   .toolbar {
@@ -1696,7 +1677,7 @@ body.is-sorting .page-card.drag-source {
     <section class="drop-zone" id="initialDropZone" tabindex="0" role="button" data-i18n-aria-label="addPdfAria" aria-label="PDF・JPG・PNG・WebP・PowerPointファイルを追加">
       <div class="drop-content">
         <div class="drop-icon" id="initialDropIcon" aria-hidden="true"></div>
-        <h2 data-i18n="dropHeading">PDF・画像を追加して始める</h2>
+        <h2 data-i18n="dropHeading">PDF・画像・PowerPointを追加して始める</h2>
         <button class="button primary" id="initialAddButton" type="button">
           <span id="initialAddIcon" aria-hidden="true"></span>
           <span data-i18n="choosePdf">ファイルを選択</span>
@@ -1706,42 +1687,38 @@ body.is-sorting .page-card.drag-source {
     </section>
 
     <section class="workspace" id="workspace" hidden>
-      <div class="workspace-header">
-        <p class="workspace-guide">
-          <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">ドラッグして並び替え。選択したページもまとめて動かせます。</span>
-          <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">長押しして並び替え</span>
-        </p>
-        <div class="compact-drop" id="compactDropZone">
-          <button class="button" id="addButton" type="button" data-i18n="addPdf">ファイルを追加</button>
-        </div>
-      </div>
+      <p class="workspace-guide" id="workspaceGuide" hidden>
+        <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">ドラッグして並び替え。選択したページもまとめて動かせます。</span>
+        <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">長押しして並び替え</span>
+      </p>
 
       <div class="toolbar" role="toolbar" data-i18n-aria-label="pageEditing" aria-label="ページ編集">
         <div class="selection-status" id="selectionStatus" aria-live="polite"></div>
         <div class="toolbar-group">
-          <button class="button" id="selectAllButton" type="button"><span id="selectAllIcon"></span><span class="button-label optional" data-i18n="selectAll">すべて選択</span></button>
-          <button class="button" id="clearSelectionButton" type="button"><span id="clearSelectionIcon"></span><span class="button-label optional" data-i18n="clearSelection">選択解除</span></button>
+          <button class="button" id="selectAllButton" type="button" data-i18n-title="selectAll" data-i18n-aria-label="selectAll"><span id="selectAllIcon"></span><span class="button-label optional" data-i18n="selectAll">すべて選択</span></button>
+          <button class="button" id="clearSelectionButton" type="button" data-i18n-title="clearSelection" data-i18n-aria-label="clearSelection"><span id="clearSelectionIcon"></span><span class="button-label optional" data-i18n="clearSelection">選択解除</span></button>
         </div>
         <div class="toolbar-divider" aria-hidden="true"></div>
         <div class="toolbar-group">
           <button class="button" id="moveStartButton" type="button" data-i18n-title="moveSelectionStart" data-i18n-aria-label="moveSelectionStart" title="選択ページを先頭へ" aria-label="選択ページを先頭へ"><span id="moveStartIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveStart">先頭へ</span></button>
           <button class="button" id="moveEndButton" type="button" data-i18n-title="moveSelectionEnd" data-i18n-aria-label="moveSelectionEnd" title="選択ページを末尾へ" aria-label="選択ページを末尾へ"><span id="moveEndIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveEnd">末尾へ</span></button>
-          <button class="button" id="rotateLeftButton" type="button"><span id="rotateLeftIcon"></span><span class="button-label optional" data-i18n="rotateLeft">左回転</span></button>
-          <button class="button" id="rotateRightButton" type="button"><span id="rotateRightIcon"></span><span class="button-label optional" data-i18n="rotateRight">右回転</span></button>
-          <button class="button danger" id="deleteButton" type="button"><span id="deleteIcon"></span><span class="button-label optional" data-i18n="delete">削除</span></button>
+          <button class="button" id="rotateLeftButton" type="button" data-i18n-title="rotateLeft" data-i18n-aria-label="rotateLeft"><span id="rotateLeftIcon"></span><span class="button-label optional" data-i18n="rotateLeft">左回転</span></button>
+          <button class="button" id="rotateRightButton" type="button" data-i18n-title="rotateRight" data-i18n-aria-label="rotateRight"><span id="rotateRightIcon"></span><span class="button-label optional" data-i18n="rotateRight">右回転</span></button>
+          <button class="button danger" id="deleteButton" type="button" data-i18n-title="delete" data-i18n-aria-label="delete"><span id="deleteIcon"></span><span class="button-label optional" data-i18n="delete">削除</span></button>
         </div>
         <div class="toolbar-divider" aria-hidden="true"></div>
         <div class="toolbar-group">
           <button class="button icon-only" id="undoButton" type="button" data-i18n-title="undoTitle" data-i18n-aria-label="undo" title="元に戻す (Ctrl/⌘ + Z)" aria-label="元に戻す"></button>
           <button class="button icon-only" id="redoButton" type="button" data-i18n-title="redoTitle" data-i18n-aria-label="redo" title="やり直す (Ctrl/⌘ + Shift + Z)" aria-label="やり直す"></button>
         </div>
+        <button class="button" id="addButton" type="button"><span id="addIcon" aria-hidden="true"></span><span data-i18n="addPdf">ファイルを追加</span></button>
         <div class="toolbar-spacer"></div>
         <label class="zoom-control" data-i18n-title="thumbnailSize" title="サムネイルの大きさ">
           <span id="zoomSmallIcon" aria-hidden="true"></span>
           <input id="zoomSlider" type="range" min="120" max="250" step="10" value="174" data-i18n-aria-label="thumbnailSize" aria-label="サムネイルの大きさ">
           <span id="zoomLargeIcon" aria-hidden="true"></span>
         </label>
-        <button class="button danger ghost" id="clearAllButton" type="button"><span id="clearAllIcon"></span><span class="button-label optional" data-i18n="clearAll">すべて削除</span></button>
+        <button class="button danger ghost" id="clearAllButton" type="button" data-i18n-title="clearAll" data-i18n-aria-label="clearAll"><span id="clearAllIcon"></span><span class="button-label optional" data-i18n="clearAll">すべて削除</span></button>
       </div>
 
       <div class="pages-grid" id="pagesGrid" data-i18n-aria-label="pdfPageList" aria-label="PDFページ一覧"></div>
@@ -2289,7 +2266,7 @@ body.is-sorting .page-card.drag-source {
     const elements = {
       initialOverview: $("#initialOverview"),
       initialDropZone: $("#initialDropZone"),
-      compactDropZone: $("#compactDropZone"),
+      workspaceGuide: $("#workspaceGuide"),
       workspace: $("#workspace"),
       pagesGrid: $("#pagesGrid"),
       emptyState: $("#emptyState"),
@@ -2400,7 +2377,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     [
-      ["helpButton", "help"], ["initialDropIcon", "upload"], ["initialAddIcon", "addFile"],
+      ["helpButton", "help"], ["initialDropIcon", "upload"], ["initialAddIcon", "addFile"], ["addIcon", "addFile"],
       ["shieldIcon", "shield"], ["compactAddIcon", "addFile"], ["selectAllIcon", "selectAll"],
       ["clearSelectionIcon", "clearSelection"], ["rotateLeftIcon", "rotateLeft"], ["rotateRightIcon", "rotateRight"],
       ["moveStartIcon", "moveStart"], ["moveEndIcon", "moveEnd"],
@@ -3188,6 +3165,7 @@ body.is-sorting .page-card.drag-source {
       elements.initialOverview.hidden = !showInitialView;
       elements.initialDropZone.hidden = !showInitialView;
       elements.workspace.hidden = showInitialView;
+      elements.workspaceGuide.hidden = !hasPages;
       elements.emptyState.hidden = hasPages || elements.workspace.hidden;
       elements.pagesGrid.hidden = !hasPages;
       elements.exportBar.hidden = !hasPages;
@@ -5596,7 +5574,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     bindDropZone(elements.initialDropZone);
-    bindDropZone(elements.compactDropZone);
+    bindDropZone(elements.addButton);
     bindDropZone(elements.emptyState);
 
     elements.initialDropZone.addEventListener("click", (event) => {

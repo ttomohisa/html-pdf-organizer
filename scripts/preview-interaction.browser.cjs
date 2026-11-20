@@ -24,6 +24,9 @@ async function exercise(browser, buffer, width, height, mobile) {
     await page.goto(pathToFileURL(path.resolve(__dirname, '../dist/index.html')).href);
     // The initial HTML already has a Japanese label; wait for the embedded runtime to finish initializing.
     await page.waitForFunction(() => !!document.querySelector('#initialDropIcon svg') && !!document.querySelector('#helpButton svg'), null, { timeout: 30000 });
+    const heading = await page.locator('#initialDropZone h2').boundingBox();
+    const picker = await page.locator('#initialAddButton').boundingBox();
+    assert.ok(picker.y - (heading.y + heading.height) >= 14, 'The first-run heading has space above the file picker');
     await page.locator('#fileInput').setInputFiles(buffer);
     try {
       await page.waitForFunction(() => document.querySelectorAll('.page-card').length === 12, null, { timeout: 15000 });
@@ -40,7 +43,6 @@ async function exercise(browser, buffer, width, height, mobile) {
       console.error('Unhandled errors', errors);
       throw error;
     }
-    assert.equal(await page.locator('.compact-drop > span').count(), 0, 'No verbose desktop drop hint');
     // The first import must land at the *visible* editing toolbar, not at the workspace heading.
     await page.waitForFunction((isMobile) => {
       const toolbar = document.querySelector(isMobile ? '.mobile-edit-dock' : '.toolbar');
@@ -51,6 +53,17 @@ async function exercise(browser, buffer, width, height, mobile) {
       return Math.abs(toolbar.getBoundingClientRect().top - inset) < 3 &&
         (!isMobile || header.getBoundingClientRect().bottom < 0);
     }, mobile, { timeout: 15000 });
+    assert.equal(await page.locator('#addButton').isVisible(), !mobile, 'Only the desktop editing toolbar has the top add button');
+    if (!mobile) {
+      const redo = await page.locator('#redoButton').boundingBox();
+      const add = await page.locator('.toolbar #addButton').boundingBox();
+      assert.ok(add.x >= redo.x + redo.width && add.x - (redo.x + redo.width) <= 16 && Math.abs(add.y - redo.y) < 1,
+        'Add files sits directly to the right of Redo');
+      assert.ok(await page.locator('.toolbar').evaluate(toolbar => toolbar.scrollWidth <= toolbar.clientWidth + 1),
+        'All actions fit at the desktop width');
+      const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#addButton').click()]);
+      assert.ok(chooser.isMultiple());
+    }
     await page.locator('.page-card [data-action="preview"]').first().click({ force: true });
     await page.locator('#previewDialog[open] .preview-content-frame').waitFor({ timeout: 30000 });
     const level = page.locator('#previewZoomResetButton');
@@ -97,8 +110,11 @@ async function exercise(browser, buffer, width, height, mobile) {
     await page.evaluate(() => document.getElementById('deleteButton').click());
     await page.locator('#deleteConfirmApplyButton').click();
     assert.equal(await page.locator('.page-card').count(), 0, 'Confirm deletes all');
+    assert.ok(await page.locator('#emptyState').isVisible(), 'The empty workspace is visible');
+    assert.equal(await page.locator('.workspace-guide').isVisible(), false, 'Reorder hint is hidden with no pages');
     await page.evaluate(() => document.getElementById('undoButton').click());
     assert.equal(await page.locator('.page-card').count(), 12, 'Undo restores every page');
+    assert.ok(await page.locator('.workspace-guide').isVisible(), 'Undo restores the reorder hint');
     assert.deepEqual(errors, [], 'No unhandled browser errors');
     console.log('PASS preview, header and deletion ' + (mobile ? 'mobile' : 'desktop'));
   } finally {

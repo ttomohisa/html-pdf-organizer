@@ -79,8 +79,8 @@ async function exercise(browser, mobile) {
       return Array.from(await doc.save());
     });
     await importPages(page, { name: 'report.pdf', mimeType: 'application/pdf', buffer: Buffer.from(fixture) }, 2);
-    assert.equal(await page.locator('.workspace-header h2').count(), 0, 'Workspace has no redundant heading');
-    assert.equal(await page.locator('#addButton').isVisible(), !mobile, 'Header Add files is desktop-only');
+    assert.equal(await page.locator('#workspace h2').count(), 0, 'Workspace has no redundant heading');
+    assert.equal(await page.locator('#addButton').isVisible(), !mobile, 'Toolbar Add files is desktop-only');
     if (mobile) {
       await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
       const [chooser] = await Promise.all([
