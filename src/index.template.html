@@ -1536,16 +1536,7 @@ body.is-sorting .page-card.drag-source {
     font-size: 11px;
     white-space: nowrap;
   }
-  .export-bar #imageCompressionButton { display: none; }
-  .export-bar #watermarkButton {
-    flex: 0 0 38px;
-    padding: 0;
-  }
-  .export-bar #watermarkButton:not(.is-active), #watermarkButtonLabel { display: none; }
-  @media (max-width: 390px) {
-    .export-bar:has(#watermarkButton.is-active):has(#saveSelectedButton.has-selection) :is(#saveSelectedIcon, #saveAllIcon) { display: none; }
-    .export-bar:has(#watermarkButton.is-active):has(#saveSelectedButton.has-selection) #saveAllButton { min-width: 0; }
-  }
+  .export-bar :is(#watermarkButton, #imageCompressionButton) { display: none; }
   .toast-region { bottom: calc(70px + env(safe-area-inset-bottom)); }
 
   .toast-region {
@@ -3372,10 +3363,7 @@ body.is-sorting .page-card.drag-source {
       state.watermark = getWatermarkDraft();
       elements.pagesGrid.querySelectorAll('.thumb-frame[data-rendered="true"]').forEach(updateThumbnailWatermark);
       elements.watermarkDialog.close();
-      const focusSaveButton = !state.watermark && document.activeElement === elements.watermarkButton &&
-        window.matchMedia("(max-width: 760px)").matches;
       updateUiState();
-      if (focusSaveButton) elements.saveAllButton.focus({ preventScroll: true });
     });
     $("#watermarkCancel").addEventListener("click", () => elements.watermarkDialog.close());
     elements.watermarkDialog.addEventListener("click", (event) => {

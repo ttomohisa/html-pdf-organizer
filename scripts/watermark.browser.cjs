@@ -131,12 +131,7 @@ async function exercise(browser, mobile) {
     const watermarkButton = page.locator('#watermarkButton');
     assert.match((await saveAll.innerText()).trim(), /^(すべて保存|Save all)$/);
     assert.match(await watermarkButton.getAttribute('aria-label'), /透かし|Watermark/);
-    assert.ok(await watermarkButton.isVisible(), 'The independent watermark button is visible once applied');
-    if (mobile) {
-      await watermarkButton.click();
-      await page.locator('#watermarkDialog[open]').waitFor();
-      await page.locator('#watermarkCancel').click();
-    }
+    assert.equal(await watermarkButton.isVisible(), !mobile, 'The stamp button stays off the mobile save bar');
     const cardMarks = page.locator('.thumb-frame .thumbnail-watermark-layer');
     await cardMarks.first().waitFor({ timeout: 3000 });
     await page.waitForFunction(() => document.querySelectorAll('.thumbnail-watermark-layer').length === 2);
@@ -198,11 +193,14 @@ async function exercise(browser, mobile) {
     assert.ok(saved, 'Watermark is present in the re-opened PDF');
     saved.forEach((value, i) => assert.ok(Math.abs(value - preview[i]) < 0.025,
       'Preview ' + JSON.stringify(preview) + ' and exported bounds ' + JSON.stringify(saved) + ' must agree'));
-    await watermarkButton.click();
+    await openSettings(page, mobile);
     await page.locator('#watermarkEnabled').uncheck();
     await page.locator('#watermarkApply').click();
-    assert.equal(await watermarkButton.isVisible(), !mobile, 'The phone shows the save-bar icon only when enabled');
-    assert.equal(await page.evaluate(() => document.activeElement.id), mobile ? 'saveAllButton' : 'watermarkButton');
+    assert.equal(await watermarkButton.isVisible(), !mobile);
+    const watermarkEntry = mobile
+      ? page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i })
+      : watermarkButton;
+    assert.ok(await watermarkEntry.evaluate(el => el === document.activeElement), 'Closing the dialog restores focus');
     assert.equal(await watermarkButton.evaluate(button => button.classList.contains('is-active')), false);
     assert.equal(await cardMarks.count(), 0, 'Turning off the watermark clears the cards');
     await page.locator('.page-card [data-action="preview"]').first().click();
