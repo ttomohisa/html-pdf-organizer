@@ -45,7 +45,7 @@ function redBounds(canvas) {
 async function exercise(browser, mobile) {
   const context = await browser.newContext({
     locale: mobile ? 'ja-JP' : 'en-US', hasTouch: mobile, isMobile: mobile, offline: true,
-    viewport: mobile ? { width: 360, height: 740 } : { width: 1280, height: 800 }
+    viewport: mobile ? { width: 320, height: 650 } : { width: 1280, height: 800 }
   });
   try {
     const page = await context.newPage();
@@ -79,6 +79,16 @@ async function exercise(browser, mobile) {
       return Array.from(await doc.save());
     });
     await importPages(page, { name: 'report.pdf', mimeType: 'application/pdf', buffer: Buffer.from(fixture) }, 2);
+    assert.equal(await page.locator('.workspace-header h2').count(), 0, 'Workspace has no redundant heading');
+    assert.equal(await page.locator('#addButton').isVisible(), !mobile, 'Header Add files is desktop-only');
+    if (mobile) {
+      await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
+      const [chooser] = await Promise.all([
+        page.waitForEvent('filechooser'),
+        page.locator('.mobile-tools-dialog').getByRole('button', { name: /ファイルを追加|Add files/i }).click()
+      ]);
+      assert.ok(chooser.isMultiple(), 'More still opens the regular file picker');
+    }
     const password = page.locator('#outputPasswordButton');
     const passwordBox = await password.boundingBox();
     await page.mouse.move(passwordBox.x + passwordBox.width / 2, passwordBox.y + passwordBox.height / 2);
@@ -117,6 +127,16 @@ async function exercise(browser, mobile) {
       await page.screenshot({ path: path.join(process.env.PDF_ORGANIZER_SCREENSHOTS, mobile ? 'mobile.png' : 'desktop.png') });
     }
     await page.locator('#watermarkApply').click();
+    const saveAll = page.locator('#saveAllButton');
+    const watermarkButton = page.locator('#watermarkButton');
+    assert.match((await saveAll.innerText()).trim(), /^(すべて保存|Save all)$/);
+    assert.match(await watermarkButton.getAttribute('aria-label'), /透かし|Watermark/);
+    assert.ok(await watermarkButton.isVisible(), 'The independent watermark button is visible once applied');
+    if (mobile) {
+      await watermarkButton.click();
+      await page.locator('#watermarkDialog[open]').waitFor();
+      await page.locator('#watermarkCancel').click();
+    }
     const cardMarks = page.locator('.thumb-frame .thumbnail-watermark-layer');
     await cardMarks.first().waitFor({ timeout: 3000 });
     await page.waitForFunction(() => document.querySelectorAll('.thumbnail-watermark-layer').length === 2);
@@ -161,6 +181,11 @@ async function exercise(browser, mobile) {
     await page.locator('#closePreviewButton').click();
 
     await page.locator('.page-card').first().click();
+    assert.ok(await page.locator('#exportBar').evaluate(bar => bar.scrollWidth <= bar.clientWidth + 1),
+      'Save controls fit with a selection and the watermark enabled');
+    if (mobile && process.env.PDF_ORGANIZER_SCREENSHOTS) {
+      await page.screenshot({ path: path.join(process.env.PDF_ORGANIZER_SCREENSHOTS, 'mobile-workspace.png') });
+    }
     const output = await savePdf(page, '#saveSelectedButton');
     const viewer = await context.newPage();
     await viewer.goto(app);
@@ -173,10 +198,12 @@ async function exercise(browser, mobile) {
     assert.ok(saved, 'Watermark is present in the re-opened PDF');
     saved.forEach((value, i) => assert.ok(Math.abs(value - preview[i]) < 0.025,
       'Preview ' + JSON.stringify(preview) + ' and exported bounds ' + JSON.stringify(saved) + ' must agree'));
-    await openSettings(page, mobile);
+    await watermarkButton.click();
     await page.locator('#watermarkEnabled').uncheck();
     await page.locator('#watermarkApply').click();
-    assert.equal(await page.locator('#exportBar').evaluate(bar => bar.classList.contains('has-watermark')), false);
+    assert.equal(await watermarkButton.isVisible(), !mobile, 'The phone shows the save-bar icon only when enabled');
+    assert.equal(await page.evaluate(() => document.activeElement.id), mobile ? 'saveAllButton' : 'watermarkButton');
+    assert.equal(await watermarkButton.evaluate(button => button.classList.contains('is-active')), false);
     assert.equal(await cardMarks.count(), 0, 'Turning off the watermark clears the cards');
     await page.locator('.page-card [data-action="preview"]').first().click();
     await page.locator('#previewCanvasHost:not([hidden]) .preview-content-frame canvas').waitFor();

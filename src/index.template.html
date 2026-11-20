@@ -257,25 +257,20 @@
 
     .workspace-header {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 14px;
       margin-bottom: 12px;
     }
 
-    .workspace-title h2 { margin: 0; font-size: 18px; }
     .workspace-guide {
-      display: flex;
-      align-items: flex-start;
-      gap: 9px;
-      margin-top: 6px;
+      min-width: 0;
+      margin: 0;
       color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.45;
     }
-    .workspace-guide p { margin: 0; font-size: 12px; line-height: 1.45; }
-    .workspace-guide strong { display: block; color: var(--text); font-size: 13px; font-weight: 720; }
-    .workspace-guide span { display: block; }
     .workspace-guide-mobile { display: none !important; }
-    .workspace-title p { margin: 3px 0 0; color: var(--text-muted); font-size: 12px; }
 
     .compact-drop {
       display: flex;
@@ -1034,7 +1029,7 @@
     #watermarkPreviewCanvas { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; pointer-events: none; }
     #watermarkPageContent > canvas { display: block; }
     #watermarkPreviewStatus { margin: 0; text-align: center; }
-    #watermarkPreviewStatus[hidden], .watermark-preview-page[hidden], .watermark-mobile-status { display: none; }
+    #watermarkPreviewStatus[hidden], .watermark-preview-page[hidden] { display: none; }
     #watermarkButton.is-active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
     @media (max-width: 580px) {
       .watermark-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "toggle" "preview" "fields"; grid-template-rows: auto; gap: 12px; }
@@ -1225,23 +1220,10 @@
       }
       #helpDialog .dialog-header { padding: 14px 14px; }
       #helpDialog .dialog-body { padding: 16px 16px calc(26px + env(safe-area-inset-bottom)); }
-      .workspace-header { align-items: center; }
-      .workspace-title { min-width: 0; }
-      .workspace-guide {
-        display: flex;
-        gap: 6px;
-        margin-top: 4px;
-        max-width: 44ch;
-      }
-      .workspace-guide p {
-        margin-top: 1px;
-        font-size: 10.5px;
-        line-height: 1.35;
-      }
+      .workspace-guide { font-size: 11px; }
       .workspace-guide-desktop { display: none !important; }
       .workspace-guide-mobile { display: block !important; }
-      .compact-drop { flex: 0 0 auto; padding: 8px; }
-      .compact-drop span { display: none; }
+      .compact-drop { display: none; }
       .toolbar { top: calc(var(--header-height) + 7px); margin-inline: -4px; border-radius: 12px; }
       .toolbar .button-label.optional { display: none; }
       .toolbar-spacer { display: none; }
@@ -1565,9 +1547,15 @@ body.is-sorting .page-card.drag-source {
     font-size: 11px;
     white-space: nowrap;
   }
-  #watermarkButton { display: none; }
-  .export-bar.has-watermark #saveAllButton { padding-block: 2px; }
-  .export-bar.has-watermark .watermark-mobile-status { display: block; font-size: 11px; line-height: 1.15; }
+  .export-bar #watermarkButton {
+    flex: 0 0 38px;
+    padding: 0;
+  }
+  .export-bar #watermarkButton:not(.is-active), #watermarkButtonLabel { display: none; }
+  @media (max-width: 390px) {
+    .export-bar:has(#watermarkButton.is-active):has(#saveSelectedButton.has-selection) :is(#saveSelectedIcon, #saveAllIcon) { display: none; }
+    .export-bar:has(#watermarkButton.is-active):has(#saveSelectedButton.has-selection) #saveAllButton { min-width: 0; }
+  }
   .toast-region { bottom: calc(70px + env(safe-area-inset-bottom)); }
 
   .toast-region {
@@ -1719,15 +1707,10 @@ body.is-sorting .page-card.drag-source {
 
     <section class="workspace" id="workspace" hidden>
       <div class="workspace-header">
-        <div class="workspace-title">
-          <h2 data-i18n="pageListHeading">ページ一覧</h2>
-          <div class="workspace-guide">
-            <p>
-              <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">ドラッグして並び替え。選択したページもまとめて動かせます。</span>
-              <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">長押しして並び替え</span>
-            </p>
-          </div>
-        </div>
+        <p class="workspace-guide">
+          <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">ドラッグして並び替え。選択したページもまとめて動かせます。</span>
+          <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">長押しして並び替え</span>
+        </p>
         <div class="compact-drop" id="compactDropZone">
           <button class="button" id="addButton" type="button" data-i18n="addPdf">ファイルを追加</button>
         </div>
@@ -1784,7 +1767,7 @@ body.is-sorting .page-card.drag-source {
     </div>
     <button class="button" id="watermarkButton" type="button" aria-haspopup="dialog" aria-controls="watermarkDialog"><span id="watermarkIcon" aria-hidden="true"></span><span id="watermarkButtonLabel" data-i18n="watermark">透かし</span></button>
     <button class="button" id="saveSelectedButton" type="button"><span id="saveSelectedIcon"></span><span class="button-label" data-i18n="saveSelected">選択ページを保存</span></button>
-    <button class="button primary" id="saveAllButton" type="button"><span id="saveAllIcon"></span><span><span class="button-label" data-i18n="saveAll">すべて保存</span><span class="watermark-mobile-status" data-i18n="watermarkOn">透かし ON</span></span></button>
+    <button class="button primary" id="saveAllButton" type="button"><span id="saveAllIcon"></span><span class="button-label" data-i18n="saveAll">すべて保存</span></button>
   </div>
 
   <div id="pptxExportSandbox" aria-hidden="true"></div>
@@ -2452,9 +2435,8 @@ body.is-sorting .page-card.drag-source {
         dropHint: "または、この枠内にPDF・画像・PowerPointをドラッグ＆ドロップ",
         choosePdf: "ファイルを選択",
         privacyNote: "完全ローカル処理",
-        pageListHeading: "ページ一覧",
         workspaceGuideBody: "カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。",
-        workspaceGuideBodyMobile: "ドラッグで並び替え。複数選択はまとめて移動できます。",
+        workspaceGuideBodyMobile: "長押しして並び替え",
         dropMorePdf: "ここにPDF・画像・PowerPointを追加ドロップ",
         addPdf: "ファイルを追加",
         pageEditing: "ページ編集",
@@ -2646,7 +2628,6 @@ body.is-sorting .page-card.drag-source {
         dropHint: "Or drag and drop PDFs, images, and PowerPoint files anywhere in this box",
         choosePdf: "Choose files",
         privacyNote: "Fully local processing",
-        pageListHeading: "Pages",
         workspaceGuideBody: "Drag to reorder. Selected pages can move together.",
         workspaceGuideBodyMobile: "Touch and hold to reorder",
         dropMorePdf: "Drop more PDFs, images & PowerPoint here",
@@ -3210,10 +3191,12 @@ body.is-sorting .page-card.drag-source {
       elements.emptyState.hidden = hasPages || elements.workspace.hidden;
       elements.pagesGrid.hidden = !hasPages;
       elements.exportBar.hidden = !hasPages;
-      elements.exportBar.classList.toggle("has-watermark", !!state.watermark);
       elements.watermarkButton.disabled = state.isBusy || !hasPages;
       elements.watermarkButton.classList.toggle("is-active", !!state.watermark);
-      elements.watermarkButtonLabel.textContent = t(state.watermark ? "watermarkOn" : "watermark");
+      const watermarkLabel = t(state.watermark ? "watermarkOn" : "watermark");
+      elements.watermarkButtonLabel.textContent = watermarkLabel;
+      elements.watermarkButton.setAttribute("aria-label", watermarkLabel);
+      elements.watermarkButton.title = watermarkLabel;
 
       elements.selectionStatus.innerHTML = hasSelection
         ? `<strong>${selectedCount}</strong> ${t("selectedStatusRest", { total: pageCount })}`
@@ -3331,7 +3314,10 @@ body.is-sorting .page-card.drag-source {
       state.watermark = getWatermarkDraft();
       elements.pagesGrid.querySelectorAll('.thumb-frame[data-rendered="true"]').forEach(updateThumbnailWatermark);
       elements.watermarkDialog.close();
+      const focusSaveButton = !state.watermark && document.activeElement === elements.watermarkButton &&
+        window.matchMedia("(max-width: 760px)").matches;
       updateUiState();
+      if (focusSaveButton) elements.saveAllButton.focus({ preventScroll: true });
     });
     $("#watermarkCancel").addEventListener("click", () => elements.watermarkDialog.close());
     elements.watermarkDialog.addEventListener("click", (event) => {

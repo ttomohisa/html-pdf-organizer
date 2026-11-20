@@ -5,6 +5,7 @@
 - Preview a custom text watermark on your pages and include it when saving all or selected pages. Choose its position, color and opacity in the offline app.
 - Show applied watermarks on page cards and in the regular page preview. Close watermark settings when clicking outside the dialog.
 - Keep the password button centered when pressed.
+- Simplify the page workspace and show the active watermark as a separate stamp button on phones.
 
 ## 1.2.7 - 2026-11-17
 
