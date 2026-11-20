@@ -18,6 +18,7 @@ async function openSettings(page, mobile) {
     await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
     await page.locator('.mobile-tools-dialog').getByRole('button', { name: /透かし|watermark/i }).click();
   } else {
+    await page.locator('#saveOptionsButton').click();
     await page.locator('#watermarkButton').click();
   }
   await page.locator('#watermarkDialog[open]').waitFor();
@@ -90,14 +91,20 @@ async function exercise(browser, mobile) {
       assert.ok(chooser.isMultiple(), 'More still opens the regular file picker');
     }
     const password = page.locator('#outputPasswordButton');
-    const passwordBox = await password.boundingBox();
-    await page.mouse.move(passwordBox.x + passwordBox.width / 2, passwordBox.y + passwordBox.height / 2);
-    await page.mouse.down();
-    await password.evaluate(el => Promise.all(el.getAnimations().map(animation => animation.finished)));
-    const pressedBox = await password.boundingBox();
-    await page.mouse.up();
-    assert.ok(Math.abs(pressedBox.y - passwordBox.y) < 0.5,
-      'Pressing the password button must keep it centered (offset ' + (pressedBox.y - passwordBox.y) + 'px)');
+    if (mobile) {
+      const passwordBox = await password.boundingBox();
+      await page.mouse.move(passwordBox.x + passwordBox.width / 2, passwordBox.y + passwordBox.height / 2);
+      await page.mouse.down();
+      await password.evaluate(el => Promise.all(el.getAnimations().map(animation => animation.finished)));
+      const pressedBox = await password.boundingBox();
+      await page.mouse.up();
+      assert.ok(Math.abs(pressedBox.y - passwordBox.y) < 0.5, 'Pressing the password button keeps it centered');
+    } else {
+      assert.equal(await password.isVisible(), false, 'Desktop password settings are grouped with save settings');
+      await page.locator('#saveOptionsButton').click();
+      await page.locator('#saveOptionsPasswordButton').click();
+      assert.equal(await page.locator('#saveOptionsPanel').isVisible(), false);
+    }
     await page.locator('#outputPasswordDialog[open]').waitFor();
     await page.keyboard.press('Escape');
     await openSettings(page, mobile);
@@ -131,7 +138,7 @@ async function exercise(browser, mobile) {
     const watermarkButton = page.locator('#watermarkButton');
     assert.match((await saveAll.innerText()).trim(), /^(すべて保存|Save all)$/);
     assert.match(await watermarkButton.getAttribute('aria-label'), /透かし|Watermark/);
-    assert.equal(await watermarkButton.isVisible(), !mobile, 'The stamp button stays off the mobile save bar');
+    assert.equal(await watermarkButton.isVisible(), false, 'The stamp button stays off the save bar');
     const cardMarks = page.locator('.thumb-frame .thumbnail-watermark-layer');
     await cardMarks.first().waitFor({ timeout: 3000 });
     await page.waitForFunction(() => document.querySelectorAll('.thumbnail-watermark-layer').length === 2);
@@ -196,10 +203,10 @@ async function exercise(browser, mobile) {
     await openSettings(page, mobile);
     await page.locator('#watermarkEnabled').uncheck();
     await page.locator('#watermarkApply').click();
-    assert.equal(await watermarkButton.isVisible(), !mobile);
+    assert.equal(await watermarkButton.isVisible(), false);
     const watermarkEntry = mobile
       ? page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i })
-      : watermarkButton;
+      : page.locator('#saveOptionsButton');
     assert.ok(await watermarkEntry.evaluate(el => el === document.activeElement), 'Closing the dialog restores focus');
     assert.equal(await watermarkButton.evaluate(button => button.classList.contains('is-active')), false);
     assert.equal(await cardMarks.count(), 0, 'Turning off the watermark clears the cards');

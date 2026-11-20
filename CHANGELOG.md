@@ -4,6 +4,7 @@
 
 - Optionally shrink eligible JPEG images when saving all or selected pages. Save feedback shows the actual PDF size before and after compression.
 - Keep watermark settings under More on phones and remove the stamp button from the mobile save bar.
+- Group desktop export options under Save settings and show selected-page saving when pages are selected.
 
 ## 1.4.0 - 2026-11-21
 

@@ -89,12 +89,24 @@ async function exerciseDesktop(browser) {
     ]);
     await page.waitForFunction(() => document.querySelectorAll('.page-card').length === 3 && document.querySelector('#busyOverlay').hidden);
     const compression = page.locator('#imageCompressionButton');
-    await compression.waitFor({ timeout: 3000 });
+    const settings = page.locator('#saveOptionsButton');
+    await settings.waitFor({ timeout: 3000 });
+    assert.equal(await compression.isVisible(), false, 'Save options stay tucked away until opened');
+    assert.equal(await page.locator('#saveSelectedButton').isVisible(), false, 'Selection-specific save is hidden with no selection');
     assert.equal(await compression.getAttribute('aria-pressed'), 'false');
     const normal = await downloadPdf(page, '#saveAllButton');
 
+    await settings.click();
+    assert.equal(await settings.getAttribute('aria-expanded'), 'true');
     await compression.click();
     assert.equal(await compression.getAttribute('aria-pressed'), 'true');
+    assert.match(await settings.getAttribute('aria-label'), /適用中/);
+    await page.keyboard.press('Escape');
+    assert.equal(await settings.getAttribute('aria-expanded'), 'false');
+    assert.ok(await settings.evaluate(button => button === document.activeElement));
+    await settings.click();
+    await page.locator('#filenameInput').click();
+    assert.equal(await settings.getAttribute('aria-expanded'), 'false');
     const compact = await downloadPdf(page, '#saveAllButton');
     assert.ok(compact.length < normal.length * .85, 'The high-resolution sample saves meaningful space');
     await page.locator('.toast-message').filter({ hasText: /→/ }).waitFor();
