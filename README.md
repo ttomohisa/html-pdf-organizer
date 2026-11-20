@@ -57,6 +57,8 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 
 ### Export options
 
+Enable **Compress images** in the save bar (under **More** on a phone) to recompress eligible RGB JPEG images. Large images are resized to a maximum of 2,000 pixels on the longest side. Text stays searchable and selectable, and other image types such as PNG retain their data. The save message shows the PDF size before and after a successful reduction. If the PDF size stays the same, the app saves the regular export. This setting starts off.
+
 To mark a copy, open **Watermark** in the save bar (under **More** on a phone). Enter a line of text or choose a preset, then check its position, color and opacity on an actual page. Apply the settings and save all pages or your selection. You can turn the watermark off for the next copy. Clearing the workspace or reloading the app clears the text.
 Once applied, the watermark also appears on page cards and in the regular page preview.
 On a phone, tap the stamp icon in the save bar to reopen the active watermark settings.

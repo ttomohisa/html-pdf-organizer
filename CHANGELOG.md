@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0 - 2026-11-21
+
+- Optionally shrink eligible JPEG images when saving all or selected pages. Save feedback shows the actual PDF size before and after compression.
+
 ## 1.4.0 - 2026-11-21
 
 - Select pages by number or range in the current order, including entries such as `2-5, 9, 12`.

@@ -53,6 +53,7 @@ function harness(filename) {
   });
   const names = ['setBusy', 'pushHistory', 'performEdit', 'reconcileSelection', 'undo', 'redo', 'selectPage', 'ensureTargetSelected', 'rotateSelected', 'deleteSelected', 'selectAll', 'clearSelection', 'addFiles', 'beginPointerDrag', 'finishPointerDrag', 'exportPdf', 'sanitizeFilename', 'updateUiState'];
   const optional = ['cancelPointerDrag', 'getSelectionEdgeOrder', 'canMoveSelectionToEdge', 'moveSelectionToEdge', 'askToDeleteAll', 'commitDeleteSelected', 'getWatermarkPlacement', 'drawPdfWatermark'];
+  optional.push('getPdfJpegSize', 'inspectPdfJpeg', 'reencodePdfJpeg', 'compressPdfImages', 'formatBytes');
   for (const name of optional) if (source.includes('function ' + name + '(')) names.push(name);
   const initial = source.slice(source.indexOf('    const state = {'), source.indexOf('    function setIcon'));
   const helpers = source.slice(source.indexOf('    const makeId = '), source.indexOf('    const A4_WIDTH = '));
@@ -87,6 +88,84 @@ function harness(filename) {
 const sourceHasConfirmation = h => h.source.includes('let pendingDeleteAction = null;');
 const order = h => Array.from(h.app.state.pages, p => p.pageIndex);
 const selected = h => Array.from(h.app.state.selected);
+// A 3-by-2 baseline RGB JPEG. A legal JPEG comment gives the source an extra 4 KiB.
+const compactJpeg = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wAARCAACAAMDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAABf/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJEAsJf/2Q==', 'base64');
+const jpegWithComment = Buffer.concat([compactJpeg.subarray(0, 2), Buffer.from([255, 254, 16, 2]), Buffer.alloc(4096), compactJpeg.subarray(2)]);
+for (const filename of targets) {
+  const prefix = path.relative(root, filename) + ': ';
+  test(prefix + 'compression preserves shared JPEG references, text, drawing commands and special image streams', async () => {
+    const h = harness(filename), doc = await PDFLib.PDFDocument.create();
+    const photo = await doc.embedJpg(Uint8Array.from(jpegWithComment));
+    const special = await doc.embedJpg(Uint8Array.from(jpegWithComment));
+    for (let i = 0; i < 2; i++) {
+      const p = doc.addPage([320, 240]);
+      p.drawText('Readable');
+      p.drawImage(photo, { x: 25, y: 35, width: 60, height: 40 });
+      p.drawImage(special);
+    }
+    await doc.flush();
+    doc.context.lookup(special.ref).dict.set(PDFLib.PDFName.of('Decode'), doc.context.obj([0, 1, 0, 1, 0, 1]));
+    const source = await doc.save();
+    await h.app.addFiles([{name:'photos.pdf',type:'application/pdf',size:source.length,arrayBuffer:async()=>source.buffer}]);
+    h.ctx.t = (key, values) => key === 'compressionResult' ? key + JSON.stringify(values) : key;
+    // The browser tests exercise the real JPEG codec. Here we control its output to test PDF handling.
+    let encodes = 0;
+    h.ctx.reencodePdfJpeg = async () => { encodes++; return { bytes: new Uint8Array(compactJpeg), width: 3, height: 2 }; };
+    const baseline = await output(h, 'compression-off');
+    const baselineLength = h.blobs[0].size;
+    h.blobs.length = 0;
+    h.app.state.compressImages = true;
+    const pdf = await output(h, 'compression-on');
+    assert.ok(h.blobs[0].size < baselineLength, 'output file is smaller');
+    assert.equal(encodes, 1, 'only the eligible shared image is encoded');
+    assert.match(h.logs.at(-1)[0], /compressionResult/);
+    const name = PDFLib.PDFName.of;
+    for (let i = 0; i < pdf.getPageCount(); i++) {
+      const p = pdf.getPage(i), original = baseline.getPage(i);
+      assert.deepEqual(p.getSize(), original.getSize());
+      const contents = page => page.node.Contents().asArray().map(ref => Buffer.from(page.doc.context.lookup(ref).getContents()));
+      assert.deepEqual(contents(p), contents(original));
+      const assets = page => page.node.Resources().lookup(name('XObject')).entries().map(([,ref]) => ref.toString());
+      assert.deepEqual(assets(p), assets(original));
+      for (const [,ref] of p.node.Resources().lookup(name('XObject')).entries()) {
+        const stream = pdf.context.lookup(ref);
+        const expected = stream.dict.has(name('Decode')) ? jpegWithComment : compactJpeg;
+        assert.deepEqual(Buffer.from(stream.getContents()), expected);
+        assert.equal(stream.dict.lookup(name('Length')).asNumber(), expected.length);
+      }
+    }
+    for (const outcome of ['larger', 'failed']) {
+      h.blobs.length = 0;
+      h.ctx.reencodePdfJpeg = async () => {
+        if (outcome === 'failed') throw new Error('Cannot decode');
+        return { bytes: new Uint8Array(jpegWithComment.length + 1), width: 3, height: 2 };
+      };
+      const fallback = await output(h, 'compression-fallback');
+      assert.equal(fallback.getPageCount(), 2);
+      const images = fallback.getPage(0).node.Resources().lookup(name('XObject')).entries();
+      for (const [,ref] of images) assert.deepEqual(Buffer.from(fallback.context.lookup(ref).getContents()), jpegWithComment);
+      assert.match(h.logs.at(-1)[0], /compressionNoSavings/);
+    }
+  });
+
+  test(prefix + 'JPEG decoder receives raw orientation and rejects split profiles and misleading dimensions', () => {
+    const {ctx} = harness(filename);
+    assert.equal(typeof ctx.inspectPdfJpeg, 'function');
+    const app = (marker, data) => Buffer.concat([compactJpeg.subarray(0, 2),
+      Buffer.from([255, marker, 0, data.length + 2]), data, compactJpeg.subarray(2)]);
+    const exif = app(0xe1, Buffer.from('Exif\0\0II*\0', 'latin1'));
+    assert.deepEqual(Buffer.concat(ctx.inspectPdfJpeg(exif, 3, 2).parts), compactJpeg);
+    const icc = chunks => app(0xe2, Buffer.from('ICC_PROFILE\0\x01' + chunks + 'profile', 'latin1'));
+    assert.equal(Buffer.from(ctx.inspectPdfJpeg(icc('\x01'), 3, 2).colorProfile).toString(), 'profile');
+    assert.equal(ctx.inspectPdfJpeg(icc('\x02'), 3, 2), null);
+    assert.equal(ctx.inspectPdfJpeg(compactJpeg, 3, 9), null);
+    const giant = Buffer.from(compactJpeg);
+    const pos = giant.indexOf(Buffer.from([255,192]));
+    giant.writeUInt16BE(25000, pos + 5);
+    giant.writeUInt16BE(24000, pos + 7);
+    assert.equal(ctx.inspectPdfJpeg(giant, 24000, 25000), null);
+  });
+}
 for (const filename of targets) {
   const prefix = path.relative(root, filename) + ': ';
   test(prefix + 'page range syntax validates every term before returning page indices', () => {

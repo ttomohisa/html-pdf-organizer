@@ -1023,7 +1023,7 @@
     #watermarkPageContent > canvas { display: block; }
     #watermarkPreviewStatus { margin: 0; text-align: center; }
     #watermarkPreviewStatus[hidden], .watermark-preview-page[hidden] { display: none; }
-    #watermarkButton.is-active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    #watermarkButton.is-active, #imageCompressionButton[aria-pressed="true"], .mobile-tools-action[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
     @media (max-width: 580px) {
       .watermark-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "toggle" "preview" "fields"; grid-template-rows: auto; gap: 12px; }
       .watermark-dialog .dialog-body { padding: 14px; }
@@ -1536,6 +1536,7 @@ body.is-sorting .page-card.drag-source {
     font-size: 11px;
     white-space: nowrap;
   }
+  .export-bar #imageCompressionButton { display: none; }
   .export-bar #watermarkButton {
     flex: 0 0 38px;
     padding: 0;
@@ -1662,7 +1663,7 @@ body.is-sorting .page-card.drag-source {
           <svg class="brand-favicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#16624f"/><path d="M18 14h20l8 8v28H18z" fill="#fff" opacity=".96"/><path d="M38 14v8h8" fill="#dbe9e5"/><text x="32" y="39" text-anchor="middle" fill="#16624f" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="-.4">PDF</text></svg>
         </div>
         <div class="brand-copy">
-          <h1>PDF Organizer <span class="version-badge" title="Version 1.4.0">v1.4.0</span></h1>
+          <h1>PDF Organizer <span class="version-badge" title="Version 1.5.0">v1.5.0</span></h1>
           <p data-i18n="brandSubtitle">PDF・画像ページの並び替え・回転・削除・結合</p>
         </div>
       </div>
@@ -1752,6 +1753,7 @@ body.is-sorting .page-card.drag-source {
       <button class="button icon-only ghost output-password-button" id="outputPasswordButton" type="button" aria-label="出力PDFにパスワードを設定" title="出力PDFにパスワードを設定"><span id="outputPasswordIcon" aria-hidden="true"></span></button>
     </div>
     <button class="button" id="watermarkButton" type="button" aria-haspopup="dialog" aria-controls="watermarkDialog"><span id="watermarkIcon" aria-hidden="true"></span><span id="watermarkButtonLabel" data-i18n="watermark">透かし</span></button>
+    <button class="button" id="imageCompressionButton" type="button" aria-pressed="false" data-i18n-title="imageCompressionHint" title="PDF内のJPEG画像の画質を下げて、ファイルを小さくします。"><span id="imageCompressionIcon" aria-hidden="true"></span><span data-i18n="imageCompression">画像圧縮</span></button>
     <button class="button" id="saveSelectedButton" type="button"><span id="saveSelectedIcon"></span><span class="button-label" data-i18n="saveSelected">選択ページを保存</span></button>
     <button class="button primary" id="saveAllButton" type="button"><span id="saveAllIcon"></span><span class="button-label" data-i18n="saveAll">すべて保存</span></button>
   </div>
@@ -2321,6 +2323,7 @@ body.is-sorting .page-card.drag-source {
       zoomSlider: $("#zoomSlider"),
       filenameInput: $("#filenameInput"),
       watermarkButton: $("#watermarkButton"),
+      imageCompressionButton: $("#imageCompressionButton"),
       watermarkButtonLabel: $("#watermarkButtonLabel"),
       watermarkDialog: $("#watermarkDialog"),
       watermarkForm: $("#watermarkForm"),
@@ -2382,6 +2385,7 @@ body.is-sorting .page-card.drag-source {
     const state = {
       documents: new Map(),
       watermark: null,
+      compressImages: false,
       pages: [],
       selected: new Set(),
       lastSelectedId: null,
@@ -2418,6 +2422,7 @@ body.is-sorting .page-card.drag-source {
       ["zoomLargeIcon", "zoomLarge"], ["clearAllIcon", "trash"], ["emptyIcon", "file"], ["emptyAddIcon", "addFile"],
       ["saveSelectedIcon", "download"], ["saveAllIcon", "download"], ["outputPasswordIcon", "lockOpen"],
       ["watermarkIcon", "watermark"], ["watermarkPrevious", "previous"], ["watermarkNext", "next"],
+      ["imageCompressionIcon", "image"],
       ["outputPasswordVisibilityIcon", "eye"], ["outputPasswordConfirmVisibilityIcon", "eye"], ["closeHelpButton", "close"],
       ["previewPreviousButton", "previous"], ["previewNextButton", "next"], ["closePreviewButton", "close"],
       ["previewZoomInButton", "previewZoomIn"], ["previewZoomOutButton", "previewZoomOut"]
@@ -2491,6 +2496,15 @@ body.is-sorting .page-card.drag-source {
         outputPasswordApply: "設定を反映",
         watermark: "透かし",
         watermarkOn: "透かし ON",
+        imageCompression: "画像圧縮",
+        imageCompressionOn: "画像圧縮 ON",
+        imageCompressionOff: "画像圧縮 OFF",
+        imageCompressionHint: "PDF内のJPEG画像の画質を下げて、ファイルを小さくします。",
+        compressingImages: "画像を圧縮しています",
+        compressionProgress: "JPEG画像 {current} / {total}",
+        compressionResult: "PDFサイズ：{before} → {after}",
+        compressionResultEncrypted: "暗号化前のPDFサイズ：{before} → {after}",
+        compressionNoSavings: "画像圧縮によるサイズの削減はありませんでした。",
         watermarkTitle: "テキストの透かし",
         watermarkEnable: "保存するページに透かしを入れる",
         watermarkTextLabel: "テキスト（60文字まで）",
@@ -2689,6 +2703,15 @@ body.is-sorting .page-card.drag-source {
         outputPasswordApply: "Apply",
         watermark: "Watermark",
         watermarkOn: "Watermark on",
+        imageCompression: "Compress images",
+        imageCompressionOn: "Compress images (on)",
+        imageCompressionOff: "Image compression off",
+        imageCompressionHint: "Reduce JPEG image quality to make the PDF smaller.",
+        compressingImages: "Compressing images",
+        compressionProgress: "JPEG image {current} of {total}",
+        compressionResult: "PDF size: {before} → {after}",
+        compressionResultEncrypted: "PDF size before encryption: {before} → {after}",
+        compressionNoSavings: "Image compression did not reduce the PDF size.",
         watermarkTitle: "Text watermark",
         watermarkEnable: "Add a watermark to exported pages",
         watermarkTextLabel: "Text (up to 60 characters)",
@@ -3168,7 +3191,10 @@ body.is-sorting .page-card.drag-source {
     }
 
     function reconcileSelection() {
-      if (!state.pages.length) state.watermark = null;
+      if (!state.pages.length) {
+        state.watermark = null;
+        state.compressImages = false;
+      }
       const validIds = new Set(state.pages.map((page) => page.id));
       for (const id of state.selected) {
         if (!validIds.has(id)) state.selected.delete(id);
@@ -3212,6 +3238,8 @@ body.is-sorting .page-card.drag-source {
       elements.emptyState.hidden = hasPages || elements.workspace.hidden;
       elements.pagesGrid.hidden = !hasPages;
       elements.exportBar.hidden = !hasPages;
+      elements.imageCompressionButton.disabled = state.isBusy || !hasPages;
+      elements.imageCompressionButton.setAttribute("aria-pressed", String(state.compressImages));
       elements.watermarkButton.disabled = state.isBusy || !hasPages;
       elements.watermarkButton.classList.toggle("is-active", !!state.watermark);
       const watermarkLabel = t(state.watermark ? "watermarkOn" : "watermark");
@@ -3317,6 +3345,14 @@ body.is-sorting .page-card.drag-source {
     }
 
     elements.watermarkButton.addEventListener("click", openWatermarkDialog);
+    elements.imageCompressionButton.addEventListener("click", () => {
+      if (!state.pages.length || state.isBusy) return;
+      state.compressImages = !state.compressImages;
+      updateUiState();
+      if (window.matchMedia("(max-width: 760px)").matches) {
+        showToast(t(state.compressImages ? "imageCompressionOn" : "imageCompressionOff"), "info", 2000);
+      }
+    });
     elements.watermarkForm.addEventListener("input", () => {
       updateWatermarkFields();
       updateWatermarkPreview();
@@ -5054,6 +5090,128 @@ body.is-sorting .page-card.drag-source {
       });
     }
 
+    function getPdfJpegSize(stream) {
+      const { PDFRawStream, PDFName, PDFArray } = PDFLib;
+      if (!(stream instanceof PDFRawStream)) return null;
+      const dict = stream.dict;
+      const get = key => dict.lookup(PDFName.of(key));
+      if (get("Subtype") !== PDFName.of("Image") || get("ColorSpace") !== PDFName.of("DeviceRGB") ||
+          get("BitsPerComponent")?.toString() !== "8") return null;
+      let filter = get("Filter");
+      if (filter instanceof PDFArray && filter.size() === 1) filter = filter.lookup(0);
+      if (filter !== PDFName.of("DCTDecode")) return null;
+      // Leave images with masks, custom decoding, metadata, accessibility tags or other semantics untouched.
+      const ordinaryKeys = ["Type", "Subtype", "Name", "Width", "Height", "BitsPerComponent",
+        "ColorSpace", "Length", "Filter", "Interpolate"];
+      if (dict.keys().some(key => !ordinaryKeys.includes(key.decodeText()))) return null;
+      const width = get("Width")?.asNumber?.(), height = get("Height")?.asNumber?.();
+      if (!Number.isInteger(width) || width <= 0 || !Number.isInteger(height) || height <= 0) return null;
+      return { width, height };
+    }
+
+    function inspectPdfJpeg(bytes, width, height) {
+      // Bound native decoder memory before handing it any bytes. Verify against the JPEG frame itself.
+      if (width > 16384 || height > 16384 || width * height > 32_000_000 ||
+          bytes.length > 48 * 1024 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8) return null;
+      const parts = [];
+      let start = 0, offset = 2, foundFrame = false;
+      let colorProfile = null;
+      while (offset + 4 <= bytes.length) {
+        const segmentStart = offset;
+        if (bytes[offset++] !== 0xff) return null;
+        while (bytes[offset] === 0xff) offset++;
+        const marker = bytes[offset++];
+        const length = bytes[offset] * 256 + bytes[offset + 1];
+        const end = offset + length;
+        if (length < 2 || !Number.isFinite(end) || end > bytes.length) return null;
+        if (marker === 0xda) {
+          if (!foundFrame) return null;
+          parts.push(bytes.subarray(start));
+          return { parts, colorProfile };
+        }
+        if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+          if (foundFrame || length !== 17 || bytes[offset + 2] !== 8 || bytes[offset + 7] !== 3 ||
+              bytes[offset + 3] * 256 + bytes[offset + 4] !== height ||
+              bytes[offset + 5] * 256 + bytes[offset + 6] !== width) return null;
+          foundFrame = true;
+        } else if (marker === 0xe1 && length >= 8 &&
+            String.fromCharCode(...bytes.subarray(offset + 2, offset + 8)) === "Exif\0\0") {
+          // A PDF paints the stored scanlines and applies its own page/drawing transform.
+          // Omit EXIF when decoding, so browser auto-orientation cannot rotate them a second time.
+          if (parts.length >= 32) return null;
+          parts.push(bytes.subarray(start, segmentStart));
+          start = end;
+        } else if (marker === 0xe2 && length > 16 &&
+            String.fromCharCode(...bytes.subarray(offset + 2, offset + 14)) === "ICC_PROFILE\0" &&
+            bytes[offset + 14] === 1 && bytes[offset + 15] === 1) {
+          // A single complete ICC profile can be kept if the browser emits identical profile bytes.
+          if (colorProfile) return null;
+          colorProfile = bytes.subarray(offset + 16, end);
+        } else if (![0xe0, 0xdb, 0xc4, 0xdd, 0xfe].includes(marker)) {
+          // Includes split profiles, Adobe color transforms, multi-picture files and uncommon encodings.
+          return null;
+        }
+        offset = end;
+      }
+      return null;
+    }
+
+    async function reencodePdfJpeg(blob, width, height) {
+      const scale = Math.min(1, 2000 / Math.max(width, height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      const image = await decodeImageRenderable({ buffer: blob, mime: "image/jpeg" });
+      try {
+        if ((image.naturalWidth || image.width) !== width || (image.naturalHeight || image.height) !== height) return null;
+        const ctx = canvas.getContext("2d", { alpha: false });
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        const encoded = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.80));
+        if (encoded?.type !== "image/jpeg" || !encoded.size) return null;
+        return { bytes: new Uint8Array(await encoded.arrayBuffer()), width: canvas.width, height: canvas.height };
+      } finally {
+        image.close?.();
+        canvas.width = canvas.height = 1;
+      }
+    }
+
+    async function compressPdfImages(output, originalBytes) {
+      const { PDFName, PDFNumber, PDFRawStream } = PDFLib;
+      const candidates = [];
+      for (const [ref, stream] of output.context.enumerateIndirectObjects()) {
+        const size = getPdfJpegSize(stream);
+        if (size) candidates.push({ ref, ...size });
+      }
+      let changed = false;
+      for (const [index, { ref, width, height }] of candidates.entries()) {
+        elements.busyDetail.textContent = t("compressionProgress", { current: index + 1, total: candidates.length });
+        try {
+          const stream = output.context.lookup(ref);
+          const original = stream.getContents();
+          const jpeg = inspectPdfJpeg(original, width, height);
+          if (!jpeg) continue;
+          const result = await reencodePdfJpeg(new Blob(jpeg.parts, { type: "image/jpeg" }), width, height);
+          if (!result || result.bytes.length >= original.length) continue;
+          if (jpeg.colorProfile) {
+            const profile = inspectPdfJpeg(result.bytes, result.width, result.height)?.colorProfile;
+            if (profile?.length !== jpeg.colorProfile.length || jpeg.colorProfile.some((byte, i) => byte !== profile[i])) continue;
+          }
+          const dict = stream.dict.clone();
+          dict.set(PDFName.of("Width"), PDFNumber.of(result.width));
+          dict.set(PDFName.of("Height"), PDFNumber.of(result.height));
+          dict.set(PDFName.of("Length"), PDFNumber.of(result.bytes.length));
+          output.context.assign(ref, PDFRawStream.of(dict, result.bytes));
+          changed = true;
+        } catch {
+          // A single unsupported or damaged image must not prevent saving the rest.
+        }
+      }
+      if (!changed) return originalBytes;
+      const candidate = await output.save({ useObjectStreams: true });
+      return candidate.length < originalBytes.length ? candidate : originalBytes;
+    }
+
     async function exportPdf(selectedOnly = false) {
       if (state.isBusy) return;
       const targetPages = selectedOnly
@@ -5066,6 +5224,7 @@ body.is-sorting .page-card.drag-source {
 
       const outputFilename = sanitizeFilename(elements.filenameInput.value);
       const watermark = state.watermark;
+      const compressImages = state.compressImages;
       const exportPassword = outputProtection.enabled ? outputProtection.password : "";
       const protectOutput = !!exportPassword;
       setBusy(true, t("generatingPdf"), t("pageCount", { count: targetPages.length }));
@@ -5137,6 +5296,23 @@ body.is-sorting .page-card.drag-source {
         output.setModificationDate(new Date());
 
         let bytes = await output.save({ useObjectStreams: true });
+        let compressionMessage = "";
+        if (compressImages) {
+          // The first save flushes pending image embeds and supplies an exact baseline and fallback.
+          const before = bytes.length;
+          elements.busyTitle.textContent = t("compressingImages");
+          elements.busyDetail.textContent = "";
+          try { bytes = await compressPdfImages(output, bytes); }
+          catch (error) { console.warn("Optional image compression skipped", error); }
+          if (bytes.length < before) {
+            const precise = formatBytes(before) === formatBytes(bytes.length);
+            const sizeLabel = size => precise ? size.toLocaleString() + " B" : formatBytes(size);
+            compressionMessage = t(protectOutput ? "compressionResultEncrypted" : "compressionResult",
+              { before: sizeLabel(before), after: sizeLabel(bytes.length) });
+          } else {
+            compressionMessage = t("compressionNoSavings");
+          }
+        }
         if (protectOutput) {
           elements.busyTitle.textContent = t("protectingPdf");
           elements.busyDetail.textContent = t("protectingPdfDetail");
@@ -5157,7 +5333,8 @@ body.is-sorting .page-card.drag-source {
         anchor.click();
         anchor.remove();
         setTimeout(() => URL.revokeObjectURL(url), 30_000);
-        showToast(t(protectOutput ? "savedProtectedPdf" : "savedPdf", { count: targetPages.length }));
+        const saved = t(protectOutput ? "savedProtectedPdf" : "savedPdf", { count: targetPages.length });
+        showToast(compressionMessage ? saved + "\n" + compressionMessage : saved);
       } catch (error) {
         console.error(error);
         const message = error?.message || t("generationFailed");
@@ -6198,10 +6375,16 @@ body.is-sorting .page-card.drag-source {
       function renderMobileTools() {
         mobileToolsTitle.textContent = mobileText("その他の操作", "More actions");
         mobileToolsClose.setAttribute("aria-label", mobileText("閉じる", "Close"));
+        const compressionTool = createMobileTool(elements.imageCompressionButton, icons.image,
+          t(state.compressImages ? "imageCompressionOn" : "imageCompression"));
+        compressionTool.setAttribute("aria-label", t("imageCompression"));
+        compressionTool.setAttribute("aria-pressed", String(state.compressImages));
+        compressionTool.title = t("imageCompressionHint");
         mobileToolsList.replaceChildren(
           createMobileTool(elements.addButton, icons.addFile, t("addPdf")),
           createMobileTool(elements.selectPageRangesButton, icons.pageRanges, t("selectPageRanges")),
           createMobileTool(elements.watermarkButton, icons.watermark, t(state.watermark ? "watermarkOn" : "watermark")),
+          compressionTool,
           createMobileTool(elements.clearSelectionButton, icons.clearSelection, t("clearSelection")),
           createMobileTool(elements.moveStartButton, icons.moveStart, t("moveSelectionStart")),
           createMobileTool(elements.moveEndButton, icons.moveEnd, t("moveSelectionEnd")),
