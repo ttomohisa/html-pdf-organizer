@@ -53,6 +53,16 @@ async function exercise(browser, buffer, width, height, mobile) {
       return Math.abs(toolbar.getBoundingClientRect().top - inset) < 3 &&
         (!isMobile || header.getBoundingClientRect().bottom < 0);
     }, mobile, { timeout: 15000 });
+    const editingBar = page.locator(mobile ? '.mobile-edit-dock' : '.toolbar');
+    assert.deepEqual(await editingBar.evaluate(bar => {
+      const inner = bar.querySelector('.mobile-dock-actions, #undoButton');
+      return [
+        getComputedStyle(bar).paddingTop,
+        getComputedStyle(bar).marginBottom,
+        getComputedStyle(inner).backgroundColor,
+        getComputedStyle(inner).borderTopWidth === '0px' || getComputedStyle(inner).borderTopColor === 'rgba(0, 0, 0, 0)'
+      ];
+    }), ['8px', '16px', 'rgba(0, 0, 0, 0)', true], 'The editing bar uses flat controls and 8px spacing');
     assert.equal(await page.locator('#addButton').isVisible(), !mobile, 'Only the desktop editing toolbar has the top add button');
     if (!mobile) {
       const redo = await page.locator('#redoButton').boundingBox();
