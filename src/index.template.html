@@ -5697,6 +5697,14 @@ body.is-sorting .page-card.drag-source {
     $("#pageRangesForm").addEventListener("submit", applyPageRanges);
     elements.pageRangesInput.addEventListener("input", clearPageRangesError);
     $("#pageRangesCancel").addEventListener("click", () => elements.pageRangesDialog.close());
+    elements.pageRangesDialog.addEventListener("click", (event) => {
+      const dialog = elements.pageRangesDialog;
+      if (event.target !== dialog) return;
+      const { left, right, top, bottom } = dialog.getBoundingClientRect();
+      if (event.clientX < left || event.clientX > right || event.clientY < top || event.clientY > bottom) {
+        dialog.close();
+      }
+    });
     elements.outputPasswordEnabled.addEventListener("change", () => { updateOutputPasswordFields(); showOutputPasswordError(""); });
     elements.outputPasswordInput.addEventListener("input", () => showOutputPasswordError(""));
     elements.outputPasswordVisibilityButton.addEventListener("click", () => togglePasswordVisibility(elements.outputPasswordInput, elements.outputPasswordVisibilityButton, "outputPasswordVisibilityIcon"));

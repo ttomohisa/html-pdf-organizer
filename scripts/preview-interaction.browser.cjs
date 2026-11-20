@@ -126,6 +126,12 @@ async function exercise(browser, buffer, width, height, mobile) {
     await rangeField.fill('7');
     await page.keyboard.press('Escape');
     assert.deepEqual(await selectedNumbers(), ['2', '3', '4', '12'], 'Closing the dialog leaves the selection intact');
+    await openRanges();
+    await rangeField.fill('7');
+    if (mobile) await page.touchscreen.tap(2, 2);
+    else await page.mouse.click(2, 2);
+    await page.locator('#pageRangesDialog').waitFor({ state: 'hidden', timeout: 3000 });
+    assert.deepEqual(await selectedNumbers(), ['2', '3', '4', '12'], 'Backdrop dismisses the dialog without applying the input');
     const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#saveSelectedButton').click()]);
     const saved = [...await fs.readFile(await download.path())];
     assert.equal(await page.evaluate(async data => (await PDFLib.PDFDocument.load(Uint8Array.from(data))).getPageCount(), saved), 4);
