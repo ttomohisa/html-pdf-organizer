@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0 - 2026-11-20
+
+- Preview a custom text watermark on your pages and include it when saving all or selected pages. Choose its position, color and opacity in the offline app.
+- Show applied watermarks on page cards and in the regular page preview. Close watermark settings when clicking outside the dialog.
+- Keep the password button centered when pressed.
+- Simplify the page workspace and show the active watermark as a separate stamp button on phones.
+- Move the desktop file picker beside Redo, improve first-run spacing, and hide reorder instructions in the empty workspace.
+
 ## 1.2.7 - 2026-11-17
 
 - Simplify the bilingual UI and help: shorten file-adding and mobile sorting hints, remove redundant file picker and footer, and hide the local-processing badge on small screens without changing how files are processed.

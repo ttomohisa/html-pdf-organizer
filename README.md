@@ -57,6 +57,10 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 
 ### Export options
 
+To mark a copy, open **Watermark** in the save bar (under **More** on a phone). Enter a line of text or choose a preset, then check its position, color and opacity on an actual page. Apply the settings and save all pages or your selection. You can turn the watermark off for the next copy. Clearing the workspace or reloading the app clears the text.
+Once applied, the watermark also appears on page cards and in the regular page preview.
+On a phone, tap the stamp icon in the save bar to reopen the active watermark settings.
+
 Normal export saves an unprotected PDF. When needed, use the lock button in the export bar to protect the output with an AES-256 open password. The password is kept only in browser memory and is cleared on reload. If you do not set one, export works exactly as before without password protection.
 
 ### Selecting pages

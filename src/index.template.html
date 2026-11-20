@@ -158,15 +158,16 @@
     .main {
       width: min(1480px, 100%);
       margin: 0 auto;
-      padding: 22px clamp(14px, 2.8vw, 34px) calc(110px + env(safe-area-inset-bottom));
+      padding: 24px 32px calc(112px + env(safe-area-inset-bottom));
     }
+    .main:has(.workspace:not([hidden])) { padding-top: 16px; }
 
     .drop-zone {
       position: relative;
       min-height: 158px;
       display: grid;
       place-items: center;
-      padding: 28px 20px;
+      padding: 32px 24px;
       overflow: hidden;
       border: 1.5px dashed var(--line-strong);
       border-radius: 18px;
@@ -183,7 +184,14 @@
       transform: translateY(-1px);
     }
 
-    .drop-content { position: relative; width: 100%; max-width: 680px; }
+    .drop-content {
+      display: grid;
+      justify-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 680px;
+    }
+    .drop-content .drop-icon { margin: 0; }
     .drop-icon {
       width: 48px;
       height: 48px;
@@ -194,20 +202,13 @@
       background: var(--accent-soft);
       color: var(--accent);
     }
-    .drop-zone h2 { margin: 0; font-size: 21px; letter-spacing: -.01em; }
-    .drop-zone p {
-      max-width: 590px;
-      margin: 7px auto 12px;
-      color: var(--text-muted);
-      font-size: 13px;
-    }
+    .drop-zone h2 { margin: 0; font-size: 21px; line-height: 1.35; letter-spacing: -.01em; text-wrap: balance; }
     .initial-overview {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 20px;
-      margin-bottom: 6px;
-      padding: 3px 0 17px;
+      gap: 16px;
+      margin-bottom: 24px;
     }
     .initial-overview[hidden] { display: none !important; }
     .overview-copy { min-width: 0; }
@@ -218,13 +219,12 @@
       line-height: 1.35;
     }
     .overview-summary {
-      margin: 5px 0 0;
+      margin: 8px 0 0;
       color: var(--text-muted);
       font-size: 13px;
       line-height: 1.5;
     }
     .drop-hint {
-      margin-top: 8px;
       color: var(--text-muted);
       font-size: 11px;
     }
@@ -255,52 +255,25 @@
 
     .workspace[hidden], .drop-zone[hidden] { display: none !important; }
 
-    .workspace-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 12px;
-    }
-
-    .workspace-title h2 { margin: 0; font-size: 18px; }
     .workspace-guide {
-      display: flex;
-      align-items: flex-start;
-      gap: 9px;
-      margin-top: 6px;
+      margin: 0 0 8px;
       color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.45;
     }
-    .workspace-guide p { margin: 0; font-size: 12px; line-height: 1.45; }
-    .workspace-guide strong { display: block; color: var(--text); font-size: 13px; font-weight: 720; }
-    .workspace-guide span { display: block; }
     .workspace-guide-mobile { display: none !important; }
-    .workspace-title p { margin: 3px 0 0; color: var(--text-muted); font-size: 12px; }
 
-    .compact-drop {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border: 1px dashed var(--line-strong);
-      border-radius: var(--radius);
-      background: var(--surface);
-      color: var(--text-muted);
-      font-size: 13px;
-      transition: .18s ease;
-    }
-    .compact-drop { padding: 0; border: 0; background: transparent; }
-    .compact-drop.is-dragover { outline: 2px dashed var(--accent); outline-offset: 4px; color: var(--text); }
+    #addButton.is-dragover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 
     .toolbar {
       position: sticky;
       z-index: 20;
-      top: calc(var(--header-height) + 10px);
+      top: calc(var(--header-height) + 8px);
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 8px;
       min-height: 56px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       padding: 8px;
       overflow-x: auto;
       overscroll-behavior-inline: contain;
@@ -315,11 +288,11 @@
     .toolbar-group {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       flex: 0 0 auto;
     }
     .toolbar-spacer { flex: 1 0 16px; }
-    .toolbar-divider { width: 1px; height: 30px; margin: 0 2px; background: var(--line); flex: 0 0 auto; }
+    .toolbar-divider { width: 1px; height: 24px; background: var(--line); flex: 0 0 auto; }
 
     .selection-status {
       min-width: 86px;
@@ -367,11 +340,23 @@
     .button.icon-only { width: 38px; padding-inline: 0; }
     .button svg, .icon-button svg, .brand-mark svg, .drop-icon svg { width: 18px; height: 18px; display: block; }
 
+    .toolbar .button {
+      min-height: 40px;
+      gap: 8px;
+      padding: 0 8px;
+      border-color: transparent;
+      border-radius: 8px;
+      background: transparent;
+    }
+    .toolbar .button.icon-only { width: 40px; padding-inline: 0; }
+    .toolbar .button:hover:not(:disabled) { border-color: transparent; background: var(--surface-hover); }
+    .toolbar #addButton { color: var(--accent); }
+
     .zoom-control {
       display: flex;
       align-items: center;
-      gap: 7px;
-      padding: 0 5px;
+      gap: 8px;
+      padding: 0 8px;
       color: var(--text-muted);
     }
     .zoom-control input { width: 92px; accent-color: var(--accent); }
@@ -605,6 +590,15 @@
       box-shadow: 0 2px 11px rgba(0, 0, 0, .16);
     }
 
+    .thumb-frame > canvas, .thumb-frame > .pptx-slide-shell { grid-area: 1 / 1; }
+    .thumb-frame > .thumbnail-watermark-layer {
+      position: relative;
+      pointer-events: none;
+      background: transparent;
+      box-shadow: none;
+    }
+    .thumb-frame > .pptx-slide-shell + .thumbnail-watermark-layer { max-width: none; max-height: none; }
+
     .thumb-placeholder {
       width: 58%;
       height: 76%;
@@ -821,6 +815,7 @@
       color: var(--text-muted);
     }
     .output-password-button:hover { color: var(--text); background: var(--surface-hover); }
+    .output-password-button:active:not(:disabled) { transform: translateY(-50%); }
     .output-password-button.is-active {
       color: var(--accent);
       background: var(--accent-soft);
@@ -1002,6 +997,43 @@
     .output-protect-toggle input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
     .output-password-fields { display: grid; gap: 14px; margin-top: 14px; }
     .output-password-fields[hidden] { display: none; }
+    .watermark-dialog { width: min(720px, calc(100% - 24px)); }
+    .watermark-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "toggle preview" "fields preview"; grid-template-rows: auto 1fr; align-items: start; gap: 14px 20px; }
+    .watermark-layout > .output-protect-toggle { grid-area: toggle; }
+    .watermark-preview { grid-area: preview; }
+    .watermark-fields { grid-area: fields; display: grid; gap: 14px; margin: 0; padding: 0; border: 0; min-width: 0; }
+    .watermark-fields:disabled { opacity: .55; }
+    .watermark-presets { display: flex; gap: 5px; flex-wrap: wrap; }
+    .watermark-presets .button { min-height: 32px; padding: 4px 8px; font-size: 12px; }
+    .watermark-pair { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; }
+    .watermark-pair .password-field, .watermark-pair select { min-width: 0; }
+    .watermark-opacity-label, .watermark-preview-heading { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    #watermarkOpacity { width: 100%; margin: 0; min-height: 24px; accent-color: var(--accent); }
+    #watermarkOpacityValue, #watermarkPageNumber { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+    .watermark-preview-heading { margin-bottom: 8px; font-size: 13px; }
+    .watermark-pager { display: flex; gap: 4px; align-items: center; }
+    .watermark-pager .button { width: 32px; min-height: 32px; }
+    #watermarkPreviewStage { display: grid; place-items: center; grid-template: minmax(0,1fr) / minmax(0,1fr); height: 306px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-muted); }
+    .watermark-preview-page, #watermarkPreviewStatus { grid-area: 1 / 1; }
+    .watermark-preview-page { position: relative; overflow: hidden; background: white; box-shadow: var(--shadow-sm); }
+    #watermarkPreviewCanvas { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; pointer-events: none; }
+    #watermarkPageContent > canvas { display: block; }
+    #watermarkPreviewStatus { margin: 0; text-align: center; }
+    #watermarkPreviewStatus[hidden], .watermark-preview-page[hidden] { display: none; }
+    #watermarkButton.is-active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    @media (max-width: 580px) {
+      .watermark-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "toggle" "preview" "fields"; grid-template-rows: auto; gap: 12px; }
+      .watermark-dialog .dialog-body { padding: 14px; }
+      .watermark-fields { gap: 10px; }
+      #watermarkPreviewStage { height: clamp(130px, 23dvh, 210px); padding: 8px; }
+      .watermark-pager .button, .watermark-presets .button { min-height: 36px; }
+    }
+    @media (max-height: 460px) and (min-width: 581px) {
+      .watermark-dialog .dialog-header, .watermark-dialog .dialog-actions { padding: 8px 14px; }
+      .watermark-dialog .dialog-body { padding: 10px 14px; }
+      .watermark-preview { position: sticky; top: 0; }
+      #watermarkPreviewStage { height: clamp(72px, calc(100dvh - 200px), 240px); padding: 6px; }
+    }
     .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--line); }
     kbd {
       display: inline-block;
@@ -1074,6 +1106,15 @@
       background: #fff;
       box-shadow: 0 8px 32px rgba(0, 0, 0, .22);
     }
+    .preview-content-frame > .preview-watermark-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: transparent;
+      box-shadow: none;
+    }
     .preview-loading, .preview-error {
       display: grid;
       place-items: center;
@@ -1138,6 +1179,14 @@
       overflow: visible;
     }
 
+    @media (761px <= width <= 1450px) {
+      .toolbar :is(#moveStartButton, #moveEndButton, #rotateLeftButton, #rotateRightButton) .button-label { display: none; }
+    }
+    @media (761px <= width <= 1220px) {
+      .toolbar .button-label.optional { display: none; }
+      .toolbar-spacer { flex-basis: 0; }
+      .zoom-control input { width: 70px; }
+    }
     @media (max-width: 760px) {
       .privacy-promise { display: none !important; }
       .app-header { position: static; }
@@ -1148,14 +1197,13 @@
       .brand p { display: none; }
       .header-actions .button-label { display: none; }
       .language-button { min-width: 43px; padding-inline: 8px; }
-      .main { padding-top: 15px; }
-      .initial-overview { gap: 8px; padding: 2px 0 16px; }
+      .main { padding-top: 16px; }
+      .initial-overview { gap: 8px; margin-bottom: 16px; }
       .initial-overview h2 { font-size: 19px; }
       .overview-summary { font-size: 12px; }
       .privacy-promise { margin-top: 8px; padding: 6px 0; font-size: 10px; }
-      .drop-zone { min-height: 210px; padding: 20px 14px; }
+      .drop-zone { min-height: 210px; padding: 24px 16px; }
       .drop-zone h2 { font-size: 18px; }
-      .drop-zone p { margin-bottom: 13px; font-size: 12px; }
       .drop-hint { display: none; }
       #helpDialog {
         width: calc(100% - 16px);
@@ -1169,24 +1217,9 @@
       }
       #helpDialog .dialog-header { padding: 14px 14px; }
       #helpDialog .dialog-body { padding: 16px 16px calc(26px + env(safe-area-inset-bottom)); }
-      .workspace-header { align-items: center; }
-      .workspace-title { min-width: 0; }
-      .workspace-guide {
-        display: flex;
-        gap: 6px;
-        margin-top: 4px;
-        max-width: 44ch;
-      }
-      .workspace-guide p {
-        margin-top: 1px;
-        font-size: 10.5px;
-        line-height: 1.35;
-      }
+      .workspace-guide { font-size: 11px; }
       .workspace-guide-desktop { display: none !important; }
       .workspace-guide-mobile { display: block !important; }
-      .compact-drop { flex: 0 0 auto; padding: 8px; }
-      .compact-drop span { display: none; }
-      .toolbar { top: calc(var(--header-height) + 7px); margin-inline: -4px; border-radius: 12px; }
       .toolbar .button-label.optional { display: none; }
       .toolbar-spacer { display: none; }
       .pages-grid { gap: 10px; }
@@ -1209,7 +1242,6 @@
 
     @media (max-width: 430px) {
       :root { --thumb-width: 130px; }
-      .main { padding-inline: 10px; }
       .pages-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .toolbar { padding: 7px; }
       .selection-status { min-width: 72px; padding-inline: 4px; }
@@ -1258,12 +1290,7 @@ body.is-sorting .page-card.drag-source {
   :root { --thumb-width: 120px; }
 
   .main {
-    padding-inline: 10px;
-    padding-bottom: calc(122px + env(safe-area-inset-bottom));
-  }
-
-  .workspace-header {
-    margin-bottom: 8px;
+    padding-inline: 16px;
   }
 
   .toolbar {
@@ -1273,10 +1300,10 @@ body.is-sorting .page-card.drag-source {
   .mobile-edit-dock {
     position: sticky;
     z-index: 25;
-    top: 7px;
+    top: 8px;
     display: block;
-    margin: 0 -2px 12px;
-    padding: 7px;
+    margin: 0 0 16px;
+    padding: 8px;
     border: 1px solid color-mix(in srgb, var(--line) 84%, transparent);
     border-radius: 17px;
     background: color-mix(in srgb, var(--surface) 92%, transparent);
@@ -1286,11 +1313,11 @@ body.is-sorting .page-card.drag-source {
   .mobile-edit-dock[hidden] { display: none !important; }
 
   .mobile-dock-top {
-    min-height: 34px;
+    min-height: 32px;
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 0 3px 6px 7px;
+    gap: 8px;
+    padding: 0 8px;
   }
   .mobile-dock-status {
     min-width: 0;
@@ -1304,7 +1331,7 @@ body.is-sorting .page-card.drag-source {
   .mobile-dock-status strong { color: var(--text); font-size: 12px; }
   .mobile-clear-selection {
     min-height: 29px;
-    padding: 4px 8px;
+    padding: 0 8px;
     border: 0;
     border-radius: 8px;
     background: transparent;
@@ -1318,7 +1345,6 @@ body.is-sorting .page-card.drag-source {
   .mobile-dock-history {
     display: flex;
     align-items: center;
-    gap: 2px;
   }
   .mobile-history-button {
     width: 32px;
@@ -1339,20 +1365,18 @@ body.is-sorting .page-card.drag-source {
   .mobile-dock-actions {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 3px;
-    padding: 4px;
-    border-radius: 14px;
-    background: var(--surface-muted);
+    gap: 8px;
+    margin-top: 8px;
   }
   .mobile-dock-button {
     position: relative;
     min-width: 0;
-    min-height: 53px;
+    min-height: 48px;
     display: grid;
     place-items: center;
     align-content: center;
-    gap: 2px;
-    padding: 5px 2px;
+    gap: 8px;
+    padding: 0;
     border: 0;
     border-radius: 11px;
     background: transparent;
@@ -1360,7 +1384,7 @@ body.is-sorting .page-card.drag-source {
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
-  .mobile-dock-button:active:not(:disabled) { background: var(--surface); transform: scale(.97); }
+  .mobile-dock-button:active:not(:disabled) { background: var(--surface-hover); transform: scale(.97); }
   .mobile-dock-button:disabled { opacity: .34; }
   .mobile-dock-button svg { width: 20px; height: 20px; }
   .mobile-dock-button span {
@@ -1454,7 +1478,7 @@ body.is-sorting .page-card.drag-source {
   .image-rotation-label { font-size: 9px; }
 
   /* Keep export controls in one compact row so the fixed bar does not steal editing space. */
-  .main { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+  .main { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
   .export-bar {
     bottom: max(8px, env(safe-area-inset-bottom));
     width: calc(100% - 16px);
@@ -1508,6 +1532,15 @@ body.is-sorting .page-card.drag-source {
     display: inline !important;
     font-size: 11px;
     white-space: nowrap;
+  }
+  .export-bar #watermarkButton {
+    flex: 0 0 38px;
+    padding: 0;
+  }
+  .export-bar #watermarkButton:not(.is-active), #watermarkButtonLabel { display: none; }
+  @media (max-width: 390px) {
+    .export-bar:has(#watermarkButton.is-active):has(#saveSelectedButton.has-selection) :is(#saveSelectedIcon, #saveAllIcon) { display: none; }
+    .export-bar:has(#watermarkButton.is-active):has(#saveSelectedButton.has-selection) #saveAllButton { min-width: 0; }
   }
   .toast-region { bottom: calc(70px + env(safe-area-inset-bottom)); }
 
@@ -1626,7 +1659,7 @@ body.is-sorting .page-card.drag-source {
           <svg class="brand-favicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#16624f"/><path d="M18 14h20l8 8v28H18z" fill="#fff" opacity=".96"/><path d="M38 14v8h8" fill="#dbe9e5"/><text x="32" y="39" text-anchor="middle" fill="#16624f" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="-.4">PDF</text></svg>
         </div>
         <div class="brand-copy">
-          <h1>PDF Organizer <span class="version-badge" title="Version 1.2.7">v1.2.7</span></h1>
+          <h1>PDF Organizer <span class="version-badge" title="Version 1.3.0">v1.3.0</span></h1>
           <p data-i18n="brandSubtitle">PDF・画像ページの並び替え・回転・削除・結合</p>
         </div>
       </div>
@@ -1649,7 +1682,7 @@ body.is-sorting .page-card.drag-source {
     <section class="drop-zone" id="initialDropZone" tabindex="0" role="button" data-i18n-aria-label="addPdfAria" aria-label="PDF・JPG・PNG・WebP・PowerPointファイルを追加">
       <div class="drop-content">
         <div class="drop-icon" id="initialDropIcon" aria-hidden="true"></div>
-        <h2 data-i18n="dropHeading">PDF・画像を追加して始める</h2>
+        <h2 data-i18n="dropHeading">PDF・画像・PowerPointを追加して始める</h2>
         <button class="button primary" id="initialAddButton" type="button">
           <span id="initialAddIcon" aria-hidden="true"></span>
           <span data-i18n="choosePdf">ファイルを選択</span>
@@ -1659,47 +1692,38 @@ body.is-sorting .page-card.drag-source {
     </section>
 
     <section class="workspace" id="workspace" hidden>
-      <div class="workspace-header">
-        <div class="workspace-title">
-          <h2 data-i18n="pageListHeading">ページ一覧</h2>
-          <div class="workspace-guide">
-            <p>
-              <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">ドラッグして並び替え。選択したページもまとめて動かせます。</span>
-              <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">長押しして並び替え</span>
-            </p>
-          </div>
-        </div>
-        <div class="compact-drop" id="compactDropZone">
-          <button class="button" id="addButton" type="button" data-i18n="addPdf">ファイルを追加</button>
-        </div>
-      </div>
+      <p class="workspace-guide" id="workspaceGuide" hidden>
+        <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">ドラッグして並び替え。選択したページもまとめて動かせます。</span>
+        <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">長押しして並び替え</span>
+      </p>
 
       <div class="toolbar" role="toolbar" data-i18n-aria-label="pageEditing" aria-label="ページ編集">
         <div class="selection-status" id="selectionStatus" aria-live="polite"></div>
         <div class="toolbar-group">
-          <button class="button" id="selectAllButton" type="button"><span id="selectAllIcon"></span><span class="button-label optional" data-i18n="selectAll">すべて選択</span></button>
-          <button class="button" id="clearSelectionButton" type="button"><span id="clearSelectionIcon"></span><span class="button-label optional" data-i18n="clearSelection">選択解除</span></button>
+          <button class="button" id="selectAllButton" type="button" data-i18n-title="selectAll" data-i18n-aria-label="selectAll"><span id="selectAllIcon"></span><span class="button-label optional" data-i18n="selectAll">すべて選択</span></button>
+          <button class="button" id="clearSelectionButton" type="button" data-i18n-title="clearSelection" data-i18n-aria-label="clearSelection"><span id="clearSelectionIcon"></span><span class="button-label optional" data-i18n="clearSelection">選択解除</span></button>
         </div>
         <div class="toolbar-divider" aria-hidden="true"></div>
         <div class="toolbar-group">
           <button class="button" id="moveStartButton" type="button" data-i18n-title="moveSelectionStart" data-i18n-aria-label="moveSelectionStart" title="選択ページを先頭へ" aria-label="選択ページを先頭へ"><span id="moveStartIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveStart">先頭へ</span></button>
           <button class="button" id="moveEndButton" type="button" data-i18n-title="moveSelectionEnd" data-i18n-aria-label="moveSelectionEnd" title="選択ページを末尾へ" aria-label="選択ページを末尾へ"><span id="moveEndIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveEnd">末尾へ</span></button>
-          <button class="button" id="rotateLeftButton" type="button"><span id="rotateLeftIcon"></span><span class="button-label optional" data-i18n="rotateLeft">左回転</span></button>
-          <button class="button" id="rotateRightButton" type="button"><span id="rotateRightIcon"></span><span class="button-label optional" data-i18n="rotateRight">右回転</span></button>
-          <button class="button danger" id="deleteButton" type="button"><span id="deleteIcon"></span><span class="button-label optional" data-i18n="delete">削除</span></button>
+          <button class="button" id="rotateLeftButton" type="button" data-i18n-title="rotateLeft" data-i18n-aria-label="rotateLeft"><span id="rotateLeftIcon"></span><span class="button-label optional" data-i18n="rotateLeft">左回転</span></button>
+          <button class="button" id="rotateRightButton" type="button" data-i18n-title="rotateRight" data-i18n-aria-label="rotateRight"><span id="rotateRightIcon"></span><span class="button-label optional" data-i18n="rotateRight">右回転</span></button>
+          <button class="button danger" id="deleteButton" type="button" data-i18n-title="delete" data-i18n-aria-label="delete"><span id="deleteIcon"></span><span class="button-label optional" data-i18n="delete">削除</span></button>
         </div>
         <div class="toolbar-divider" aria-hidden="true"></div>
         <div class="toolbar-group">
           <button class="button icon-only" id="undoButton" type="button" data-i18n-title="undoTitle" data-i18n-aria-label="undo" title="元に戻す (Ctrl/⌘ + Z)" aria-label="元に戻す"></button>
           <button class="button icon-only" id="redoButton" type="button" data-i18n-title="redoTitle" data-i18n-aria-label="redo" title="やり直す (Ctrl/⌘ + Shift + Z)" aria-label="やり直す"></button>
         </div>
+        <button class="button" id="addButton" type="button"><span id="addIcon" aria-hidden="true"></span><span data-i18n="addPdf">ファイルを追加</span></button>
         <div class="toolbar-spacer"></div>
         <label class="zoom-control" data-i18n-title="thumbnailSize" title="サムネイルの大きさ">
           <span id="zoomSmallIcon" aria-hidden="true"></span>
           <input id="zoomSlider" type="range" min="120" max="250" step="10" value="174" data-i18n-aria-label="thumbnailSize" aria-label="サムネイルの大きさ">
           <span id="zoomLargeIcon" aria-hidden="true"></span>
         </label>
-        <button class="button danger ghost" id="clearAllButton" type="button"><span id="clearAllIcon"></span><span class="button-label optional" data-i18n="clearAll">すべて削除</span></button>
+        <button class="button danger ghost" id="clearAllButton" type="button" data-i18n-title="clearAll" data-i18n-aria-label="clearAll"><span id="clearAllIcon"></span><span class="button-label optional" data-i18n="clearAll">すべて削除</span></button>
       </div>
 
       <div class="pages-grid" id="pagesGrid" data-i18n-aria-label="pdfPageList" aria-label="PDFページ一覧"></div>
@@ -1723,6 +1747,7 @@ body.is-sorting .page-card.drag-source {
       <input class="filename-input" id="filenameInput" type="text" value="organized.pdf" maxlength="180" autocomplete="off" spellcheck="false">
       <button class="button icon-only ghost output-password-button" id="outputPasswordButton" type="button" aria-label="出力PDFにパスワードを設定" title="出力PDFにパスワードを設定"><span id="outputPasswordIcon" aria-hidden="true"></span></button>
     </div>
+    <button class="button" id="watermarkButton" type="button" aria-haspopup="dialog" aria-controls="watermarkDialog"><span id="watermarkIcon" aria-hidden="true"></span><span id="watermarkButtonLabel" data-i18n="watermark">透かし</span></button>
     <button class="button" id="saveSelectedButton" type="button"><span id="saveSelectedIcon"></span><span class="button-label" data-i18n="saveSelected">選択ページを保存</span></button>
     <button class="button primary" id="saveAllButton" type="button"><span id="saveAllIcon"></span><span class="button-label" data-i18n="saveAll">すべて保存</span></button>
   </div>
@@ -1795,6 +1820,63 @@ body.is-sorting .page-card.drag-source {
       <div class="dialog-actions">
         <button class="button ghost" id="outputPasswordCancelButton" type="button" data-i18n="cancel">キャンセル</button>
         <button class="button primary" type="submit" data-i18n="outputPasswordApply">設定を反映</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="password-dialog watermark-dialog" id="watermarkDialog" aria-labelledby="watermarkDialogTitle">
+    <form id="watermarkForm">
+      <div class="dialog-header"><h2 id="watermarkDialogTitle" data-i18n="watermarkTitle">テキストの透かし</h2></div>
+      <div class="dialog-body watermark-layout">
+        <label class="output-protect-toggle"><input type="checkbox" id="watermarkEnabled" autofocus><span data-i18n="watermarkEnable">保存するページに透かしを入れる</span></label>
+        <div class="watermark-preview">
+          <div class="watermark-preview-heading">
+            <strong data-i18n="watermarkPreview">プレビュー</strong>
+            <div class="watermark-pager">
+              <button class="button ghost icon-only" id="watermarkPrevious" type="button" data-i18n-aria-label="previousPage" aria-label="前のページ"></button>
+              <span id="watermarkPageNumber" aria-live="polite"></span>
+              <button class="button ghost icon-only" id="watermarkNext" type="button" data-i18n-aria-label="nextPage" aria-label="次のページ"></button>
+            </div>
+          </div>
+          <div id="watermarkPreviewStage">
+            <div class="watermark-preview-page" id="watermarkPreviewPage" hidden>
+              <div id="watermarkPageContent"></div><canvas id="watermarkPreviewCanvas" aria-hidden="true"></canvas>
+            </div>
+            <p id="watermarkPreviewStatus" role="status"></p>
+          </div>
+        </div>
+        <fieldset class="watermark-fields" id="watermarkFields" disabled>
+          <legend class="sr-only" data-i18n="watermarkTitle">テキストの透かし</legend>
+          <div class="password-field">
+            <label for="watermarkText" data-i18n="watermarkTextLabel">テキスト（60文字まで）</label>
+            <input class="password-input" id="watermarkText" type="text" maxlength="60" autocomplete="off" required>
+            <div class="watermark-presets" id="watermarkPresets" role="group" data-i18n-aria-label="watermarkPresets" aria-label="定型文">
+              <button class="button" type="button" data-i18n="watermarkConfidential">社外秘</button>
+              <button class="button" type="button" data-i18n="watermarkSample">見本</button>
+              <button class="button" type="button" data-i18n="watermarkDraft">DRAFT</button>
+            </div>
+          </div>
+          <div class="watermark-pair">
+            <div class="password-field"><label for="watermarkPlacement" data-i18n="watermarkPlacement">配置</label>
+              <select class="password-input" id="watermarkPlacement">
+                <option value="diagonal" data-i18n="watermarkDiagonal">中央・斜め</option><option value="center" data-i18n="watermarkCenter">中央・水平</option><option value="bottomRight" data-i18n="watermarkBottomRight">右下</option>
+              </select>
+            </div>
+            <div class="password-field"><label for="watermarkColor" data-i18n="watermarkColor">色</label>
+              <select class="password-input" id="watermarkColor">
+                <option value="#505050" data-i18n="watermarkGray">グレー</option><option value="#bf302f" data-i18n="watermarkRed">赤</option><option value="#245da6" data-i18n="watermarkBlue">青</option>
+              </select>
+            </div>
+          </div>
+          <div class="password-field">
+            <div class="watermark-opacity-label"><label for="watermarkOpacity" data-i18n="watermarkOpacity">不透明度</label><span id="watermarkOpacityValue" aria-hidden="true">20%</span></div>
+            <input type="range" id="watermarkOpacity" min="10" max="60" value="20">
+          </div>
+        </fieldset>
+      </div>
+      <div class="dialog-actions">
+        <button class="button ghost" id="watermarkCancel" type="button" data-i18n="cancel">キャンセル</button>
+        <button class="button primary" id="watermarkApply" type="submit" data-i18n="outputPasswordApply">設定を反映</button>
       </div>
     </form>
   </dialog>
@@ -2166,6 +2248,7 @@ body.is-sorting .page-card.drag-source {
       zoomSmall: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="6" y="5" width="12" height="14" rx="1.5"/></svg>`,
       zoomLarge: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="1.5"/></svg>`,
       download: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7.5 11 4.5 4.5 4.5-4.5"/><path d="M5 20h14"/></svg>`,
+      watermark: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17v-2.5c0-.8.7-1.5 1.5-1.5H9c1.3 0 1.6-1.3.9-2.4C9.2 9.5 8 8.2 8 6.6a4 4 0 0 1 8 0c0 1.6-1.2 2.9-1.9 4-.7 1.1-.4 2.4.9 2.4h2.5c.8 0 1.5.7 1.5 1.5V17zM5 21h14"/></svg>`,
       lock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v2"/></svg>`,
       lockOpen: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.4-2.1"/><path d="M12 14v2"/></svg>`,
       eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>`,
@@ -2188,7 +2271,7 @@ body.is-sorting .page-card.drag-source {
     const elements = {
       initialOverview: $("#initialOverview"),
       initialDropZone: $("#initialDropZone"),
-      compactDropZone: $("#compactDropZone"),
+      workspaceGuide: $("#workspaceGuide"),
       workspace: $("#workspace"),
       pagesGrid: $("#pagesGrid"),
       emptyState: $("#emptyState"),
@@ -2210,6 +2293,17 @@ body.is-sorting .page-card.drag-source {
       clearAllButton: $("#clearAllButton"),
       zoomSlider: $("#zoomSlider"),
       filenameInput: $("#filenameInput"),
+      watermarkButton: $("#watermarkButton"),
+      watermarkButtonLabel: $("#watermarkButtonLabel"),
+      watermarkDialog: $("#watermarkDialog"),
+      watermarkForm: $("#watermarkForm"),
+      watermarkEnabled: $("#watermarkEnabled"),
+      watermarkFields: $("#watermarkFields"),
+      watermarkText: $("#watermarkText"),
+      watermarkPlacement: $("#watermarkPlacement"),
+      watermarkColor: $("#watermarkColor"),
+      watermarkOpacity: $("#watermarkOpacity"),
+      watermarkOpacityValue: $("#watermarkOpacityValue"),
       outputPasswordButton: $("#outputPasswordButton"),
       outputPasswordDialog: $("#outputPasswordDialog"),
       outputPasswordForm: $("#outputPasswordForm"),
@@ -2260,6 +2354,7 @@ body.is-sorting .page-card.drag-source {
 
     const state = {
       documents: new Map(),
+      watermark: null,
       pages: [],
       selected: new Set(),
       lastSelectedId: null,
@@ -2287,13 +2382,14 @@ body.is-sorting .page-card.drag-source {
     }
 
     [
-      ["helpButton", "help"], ["initialDropIcon", "upload"], ["initialAddIcon", "addFile"],
+      ["helpButton", "help"], ["initialDropIcon", "upload"], ["initialAddIcon", "addFile"], ["addIcon", "addFile"],
       ["shieldIcon", "shield"], ["compactAddIcon", "addFile"], ["selectAllIcon", "selectAll"],
       ["clearSelectionIcon", "clearSelection"], ["rotateLeftIcon", "rotateLeft"], ["rotateRightIcon", "rotateRight"],
       ["moveStartIcon", "moveStart"], ["moveEndIcon", "moveEnd"],
       ["deleteIcon", "trash"], ["undoButton", "undo"], ["redoButton", "redo"], ["zoomSmallIcon", "zoomSmall"],
       ["zoomLargeIcon", "zoomLarge"], ["clearAllIcon", "trash"], ["emptyIcon", "file"], ["emptyAddIcon", "addFile"],
       ["saveSelectedIcon", "download"], ["saveAllIcon", "download"], ["outputPasswordIcon", "lockOpen"],
+      ["watermarkIcon", "watermark"], ["watermarkPrevious", "previous"], ["watermarkNext", "next"],
       ["outputPasswordVisibilityIcon", "eye"], ["outputPasswordConfirmVisibilityIcon", "eye"], ["closeHelpButton", "close"],
       ["previewPreviousButton", "previous"], ["previewNextButton", "next"], ["closePreviewButton", "close"],
       ["previewZoomInButton", "previewZoomIn"], ["previewZoomOutButton", "previewZoomOut"]
@@ -2321,9 +2417,8 @@ body.is-sorting .page-card.drag-source {
         dropHint: "または、この枠内にPDF・画像・PowerPointをドラッグ＆ドロップ",
         choosePdf: "ファイルを選択",
         privacyNote: "完全ローカル処理",
-        pageListHeading: "ページ一覧",
         workspaceGuideBody: "カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。",
-        workspaceGuideBodyMobile: "ドラッグで並び替え。複数選択はまとめて移動できます。",
+        workspaceGuideBodyMobile: "長押しして並び替え",
         dropMorePdf: "ここにPDF・画像・PowerPointを追加ドロップ",
         addPdf: "ファイルを追加",
         pageEditing: "ページ編集",
@@ -2361,6 +2456,26 @@ body.is-sorting .page-card.drag-source {
         outputPasswordUnavailable: "この環境ではAES-256暗号化に必要なWeb Crypto APIを利用できません。",
         outputPasswordNote: "AES-256で保護します。パスワードはブラウザのメモリ上だけに保持され、再読み込みすると消えます。",
         outputPasswordApply: "設定を反映",
+        watermark: "透かし",
+        watermarkOn: "透かし ON",
+        watermarkTitle: "テキストの透かし",
+        watermarkEnable: "保存するページに透かしを入れる",
+        watermarkTextLabel: "テキスト（60文字まで）",
+        watermarkPresets: "定型文",
+        watermarkConfidential: "社外秘",
+        watermarkSample: "見本",
+        watermarkDraft: "DRAFT",
+        watermarkPlacement: "配置",
+        watermarkDiagonal: "中央・斜め",
+        watermarkCenter: "中央・水平",
+        watermarkBottomRight: "右下",
+        watermarkColor: "色",
+        watermarkGray: "グレー",
+        watermarkRed: "赤",
+        watermarkBlue: "青",
+        watermarkOpacity: "不透明度",
+        watermarkPreview: "プレビュー",
+        watermarkTextRequired: "透かしに使う文字を入力してください。",
         outputPasswordRequired: "パスワードを入力してください。",
         outputPasswordMismatch: "パスワードが一致しません。",
         outputPasswordSet: "出力PDFのパスワードを設定しました",
@@ -2495,7 +2610,6 @@ body.is-sorting .page-card.drag-source {
         dropHint: "Or drag and drop PDFs, images, and PowerPoint files anywhere in this box",
         choosePdf: "Choose files",
         privacyNote: "Fully local processing",
-        pageListHeading: "Pages",
         workspaceGuideBody: "Drag to reorder. Selected pages can move together.",
         workspaceGuideBodyMobile: "Touch and hold to reorder",
         dropMorePdf: "Drop more PDFs, images & PowerPoint here",
@@ -2535,6 +2649,26 @@ body.is-sorting .page-card.drag-source {
         outputPasswordUnavailable: "AES-256 encryption is unavailable because Web Crypto is not available in this environment.",
         outputPasswordNote: "The PDF is protected with AES-256. The password is kept only in browser memory and is cleared when the page reloads.",
         outputPasswordApply: "Apply",
+        watermark: "Watermark",
+        watermarkOn: "Watermark on",
+        watermarkTitle: "Text watermark",
+        watermarkEnable: "Add a watermark to exported pages",
+        watermarkTextLabel: "Text (up to 60 characters)",
+        watermarkPresets: "Preset text",
+        watermarkConfidential: "CONFIDENTIAL",
+        watermarkSample: "SAMPLE",
+        watermarkDraft: "DRAFT",
+        watermarkPlacement: "Placement",
+        watermarkDiagonal: "Diagonal",
+        watermarkCenter: "Center",
+        watermarkBottomRight: "Bottom right",
+        watermarkColor: "Color",
+        watermarkGray: "Gray",
+        watermarkRed: "Red",
+        watermarkBlue: "Blue",
+        watermarkOpacity: "Opacity",
+        watermarkPreview: "Preview",
+        watermarkTextRequired: "Enter text for the watermark.",
         outputPasswordRequired: "Enter a password.",
         outputPasswordMismatch: "The passwords do not match.",
         outputPasswordSet: "Output PDF password set",
@@ -2901,7 +3035,10 @@ body.is-sorting .page-card.drag-source {
       const visualWidth = rotated ? sourceHeight : sourceWidth;
       const visualHeight = rotated ? sourceWidth : sourceHeight;
       const layout = IMAGE_LAYOUTS.has(item.imageLayout) ? item.imageLayout : "fit";
-      const pageSize = getImagePageSize(visualWidth, visualHeight, layout);
+      // Export sizes the sheet around the encoded image, then rotates the whole PDF page.
+      const exifSwapped = (doc.exifRotation || 0) % 180 !== 0;
+      const unrotated = getImagePageSize(exifSwapped ? sourceHeight : sourceWidth, exifSwapped ? sourceWidth : sourceHeight, layout);
+      const pageSize = exifSwapped !== rotated ? { width: unrotated.height, height: unrotated.width } : unrotated;
       const placement = getImagePlacement(visualWidth, visualHeight, pageSize.width, pageSize.height, layout);
       const scale = Math.min(maxWidth / pageSize.width, maxHeight / pageSize.height);
       const cssWidth = Math.max(1, pageSize.width * scale);
@@ -2993,6 +3130,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     function reconcileSelection() {
+      if (!state.pages.length) state.watermark = null;
       const validIds = new Set(state.pages.map((page) => page.id));
       for (const id of state.selected) {
         if (!validIds.has(id)) state.selected.delete(id);
@@ -3032,9 +3170,16 @@ body.is-sorting .page-card.drag-source {
       elements.initialOverview.hidden = !showInitialView;
       elements.initialDropZone.hidden = !showInitialView;
       elements.workspace.hidden = showInitialView;
+      elements.workspaceGuide.hidden = !hasPages;
       elements.emptyState.hidden = hasPages || elements.workspace.hidden;
       elements.pagesGrid.hidden = !hasPages;
       elements.exportBar.hidden = !hasPages;
+      elements.watermarkButton.disabled = state.isBusy || !hasPages;
+      elements.watermarkButton.classList.toggle("is-active", !!state.watermark);
+      const watermarkLabel = t(state.watermark ? "watermarkOn" : "watermark");
+      elements.watermarkButtonLabel.textContent = watermarkLabel;
+      elements.watermarkButton.setAttribute("aria-label", watermarkLabel);
+      elements.watermarkButton.title = watermarkLabel;
 
       elements.selectionStatus.innerHTML = hasSelection
         ? `<strong>${selectedCount}</strong> ${t("selectedStatusRest", { total: pageCount })}`
@@ -3096,6 +3241,79 @@ body.is-sorting .page-card.drag-source {
       setPasswordVisibility(elements.outputPasswordInput, elements.outputPasswordVisibilityButton, "outputPasswordVisibilityIcon", false);
       setPasswordVisibility(elements.outputPasswordConfirmInput, elements.outputPasswordConfirmVisibilityButton, "outputPasswordConfirmVisibilityIcon", false);
     }
+
+    function getWatermarkDraft() {
+      if (!elements.watermarkEnabled.checked) return null;
+      return {
+        text: elements.watermarkText.value.trim(),
+        placement: elements.watermarkPlacement.value,
+        color: elements.watermarkColor.value,
+        opacity: Number(elements.watermarkOpacity.value)
+      };
+    }
+
+    function updateWatermarkFields() {
+      const enabled = elements.watermarkEnabled.checked;
+      elements.watermarkFields.disabled = !enabled;
+      const opacity = elements.watermarkOpacity.value + "%";
+      elements.watermarkOpacityValue.textContent = opacity;
+      elements.watermarkOpacity.setAttribute("aria-valuetext", opacity);
+      elements.watermarkText.setCustomValidity(enabled && !elements.watermarkText.value.trim() ? t("watermarkTextRequired") : "");
+    }
+
+    function openWatermarkDialog() {
+      if (!state.pages.length || state.isBusy || elements.watermarkDialog.open) return;
+      const applied = state.watermark;
+      elements.watermarkForm.reset();
+      elements.watermarkEnabled.checked = !!applied;
+      elements.watermarkText.value = applied ? applied.text : t("watermarkConfidential");
+      if (applied) {
+        elements.watermarkPlacement.value = applied.placement;
+        elements.watermarkColor.value = applied.color;
+        elements.watermarkOpacity.value = String(applied.opacity);
+      }
+      updateWatermarkFields();
+      elements.watermarkDialog.showModal();
+      openWatermarkPreview();
+    }
+
+    elements.watermarkButton.addEventListener("click", openWatermarkDialog);
+    elements.watermarkForm.addEventListener("input", () => {
+      updateWatermarkFields();
+      updateWatermarkPreview();
+    });
+    $("#watermarkPresets").addEventListener("click", (event) => {
+      const preset = event.target.closest("button");
+      if (!preset) return;
+      elements.watermarkText.value = preset.textContent;
+      updateWatermarkFields();
+      updateWatermarkPreview();
+    });
+    elements.watermarkForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (state.isBusy || !state.pages.length) return;
+      updateWatermarkFields();
+      if (!elements.watermarkForm.reportValidity()) return;
+      state.watermark = getWatermarkDraft();
+      elements.pagesGrid.querySelectorAll('.thumb-frame[data-rendered="true"]').forEach(updateThumbnailWatermark);
+      elements.watermarkDialog.close();
+      const focusSaveButton = !state.watermark && document.activeElement === elements.watermarkButton &&
+        window.matchMedia("(max-width: 760px)").matches;
+      updateUiState();
+      if (focusSaveButton) elements.saveAllButton.focus({ preventScroll: true });
+    });
+    $("#watermarkCancel").addEventListener("click", () => elements.watermarkDialog.close());
+    elements.watermarkDialog.addEventListener("click", (event) => {
+      if (event.target !== elements.watermarkDialog) return;
+      const rect = elements.watermarkDialog.getBoundingClientRect();
+      const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+      if (outside) elements.watermarkDialog.close();
+    });
+    elements.watermarkDialog.addEventListener("close", () => {
+      if (elements.watermarkDialog.open) return;
+      closeWatermarkPreview();
+      elements.watermarkForm.reset();
+    });
 
     function updateOutputPasswordUi() {
       const active = outputProtection.enabled && !!outputProtection.password;
@@ -3561,6 +3779,19 @@ body.is-sorting .page-card.drag-source {
       }
     }
 
+    function updateThumbnailWatermark(frame) {
+      frame.querySelector(".thumbnail-watermark-layer")?.remove();
+      if (!state.watermark) return;
+      const page = frame.firstElementChild;
+      const width = parseFloat(page.style.width);
+      const height = parseFloat(page.style.height);
+      const layer = createAppliedWatermarkLayer(width, height, Math.min(window.devicePixelRatio || 1, 2));
+      layer.className = "thumbnail-watermark-layer";
+      layer.style.width = page.style.width;
+      layer.style.height = page.style.height;
+      frame.append(layer);
+    }
+
     async function renderThumbnail(pageId) {
       const item = state.pages.find((page) => page.id === pageId);
       const frame = elements.pagesGrid.querySelector(`.thumb-frame[data-page-id="${CSS.escape(pageId)}"]`);
@@ -3576,6 +3807,7 @@ body.is-sorting .page-card.drag-source {
         if (!frame.isConnected || !state.pages.some((page) => page.id === pageId)) return;
         frame.replaceChildren(canvas);
         frame.dataset.rendered = "true";
+        updateThumbnailWatermark(frame);
         return;
       }
       if (doc.kind === "pptx") {
@@ -3589,6 +3821,7 @@ body.is-sorting .page-card.drag-source {
           return;
         }
         frame.dataset.rendered = "true";
+        updateThumbnailWatermark(frame);
         return;
       }
       if (!doc.pdfjsDoc) throw new Error(t("sourceMissing"));
@@ -3620,6 +3853,7 @@ body.is-sorting .page-card.drag-source {
       if (!frame.isConnected || !state.pages.some((page) => page.id === pageId)) return;
       frame.replaceChildren(canvas);
       frame.dataset.rendered = "true";
+      updateThumbnailWatermark(frame);
     }
 
     const PREVIEW_ZOOM_MIN = 0.75;
@@ -3650,6 +3884,12 @@ body.is-sorting .page-card.drag-source {
       frame.dataset.baseWidth = String(Math.max(1, width));
       frame.dataset.baseHeight = String(Math.max(1, height));
       frame.append(content);
+      if (state.watermark) {
+        const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
+        const layer = createAppliedWatermarkLayer(width, height, pixelRatio);
+        layer.className = "preview-watermark-layer";
+        frame.append(layer);
+      }
       host.replaceChildren(frame);
       resizePreviewContent();
       host.hidden = false;
@@ -3806,6 +4046,140 @@ body.is-sorting .page-card.drag-source {
         }
       }
     }
+
+    let watermarkPageIndex = 0;
+    let watermarkRenderToken = 0;
+    let watermarkPdfTask = null;
+    let watermarkSlideHandle = null;
+    let watermarkStageWidth = 0;
+    let watermarkStageHeight = 0;
+
+    function clearWatermarkPage() {
+      watermarkRenderToken++;
+      watermarkPdfTask?.cancel();
+      watermarkPdfTask = null;
+      disposePptxHandle(watermarkSlideHandle);
+      watermarkSlideHandle = null;
+      $("#watermarkPageContent").replaceChildren();
+      $("#watermarkPreviewPage").hidden = true;
+      const canvas = $("#watermarkPreviewCanvas");
+      canvas.width = canvas.height = 1;
+    }
+
+    function updateWatermarkPreview() {
+      const page = $("#watermarkPreviewPage");
+      if (page.hidden || !$("#watermarkDialog").open) return;
+      const canvas = $("#watermarkPreviewCanvas");
+      const context = canvas.getContext("2d");
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      const settings = getWatermarkDraft();
+      if (settings) {
+        const mark = createWatermarkCanvas(settings);
+        if (mark) drawWatermarkPreview(context, mark, settings, canvas.width, canvas.height);
+      }
+    }
+
+    async function renderWatermarkPage(index) {
+      const item = state.pages[index];
+      if (!item || !$("#watermarkDialog").open) return;
+      clearWatermarkPage();
+      const token = watermarkRenderToken;
+      watermarkPageIndex = index;
+      $("#watermarkPageNumber").textContent = `${index + 1} / ${state.pages.length}`;
+      $("#watermarkPrevious").disabled = index === 0;
+      $("#watermarkNext").disabled = index === state.pages.length - 1;
+      const stage = $("#watermarkPreviewStage");
+      watermarkStageWidth = stage.clientWidth;
+      watermarkStageHeight = stage.clientHeight;
+      const style = getComputedStyle(stage);
+      const width = Math.max(1, watermarkStageWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+      const height = Math.max(1, watermarkStageHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const page = $("#watermarkPreviewPage");
+      const host = $("#watermarkPageContent");
+      const status = $("#watermarkPreviewStatus");
+      status.textContent = t("renderingPage");
+      status.hidden = false;
+      page.style.visibility = "hidden";
+
+      const isCurrent = () => token === watermarkRenderToken && $("#watermarkDialog").open;
+      try {
+        const source = state.documents.get(item.docId);
+        if (!source) throw new Error(t("sourceMissing"));
+        let content;
+        if (source.kind === "pptx") {
+          const handle = await createPptxSlideHandle(source, item.pageIndex);
+          if (!isCurrent()) { disposePptxHandle(handle); return; }
+          watermarkSlideHandle = handle;
+          content = createPptxScaledShell(handle.element, source, width, height, item.rotation);
+          // Chart renderers need the real slide dimensions while they initialize.
+          host.replaceChildren(content);
+          page.style.width = content.style.width;
+          page.style.height = content.style.height;
+          page.hidden = false;
+          await handle.ready;
+        } else if (source.kind === "image") {
+          content = await renderImagePageCanvas(item, source, width, height, ratio);
+        } else {
+          const pdfPage = await source.pdfjsDoc.getPage(item.pageIndex + 1);
+          if (!isCurrent()) return;
+          const rotation = normalizeRotation(pdfPage.rotate + item.rotation);
+          // PDF.js uses the visible crop box and applies intrinsic page rotation.
+          const base = pdfPage.getViewport({ scale: 1, rotation });
+          const scale = Math.min(width / base.width, height / base.height);
+          const viewport = pdfPage.getViewport({ scale: scale * ratio, rotation });
+          content = document.createElement("canvas");
+          content.width = Math.max(1, Math.round(viewport.width));
+          content.height = Math.max(1, Math.round(viewport.height));
+          content.style.width = `${base.width * scale}px`;
+          content.style.height = `${base.height * scale}px`;
+          watermarkPdfTask = pdfPage.render({
+            canvasContext: content.getContext("2d", { alpha: false }),
+            viewport,
+            background: "#fff"
+          });
+          await watermarkPdfTask.promise;
+        }
+        if (!isCurrent()) return;
+        watermarkPdfTask = null;
+        if (content.parentElement !== host) host.replaceChildren(content);
+        page.style.width = content.style.width;
+        page.style.height = content.style.height;
+        const canvas = $("#watermarkPreviewCanvas");
+        canvas.width = Math.max(1, Math.round(parseFloat(content.style.width) * ratio));
+        canvas.height = Math.max(1, Math.round(parseFloat(content.style.height) * ratio));
+        page.hidden = false;
+        updateWatermarkPreview();
+        page.style.visibility = "";
+        status.hidden = true;
+      } catch (error) {
+        if (!isCurrent()) return;
+        clearWatermarkPage();
+        status.textContent = t("previewError");
+        console.error("Watermark preview failed", error);
+      }
+    }
+
+    const watermarkResizeObserver = new ResizeObserver(() => {
+      const stage = $("#watermarkPreviewStage");
+      if (stage.clientWidth !== watermarkStageWidth || stage.clientHeight !== watermarkStageHeight) {
+        renderWatermarkPage(watermarkPageIndex);
+      }
+    });
+
+    function openWatermarkPreview() {
+      const index = state.pages.findIndex((page) => state.selected.has(page.id));
+      renderWatermarkPage(Math.max(0, index));
+      watermarkResizeObserver.observe($("#watermarkPreviewStage"));
+    }
+
+    function closeWatermarkPreview() {
+      watermarkResizeObserver.disconnect();
+      clearWatermarkPage();
+    }
+
+    $("#watermarkPrevious").addEventListener("click", () => renderWatermarkPage(watermarkPageIndex - 1));
+    $("#watermarkNext").addEventListener("click", () => renderWatermarkPage(watermarkPageIndex + 1));
 
     function openPreview(pageId) {
       if (!state.pages.some((page) => page.id === pageId)) return;
@@ -4496,6 +4870,105 @@ body.is-sorting .page-card.drag-source {
       return name.slice(0, 180);
     }
 
+    function createWatermarkCanvas(settings) {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const font = 'bold 256px system-ui, sans-serif';
+      ctx.font = font;
+      ctx.textAlign = "left";
+      const metrics = ctx.measureText(settings.text);
+      const left = metrics.actualBoundingBoxLeft;
+      const ascent = metrics.actualBoundingBoxAscent;
+      const width = Math.max(1, left + metrics.actualBoundingBoxRight);
+      const height = Math.max(1, ascent + metrics.actualBoundingBoxDescent);
+      const scale = Math.min(1, 4092 / width, 1020 / height);
+      canvas.width = Math.ceil(width * scale) + 4;
+      canvas.height = Math.ceil(height * scale) + 4;
+      ctx.scale(scale, scale);
+      ctx.font = font;
+      ctx.textAlign = "left";
+      ctx.fillStyle = settings.color;
+      ctx.fillText(settings.text, left + 2 / scale, ascent + 2 / scale);
+      return canvas;
+    }
+
+    // Coordinates are relative to the visible page after rotation, with the origin at bottom left.
+    function getWatermarkPlacement(mark, placement, width, height) {
+      const corner = placement === "bottomRight";
+      const angle = placement === "diagonal" ? 30 : 0;
+      const radians = angle * Math.PI / 180;
+      const margin = Math.min(width, height) * 0.05;
+      const boxWidth = mark.width * Math.cos(radians) + mark.height * Math.sin(radians);
+      const boxHeight = mark.width * Math.sin(radians) + mark.height * Math.cos(radians);
+      const scale = Math.min(
+        width * (corner ? 0.25 : 0.60) / mark.width,
+        height * (corner ? 0.15 : 0.40) / mark.height,
+        (width - 2 * margin) / boxWidth,
+        (height - 2 * margin) / boxHeight
+      );
+      const drawWidth = mark.width * scale;
+      const drawHeight = mark.height * scale;
+      return {
+        cx: corner ? width - margin - drawWidth / 2 : width / 2,
+        cy: corner ? margin + drawHeight / 2 : height / 2,
+        width: drawWidth, height: drawHeight, angle
+      };
+    }
+
+    function drawWatermarkPreview(ctx, markCanvas, settings, width, height) {
+      const mark = getWatermarkPlacement(markCanvas, settings.placement, width, height);
+      ctx.save();
+      ctx.translate(mark.cx, height - mark.cy);
+      ctx.rotate(-mark.angle * Math.PI / 180);
+      ctx.globalAlpha = settings.opacity / 100;
+      ctx.drawImage(markCanvas, -mark.width / 2, -mark.height / 2, mark.width, mark.height);
+      ctx.restore();
+    }
+
+    const appliedWatermarkCanvas = new WeakMap();
+
+    function createAppliedWatermarkLayer(width, height, pixelRatio) {
+      const settings = state.watermark;
+      let mark = appliedWatermarkCanvas.get(settings);
+      if (!mark) {
+        mark = createWatermarkCanvas(settings);
+        appliedWatermarkCanvas.set(settings, mark);
+      }
+      const layer = document.createElement("canvas");
+      layer.setAttribute("aria-hidden", "true");
+      layer.width = Math.max(1, Math.round(width * pixelRatio));
+      layer.height = Math.max(1, Math.round(height * pixelRatio));
+      drawWatermarkPreview(layer.getContext("2d"), mark, settings, layer.width, layer.height);
+      return layer;
+    }
+
+    function drawPdfWatermark(page, image, settings) {
+      // PDF.js displays the intersection of CropBox and MediaBox, or MediaBox if they do not overlap.
+      const media = page.getMediaBox();
+      const crop = page.getCropBox();
+      const x = Math.max(media.x, crop.x);
+      const y = Math.max(media.y, crop.y);
+      const width = Math.min(media.x + media.width, crop.x + crop.width) - x;
+      const height = Math.min(media.y + media.height, crop.y + crop.height) - y;
+      const box = width > 0 && height > 0 ? { x, y, width, height } : media;
+      const rotation = normalizeRotation(page.getRotation().angle);
+      const swapped = rotation === 90 || rotation === 270;
+      const mark = getWatermarkPlacement(image, settings.placement,
+        swapped ? box.height : box.width, swapped ? box.width : box.height);
+      let cx = mark.cx, cy = mark.cy;
+      if (rotation === 90) { cx = box.width - mark.cy; cy = mark.cx; }
+      if (rotation === 180) { cx = box.width - mark.cx; cy = box.height - mark.cy; }
+      if (rotation === 270) { cx = mark.cy; cy = box.height - mark.cx; }
+      const angle = rotation + mark.angle;
+      const radians = angle * Math.PI / 180;
+      // pdf-lib rotates an image around its lower-left corner.
+      page.drawImage(image, {
+        x: box.x + cx - (mark.width * Math.cos(radians) - mark.height * Math.sin(radians)) / 2,
+        y: box.y + cy - (mark.width * Math.sin(radians) + mark.height * Math.cos(radians)) / 2,
+        width: mark.width, height: mark.height, rotate: degrees(angle), opacity: settings.opacity / 100
+      });
+    }
+
     async function exportPdf(selectedOnly = false) {
       if (state.isBusy) return;
       const targetPages = selectedOnly
@@ -4507,6 +4980,7 @@ body.is-sorting .page-card.drag-source {
       }
 
       const outputFilename = sanitizeFilename(elements.filenameInput.value);
+      const watermark = state.watermark;
       const exportPassword = outputProtection.enabled ? outputProtection.password : "";
       const protectOutput = !!exportPassword;
       setBusy(true, t("generatingPdf"), t("pageCount", { count: targetPages.length }));
@@ -4568,6 +5042,11 @@ body.is-sorting .page-card.drag-source {
           elements.busyDetail.textContent = t("pageProgress", { current: processed, total: targetPages.length });
         }
 
+        if (watermark) {
+          const canvas = createWatermarkCanvas(watermark);
+          const image = await output.embedPng(canvas.toDataURL("image/png"));
+          for (const page of output.getPages()) drawPdfWatermark(page, image, watermark);
+        }
         output.setProducer("PDF Organizer / pdf-lib");
         output.setCreator("PDF Organizer");
         output.setModificationDate(new Date());
@@ -5100,7 +5579,7 @@ body.is-sorting .page-card.drag-source {
     }
 
     bindDropZone(elements.initialDropZone);
-    bindDropZone(elements.compactDropZone);
+    bindDropZone(elements.addButton);
     bindDropZone(elements.emptyState);
 
     elements.initialDropZone.addEventListener("click", (event) => {
@@ -5624,6 +6103,7 @@ body.is-sorting .page-card.drag-source {
         mobileToolsClose.setAttribute("aria-label", mobileText("閉じる", "Close"));
         mobileToolsList.replaceChildren(
           createMobileTool(elements.addButton, icons.addFile, t("addPdf")),
+          createMobileTool(elements.watermarkButton, icons.watermark, t(state.watermark ? "watermarkOn" : "watermark")),
           createMobileTool(elements.clearSelectionButton, icons.clearSelection, t("clearSelection")),
           createMobileTool(elements.moveStartButton, icons.moveStart, t("moveSelectionStart")),
           createMobileTool(elements.moveEndButton, icons.moveEnd, t("moveSelectionEnd")),
