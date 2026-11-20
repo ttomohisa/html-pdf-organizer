@@ -1,6 +1,7 @@
 // Browser-level confirmation, pinch zoom, responsive layout and mobile header checks.
 'use strict';
 const assert = require('node:assert/strict');
+const fs = require('node:fs/promises');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
@@ -98,6 +99,45 @@ async function exercise(browser, buffer, width, height, mobile) {
     }
     await page.locator('#closePreviewButton').click();
     await page.locator('#previewDialog').waitFor({ state: 'hidden' });
+    const openRanges = async () => {
+      if (mobile) {
+        await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
+        await page.locator('.mobile-tools-dialog').getByRole('button', { name: /ページ番号で選択|Select by page number/i }).click();
+      } else {
+        await page.locator('#selectPageRangesButton').click();
+      }
+      await page.locator('#pageRangesDialog[open]').waitFor();
+    };
+    const selectedNumbers = () => page.locator('.page-card.selected .page-order').allTextContents();
+    await page.locator('.page-card').first().locator('.thumb-frame').click();
+    assert.deepEqual(await selectedNumbers(), ['1']);
+    await openRanges();
+    const rangeField = page.locator('#pageRangesInput');
+    assert.equal(await rangeField.evaluate(input => input === document.activeElement), true);
+    await rangeField.fill('2-4, 13');
+    await rangeField.press('Enter');
+    await page.locator('#pageRangesError').waitFor();
+    assert.deepEqual(await selectedNumbers(), ['1'], 'A bad range leaves the whole prior selection intact');
+    await rangeField.fill('１２、２－４, 3');
+    await rangeField.press('Enter');
+    await page.locator('#pageRangesDialog').waitFor({ state: 'hidden' });
+    assert.deepEqual(await selectedNumbers(), ['2', '3', '4', '12']);
+    await openRanges();
+    await rangeField.fill('7');
+    await page.keyboard.press('Escape');
+    assert.deepEqual(await selectedNumbers(), ['2', '3', '4', '12'], 'Closing the dialog leaves the selection intact');
+    const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#saveSelectedButton').click()]);
+    const saved = [...await fs.readFile(await download.path())];
+    assert.equal(await page.evaluate(async data => (await PDFLib.PDFDocument.load(Uint8Array.from(data))).getPageCount(), saved), 4);
+    await page.locator('#busyOverlay').waitFor({ state: 'hidden' });
+    await page.locator('.page-card').first().locator('.thumb-frame').click();
+    await page.evaluate(() => document.querySelector('#moveEndButton').click());
+    await openRanges();
+    await rangeField.fill('1, 12');
+    await rangeField.press('Enter');
+    await page.locator('#pageRangesDialog').waitFor({ state: 'hidden' });
+    assert.deepEqual(await page.locator('.page-card.selected .source-name').allTextContents(), ['page-2.png', 'page-1.png'],
+      'Page numbers follow the order after moving a page');
     assert.equal(await page.locator('#initialOverview').isVisible(), false, 'Intro hides after import');
     assert.equal(await page.locator('#initialDropZone').isVisible(), false, 'Drop area hides after import');
     if (mobile) {
@@ -121,6 +161,7 @@ async function exercise(browser, buffer, width, height, mobile) {
     await page.locator('#deleteConfirmApplyButton').click();
     assert.equal(await page.locator('.page-card').count(), 0, 'Confirm deletes all');
     assert.ok(await page.locator('#emptyState').isVisible(), 'The empty workspace is visible');
+    assert.ok(await page.locator('#selectPageRangesButton').isDisabled(), 'Range selection is disabled with no pages');
     assert.equal(await page.locator('.workspace-guide').isVisible(), false, 'Reorder hint is hidden with no pages');
     await page.evaluate(() => document.getElementById('undoButton').click());
     assert.equal(await page.locator('.page-card').count(), 12, 'Undo restores every page');

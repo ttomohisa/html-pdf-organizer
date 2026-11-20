@@ -979,6 +979,9 @@
     .password-visibility-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
     .password-visibility-button svg { width: 18px; height: 18px; pointer-events: none; }
     .password-error { margin: 8px 0 0; color: var(--danger); font-size: 12px; line-height: 1.5; }
+    #pageRangesHint { margin: 0 0 16px; }
+    #pageRangesDialog .password-field { gap: 8px; }
+    #pageRangesError { color: var(--danger); }
     .password-note { margin: 10px 0 0; color: var(--text-muted); font-size: 12px; line-height: 1.55; }
     .output-protect-toggle {
       display: flex;
@@ -1659,7 +1662,7 @@ body.is-sorting .page-card.drag-source {
           <svg class="brand-favicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#16624f"/><path d="M18 14h20l8 8v28H18z" fill="#fff" opacity=".96"/><path d="M38 14v8h8" fill="#dbe9e5"/><text x="32" y="39" text-anchor="middle" fill="#16624f" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="-.4">PDF</text></svg>
         </div>
         <div class="brand-copy">
-          <h1>PDF Organizer <span class="version-badge" title="Version 1.3.0">v1.3.0</span></h1>
+          <h1>PDF Organizer <span class="version-badge" title="Version 1.4.0">v1.4.0</span></h1>
           <p data-i18n="brandSubtitle">PDF・画像ページの並び替え・回転・削除・結合</p>
         </div>
       </div>
@@ -1702,6 +1705,7 @@ body.is-sorting .page-card.drag-source {
         <div class="toolbar-group">
           <button class="button" id="selectAllButton" type="button" data-i18n-title="selectAll" data-i18n-aria-label="selectAll"><span id="selectAllIcon"></span><span class="button-label optional" data-i18n="selectAll">すべて選択</span></button>
           <button class="button" id="clearSelectionButton" type="button" data-i18n-title="clearSelection" data-i18n-aria-label="clearSelection"><span id="clearSelectionIcon"></span><span class="button-label optional" data-i18n="clearSelection">選択解除</span></button>
+          <button class="button icon-only" id="selectPageRangesButton" type="button" aria-haspopup="dialog" aria-controls="pageRangesDialog" data-i18n-title="selectPageRanges" data-i18n-aria-label="selectPageRanges" title="ページ番号で選択" aria-label="ページ番号で選択"></button>
         </div>
         <div class="toolbar-divider" aria-hidden="true"></div>
         <div class="toolbar-group">
@@ -1765,6 +1769,24 @@ body.is-sorting .page-card.drag-source {
   </div>
 
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+
+  <dialog class="password-dialog" id="pageRangesDialog" aria-labelledby="pageRangesTitle">
+    <form id="pageRangesForm">
+      <div class="dialog-header"><h2 id="pageRangesTitle" data-i18n="selectPageRanges">ページ番号で選択</h2></div>
+      <div class="dialog-body">
+        <p class="password-file" id="pageRangesHint"></p>
+        <div class="password-field">
+          <label for="pageRangesInput" data-i18n="pageRangesLabel">ページ番号</label>
+          <input class="password-input" id="pageRangesInput" type="text" placeholder="2-5, 9, 12" autocomplete="off" spellcheck="false" aria-describedby="pageRangesHint pageRangesError" autofocus>
+        </div>
+        <p class="password-error" id="pageRangesError" role="alert" hidden></p>
+      </div>
+      <div class="dialog-actions">
+        <button class="button ghost" id="pageRangesCancel" type="button" data-i18n="cancel">キャンセル</button>
+        <button class="button primary" type="submit" data-i18n="pageRangesApply">選択</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog class="password-dialog" id="passwordDialog" aria-labelledby="passwordDialogTitle">
     <form id="passwordForm" method="dialog">
@@ -2238,6 +2260,7 @@ body.is-sorting .page-card.drag-source {
       shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.6 2.8 8 7 10 4.2-2 7-5.4 7-10V6z"/><path d="m9 12 2 2 4-5"/></svg>`,
       selectAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="m8.8 12 2 2 4.5-4.5"/></svg>`,
       clearSelection: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="m9 9 6 6M15 9l-6 6"/></svg>`,
+      pageRanges: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m10 4-4 16M18 4l-4 16M4 9h16M4 15h16"/></svg>`,
       moveStart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14M12 20V8m-5 5 5-5 5 5"/></svg>`,
       moveEnd: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20h14M12 4v12m-5-5 5 5 5-5"/></svg>`,
       rotateLeft: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a9 9 0 1 1 2.7 8.4"/><path d="M3 4v6h6"/></svg>`,
@@ -2282,6 +2305,10 @@ body.is-sorting .page-card.drag-source {
       emptyAddButton: $("#emptyAddButton"),
       selectionStatus: $("#selectionStatus"),
       selectAllButton: $("#selectAllButton"),
+      selectPageRangesButton: $("#selectPageRangesButton"),
+      pageRangesDialog: $("#pageRangesDialog"),
+      pageRangesInput: $("#pageRangesInput"),
+      pageRangesError: $("#pageRangesError"),
       clearSelectionButton: $("#clearSelectionButton"),
       moveStartButton: $("#moveStartButton"),
       moveEndButton: $("#moveEndButton"),
@@ -2383,6 +2410,7 @@ body.is-sorting .page-card.drag-source {
 
     [
       ["helpButton", "help"], ["initialDropIcon", "upload"], ["initialAddIcon", "addFile"], ["addIcon", "addFile"],
+      ["selectPageRangesButton", "pageRanges"],
       ["shieldIcon", "shield"], ["compactAddIcon", "addFile"], ["selectAllIcon", "selectAll"],
       ["clearSelectionIcon", "clearSelection"], ["rotateLeftIcon", "rotateLeft"], ["rotateRightIcon", "rotateRight"],
       ["moveStartIcon", "moveStart"], ["moveEndIcon", "moveEnd"],
@@ -2424,6 +2452,11 @@ body.is-sorting .page-card.drag-source {
         pageEditing: "ページ編集",
         selectAll: "すべて選択",
         clearSelection: "選択解除",
+        selectPageRanges: "ページ番号で選択",
+        pageRangesLabel: "ページ番号",
+        pageRangesHint: "カード左上の番号（1〜{total}）を使います。複数の番号はカンマで区切り、連続するページはハイフンでつなげます。",
+        pageRangesError: "1〜{total} の範囲で入力してください。範囲は小さい番号から指定します。",
+        pageRangesApply: "選択",
         moveStart: "先頭へ",
         moveEnd: "末尾へ",
         moveSelectionStart: "選択ページを先頭へ",
@@ -2617,6 +2650,11 @@ body.is-sorting .page-card.drag-source {
         pageEditing: "Page editing",
         selectAll: "Select all",
         clearSelection: "Clear selection",
+        selectPageRanges: "Select by page number",
+        pageRangesLabel: "Page numbers",
+        pageRangesHint: "Use the numbers on the cards (1–{total}). Separate entries with commas and use a dash for a range.",
+        pageRangesError: "Enter page numbers from 1 to {total}. For a range, enter the lower number first.",
+        pageRangesApply: "Select",
         moveStart: "To start",
         moveEnd: "To end",
         moveSelectionStart: "Move selection to start",
@@ -3201,6 +3239,7 @@ body.is-sorting .page-card.drag-source {
       elements.saveSelectedButton.setAttribute("aria-label", saveSelectedText);
       elements.saveSelectedButton.title = saveSelectedText;
       elements.selectAllButton.disabled = locked || (!hasPages || selectedCount === pageCount);
+      elements.selectPageRangesButton.disabled = locked || !hasPages;
       elements.clearAllButton.disabled = locked || (!hasPages);
       elements.saveAllButton.disabled = locked || (!hasPages);
       elements.undoButton.disabled = locked || (state.history.length === 0);
@@ -3700,6 +3739,52 @@ body.is-sorting .page-card.drag-source {
         return;
       }
       commitDeleteSelected();
+    }
+
+    function parsePageRanges(input, pageCount) {
+      const indices = new Set();
+      for (const token of input.normalize("NFKC").split(/[,、]/)) {
+        const match = token.trim().match(/^(\d+)(?:\s*[-–—−]\s*(\d+))?$/);
+        if (!match) return null;
+        const first = Number(match[1]);
+        const last = Number(match[2] ?? match[1]);
+        if (first < 1 || last < first || last > pageCount) return null;
+        for (let index = first - 1; index < last; index++) indices.add(index);
+      }
+      return indices;
+    }
+
+    function clearPageRangesError() {
+      elements.pageRangesError.hidden = true;
+      elements.pageRangesInput.removeAttribute("aria-invalid");
+    }
+
+    function openPageRangesDialog() {
+      if (state.isBusy || !state.pages.length || elements.pageRangesDialog.open) return;
+      const total = state.pages.length;
+      elements.pageRangesInput.value = "";
+      elements.pageRangesInput.placeholder = total >= 12 ? "2-5, 9, 12" : total >= 3 ? "1-2, 3" : "1";
+      $("#pageRangesHint").textContent = t("pageRangesHint", { total });
+      clearPageRangesError();
+      elements.pageRangesDialog.showModal();
+    }
+
+    function applyPageRanges(event) {
+      event.preventDefault();
+      if (state.isBusy || !state.pages.length) return;
+      const indices = parsePageRanges(elements.pageRangesInput.value, state.pages.length);
+      if (!indices) {
+        elements.pageRangesError.textContent = t("pageRangesError", { total: state.pages.length });
+        elements.pageRangesError.hidden = false;
+        elements.pageRangesInput.setAttribute("aria-invalid", "true");
+        elements.pageRangesInput.focus();
+        return;
+      }
+      const pages = state.pages.filter((_, index) => indices.has(index));
+      state.selected = new Set(pages.map((page) => page.id));
+      state.lastSelectedId = pages.at(-1).id;
+      refreshSelectionUi();
+      elements.pageRangesDialog.close();
     }
 
     function selectAll() {
@@ -5608,6 +5693,10 @@ body.is-sorting .page-card.drag-source {
     elements.saveSelectedButton.addEventListener("click", () => exportPdf(true));
     elements.saveAllButton.addEventListener("click", () => exportPdf(false));
     elements.outputPasswordButton.addEventListener("click", openOutputPasswordDialog);
+    elements.selectPageRangesButton.addEventListener("click", openPageRangesDialog);
+    $("#pageRangesForm").addEventListener("submit", applyPageRanges);
+    elements.pageRangesInput.addEventListener("input", clearPageRangesError);
+    $("#pageRangesCancel").addEventListener("click", () => elements.pageRangesDialog.close());
     elements.outputPasswordEnabled.addEventListener("change", () => { updateOutputPasswordFields(); showOutputPasswordError(""); });
     elements.outputPasswordInput.addEventListener("input", () => showOutputPasswordError(""));
     elements.outputPasswordVisibilityButton.addEventListener("click", () => togglePasswordVisibility(elements.outputPasswordInput, elements.outputPasswordVisibilityButton, "outputPasswordVisibilityIcon"));
@@ -6103,6 +6192,7 @@ body.is-sorting .page-card.drag-source {
         mobileToolsClose.setAttribute("aria-label", mobileText("閉じる", "Close"));
         mobileToolsList.replaceChildren(
           createMobileTool(elements.addButton, icons.addFile, t("addPdf")),
+          createMobileTool(elements.selectPageRangesButton, icons.pageRanges, t("selectPageRanges")),
           createMobileTool(elements.watermarkButton, icons.watermark, t(state.watermark ? "watermarkOn" : "watermark")),
           createMobileTool(elements.clearSelectionButton, icons.clearSelection, t("clearSelection")),
           createMobileTool(elements.moveStartButton, icons.moveStart, t("moveSelectionStart")),

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0 - 2026-11-21
+
+- Select pages by number or range in the current order, including entries such as `2-5, 9, 12`.
+
 ## 1.3.0 - 2026-11-20
 
 - Preview a custom text watermark on your pages and include it when saving all or selected pages. Choose its position, color and opacity in the offline app.
