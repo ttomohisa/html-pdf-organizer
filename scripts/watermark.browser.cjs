@@ -67,7 +67,8 @@ async function exercise(browser, mobile) {
     const fixture = await page.evaluate(async () => {
       const doc = await PDFLib.PDFDocument.create();
       const first = doc.addPage([540, 740]);
-      first.setCropBox(36, 64, 468, 600);
+      // PDF rectangle coordinates can be stored as either pair of opposite corners.
+      first.node.set(PDFLib.PDFName.of('CropBox'), doc.context.obj([504, 664, 36, 64]));
       first.setRotation(PDFLib.degrees(90));
       // A grayscale original keeps subpixel text antialiasing out of the red-ink measurement.
       const sheet = document.createElement('canvas');

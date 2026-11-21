@@ -72,6 +72,13 @@ async function exercise(browser, buffer, width, height, mobile) {
       assert.ok(await page.locator('.mobile-edit-dock').getByRole('button', { name: /^(やり直す|Redo)$/i }).isVisible());
     }
     if (!mobile) {
+      const originalViewport = page.viewportSize();
+      for (const width of [1451, 1600]) {
+        await page.setViewportSize({ width, height: 680 });
+        assert.ok(await editingBar.evaluate(bar => bar.scrollWidth <= bar.clientWidth + 1),
+          'Editing actions fit at ' + width + 'px');
+      }
+      await page.setViewportSize(originalViewport);
       const selectAll = page.locator('#selectAllButton');
       const beforeSelection = await selectAll.boundingBox();
       await selectAll.click();

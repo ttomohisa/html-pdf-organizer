@@ -1242,8 +1242,9 @@
       overflow: visible;
     }
 
+    .toolbar :is(#moveStartButton, #moveEndButton) .button-label { display: none; }
     @media (761px <= width <= 1450px) {
-      .toolbar :is(#moveStartButton, #moveEndButton, #rotateLeftButton, #rotateRightButton) .button-label { display: none; }
+      .toolbar :is(#rotateLeftButton, #rotateRightButton) .button-label { display: none; }
     }
     @media (761px <= width <= 1220px) {
       .toolbar .button-label.optional { display: none; }
@@ -5218,8 +5219,15 @@ body.is-sorting .page-card.drag-source {
 
     function getPdfPageView(page) {
       // PDF.js displays the intersection of CropBox and MediaBox, or MediaBox if they do not overlap.
-      const media = page.getMediaBox();
-      const crop = page.getCropBox();
+      // A PDF rectangle may store either pair of corners in either order.
+      const normalizeBox = ({ x, y, width, height }) => ({
+        x: Math.min(x, x + width),
+        y: Math.min(y, y + height),
+        width: Math.abs(width),
+        height: Math.abs(height)
+      });
+      const media = normalizeBox(page.getMediaBox());
+      const crop = normalizeBox(page.getCropBox());
       const x = Math.max(media.x, crop.x);
       const y = Math.max(media.y, crop.y);
       const width = Math.min(media.x + media.width, crop.x + crop.width) - x;
