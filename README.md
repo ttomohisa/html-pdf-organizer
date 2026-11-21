@@ -53,7 +53,7 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 3. Select multiple pages and drag one selected card to move the group together. Use `To start` / `To end` in the toolbar, or `Move selection to start` / `Move selection to end` under mobile `More`, to move the group directly to an edge while keeping its current page order.
 4. On mobile, briefly hold a card before moving it. A normal vertical swipe scrolls the page.
 5. Rotate, preview, or delete pages from the toolbar or card controls. Image cards also let you choose `Fit`, `Fill`, or `Original Size`.
-6. Enter an output filename and export all pages or only the selection. On mobile, selecting pages reveals a compact `Save n` action in the same single-row export bar.
+6. Save all pages or only the selection. With one source file, the default filename adds `_organized.pdf` to the original name without its extension. With multiple source files, it defaults to `organized.pdf`. On mobile, selecting pages reveals **Save selected** in the save bar.
 
 ### Export options
 

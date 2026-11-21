@@ -96,6 +96,7 @@ async function exercise(browser, mobile) {
     assert.equal(await filename.isVisible(), !mobile);
     await saveSettings.click();
     assert.equal(await filename.isVisible(), true);
+    assert.equal(await filename.inputValue(), 'report_organized.pdf');
     if (mobile) {
       await filename.fill('revised.pdf');
       await page.touchscreen.tap(2, 2);
@@ -224,7 +225,7 @@ async function exercise(browser, mobile) {
     if (mobile && process.env.PDF_ORGANIZER_SCREENSHOTS) {
       await page.screenshot({ path: path.join(process.env.PDF_ORGANIZER_SCREENSHOTS, 'mobile-workspace.png') });
     }
-    const output = await savePdf(page, '#saveSelectedButton', mobile ? 'revised.pdf' : undefined);
+    const output = await savePdf(page, '#saveSelectedButton', mobile ? 'revised.pdf' : 'report_organized.pdf');
     const viewer = await context.newPage();
     await viewer.goto(app);
     await viewer.waitForSelector('#initialDropIcon svg');
@@ -271,6 +272,14 @@ async function exercise(browser, mobile) {
       await page.locator('#clearAllButton').click();
       await page.locator('#deleteConfirmApplyButton').click();
       await importPages(page, { name: 'new-workspace.pdf', mimeType: 'application/pdf', buffer: Buffer.from(fixture) }, 2);
+      assert.equal(await filename.inputValue(), 'new-workspace_organized.pdf');
+      await importPages(page, { name: 'second.pdf', mimeType: 'application/pdf', buffer: Buffer.from(fixture) }, 4);
+      assert.equal(await filename.inputValue(), 'organized.pdf');
+      await page.locator('#undoButton').click();
+      assert.equal(await filename.inputValue(), 'new-workspace_organized.pdf');
+      await filename.fill('custom.pdf');
+      await importPages(page, { name: 'second.pdf', mimeType: 'application/pdf', buffer: Buffer.from(fixture) }, 4);
+      assert.equal(await filename.inputValue(), 'custom.pdf');
       await openSettings(page);
       assert.equal(await page.locator('#watermarkEnabled').isChecked(), false);
       assert.notEqual(await page.locator('#watermarkText').inputValue(), 'Private recipient');

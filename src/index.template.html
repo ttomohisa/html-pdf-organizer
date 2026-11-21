@@ -1087,7 +1087,6 @@
     #watermarkPreviewStatus { margin: 0; text-align: center; }
     #watermarkPreviewStatus[hidden], .watermark-preview-page[hidden] { display: none; }
     .save-option.is-active, .save-option[aria-pressed="true"] { color: var(--accent); }
-    .mobile-tools-action[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
     @media (max-width: 580px) {
       .watermark-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "toggle" "preview" "fields"; grid-template-rows: auto; gap: 12px; }
       .watermark-dialog .dialog-body { padding: 14px; }
@@ -1685,27 +1684,32 @@ body.is-sorting .page-card.drag-source {
     overscroll-behavior: contain;
     flex: 1 1 auto;
     display: grid;
-    gap: 7px;
-    padding: 12px 12px calc(14px + env(safe-area-inset-bottom));
+    padding: 8px 8px calc(16px + env(safe-area-inset-bottom));
   }
   .mobile-tools-action {
     min-height: 48px;
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 8px;
     width: 100%;
-    padding: 9px 12px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: var(--surface);
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
     color: var(--text);
     font-size: 13px;
     font-weight: 720;
     text-align: left;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: color-mix(in srgb, var(--accent) 14%, transparent);
   }
-  .mobile-tools-action:active:not(:disabled) { background: var(--surface-muted); transform: scale(.99); }
-  .mobile-tools-action:disabled { opacity: .38; }
+  @media (hover: hover) {
+    .mobile-tools-action:hover:not(:disabled) { background: var(--surface-hover); }
+  }
+  .mobile-tools-action:focus-visible { background: var(--surface-hover); outline-offset: -2px; }
+  .mobile-tools-action:active:not(:disabled) { background: var(--surface-muted); }
+  .mobile-tools-action:disabled { opacity: .38; cursor: not-allowed; }
   .mobile-tools-action svg { width: 19px; height: 19px; flex: 0 0 auto; }
   .mobile-tools-action.danger { color: var(--danger); }
 }
@@ -3370,6 +3374,16 @@ body.is-sorting .page-card.drag-source {
       elements.emptyState.hidden = hasPages || elements.workspace.hidden;
       elements.pagesGrid.hidden = !hasPages;
       elements.exportBar.hidden = !hasPages;
+      const filenameInput = elements.filenameInput;
+      const sourceId = state.pages[0]?.docId;
+      const sourceName = sourceId && state.pages.every(page => page.docId === sourceId)
+        ? state.documents.get(sourceId)?.name : "";
+      const basename = sourceName?.replace(/\.[^.]+$/, "").trim();
+      const suffix = "_organized.pdf";
+      filenameInput.defaultValue = basename
+        ? sanitizeFilename(basename.slice(0, filenameInput.maxLength - suffix.length).replace(/[\uD800-\uDBFF]$/, "") + suffix)
+        : "organized.pdf";
+      if (filenameInput.dataset.customName !== "true") filenameInput.value = filenameInput.defaultValue;
       const lockSaveOptions = state.isBusy || !hasPages;
       if (lockSaveOptions) closeSaveOptions();
       elements.saveOptionsButton.disabled = lockSaveOptions;
@@ -6211,8 +6225,13 @@ body.is-sorting .page-card.drag-source {
     });
     elements.zoomSlider.addEventListener("change", renderGrid);
 
+    elements.filenameInput.addEventListener("input", () => {
+      elements.filenameInput.dataset.customName = "true";
+    });
     elements.filenameInput.addEventListener("blur", () => {
-      elements.filenameInput.value = sanitizeFilename(elements.filenameInput.value);
+      const input = elements.filenameInput;
+      if (!input.value.trim()) delete input.dataset.customName;
+      input.value = sanitizeFilename(input.value.trim() || input.defaultValue);
     });
 
     elements.previewZoomOutButton.addEventListener("click", () => setPreviewZoom(previewZoom - .25));
