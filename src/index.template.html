@@ -1644,24 +1644,17 @@ body.is-sorting .page-card.drag-source {
     background: var(--surface);
   }
   .mobile-tools-dialog[open] { display: flex; flex-direction: column; }
-  .mobile-tools-handle, .mobile-tools-head { flex: 0 0 auto; }
+  .mobile-tools-head { flex: 0 0 auto; }
   .mobile-tools-dialog::backdrop {
     background: rgba(15, 17, 14, .42);
     backdrop-filter: blur(2px);
-  }
-  .mobile-tools-handle {
-    width: 42px;
-    height: 4px;
-    margin: 9px auto 3px;
-    border-radius: 999px;
-    background: var(--line-strong);
   }
   .mobile-tools-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 8px 16px 10px;
+    padding: 8px 16px;
     border-bottom: 1px solid var(--line);
   }
   .mobile-tools-head strong { font-size: 15px; }
@@ -6650,7 +6643,6 @@ body.is-sorting .page-card.drag-source {
       const mobileToolsDialog = document.createElement("dialog");
       mobileToolsDialog.className = "mobile-tools-dialog";
       mobileToolsDialog.innerHTML = `
-        <div class="mobile-tools-handle" aria-hidden="true"></div>
         <div class="mobile-tools-head">
           <strong class="mobile-tools-title"></strong>
           <button class="mobile-tools-close" type="button" aria-label="${mobileText("閉じる", "Close")}">${icons.close}</button>
