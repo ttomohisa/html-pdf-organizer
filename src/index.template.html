@@ -295,11 +295,20 @@
     .toolbar-divider { width: 1px; height: 24px; background: var(--line); flex: 0 0 auto; }
 
     .selection-status {
+      display: grid;
+      flex: 0 0 auto;
       min-width: 86px;
       padding: 0 8px;
       color: var(--text-muted);
       font-size: 12px;
       white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .selection-status::before, .selection-status > span { grid-area: 1 / 1; }
+    .selection-status::before {
+      content: attr(data-selection-sample);
+      visibility: hidden;
+      font-weight: 650;
     }
     .selection-status strong { color: var(--text); font-weight: 650; }
 
@@ -1738,7 +1747,7 @@ body.is-sorting .page-card.drag-source {
 
     <section class="workspace" id="workspace" hidden>
       <p class="workspace-guide" id="workspaceGuide" hidden>
-        <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">ドラッグして並び替え。選択したページもまとめて動かせます。</span>
+        <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">カードをドラッグして並び替え。選択中のページはまとめて動かせます。</span>
         <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">長押しして並び替え</span>
       </p>
 
@@ -2508,7 +2517,7 @@ body.is-sorting .page-card.drag-source {
         dropHint: "または、この枠内にPDF・画像・PowerPointをドラッグ＆ドロップ",
         choosePdf: "ファイルを選択",
         privacyNote: "完全ローカル処理",
-        workspaceGuideBody: "カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。",
+        workspaceGuideBody: "カードをドラッグして並び替え。選択中のページはまとめて動かせます。",
         workspaceGuideBodyMobile: "長押しして並び替え",
         dropMorePdf: "ここにPDF・画像・PowerPointを追加ドロップ",
         addPdf: "ファイルを追加",
@@ -3332,9 +3341,12 @@ body.is-sorting .page-card.drag-source {
       elements.watermarkButton.setAttribute("aria-label", watermarkLabel);
       elements.watermarkButton.title = watermarkLabel;
 
+      const selectedStatus = t("selectedStatusRest", { total: pageCount });
+      // Reserve space for the full selection count so editing controls stay in place.
+      elements.selectionStatus.dataset.selectionSample = `${pageCount} ${selectedStatus}`;
       elements.selectionStatus.innerHTML = hasSelection
-        ? `<strong>${selectedCount}</strong> ${t("selectedStatusRest", { total: pageCount })}`
-        : `<strong>${pageCount}</strong> ${t("pageCountRest")}`;
+        ? `<span><strong>${selectedCount}</strong> ${selectedStatus}</span>`
+        : `<span><strong>${pageCount}</strong> ${t("pageCountRest")}</span>`;
 
       const locked = state.isBusy;
       elements.moveStartButton.disabled = !canMoveSelectionToEdge("start");
@@ -6604,7 +6616,6 @@ body.is-sorting .page-card.drag-source {
           createMobileTool(elements.clearSelectionButton, icons.clearSelection, t("clearSelection")),
           createMobileTool(elements.moveStartButton, icons.moveStart, t("moveSelectionStart")),
           createMobileTool(elements.moveEndButton, icons.moveEnd, t("moveSelectionEnd")),
-          createMobileTool(elements.redoButton, icons.redo, t("redo")),
           createMobileTool(elements.clearAllButton, icons.trash, mobileText("全ページを一覧から削除", "Remove every page"), true)
         );
       }
