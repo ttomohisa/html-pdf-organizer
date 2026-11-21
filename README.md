@@ -59,7 +59,7 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 
 On desktop, open **Save settings** for watermark, page numbers, image compression, and password options. On a phone, open **More** for watermark, page numbers, and image compression, and use the lock button in the save bar for password protection.
 
-Turn on **Page numbers** to add a number such as `1 / 24` at the bottom center. The page preview shows numbers for the full list. Saving selected pages numbers just those pages, starting at 1.
+Turn on **Page numbers** to add a number such as `1 / 24` at the bottom center. The page cards and preview show numbers for the full list. Saving selected pages numbers just those pages, starting at 1.
 
 Enable **Compress images** to recompress eligible RGB JPEG images. Large images are resized to a maximum of 2,000 pixels on the longest side. Text stays searchable and selectable, and other image types such as PNG retain their data. The save message shows the PDF size before and after a successful reduction. If the PDF size stays the same, the app saves the regular export. This setting starts off.
 

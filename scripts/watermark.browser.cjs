@@ -195,6 +195,10 @@ async function exercise(browser, mobile) {
       await page.keyboard.press('Escape');
     }
     assert.equal(await page.locator('#pageNumbersButton').getAttribute('aria-pressed'), 'true');
+    const cardNumbers = page.locator('.thumb-frame .thumbnail-page-number-layer');
+    await cardNumbers.first().waitFor({ timeout: 3000 });
+    await page.waitForFunction(() => document.querySelectorAll('.thumbnail-page-number-layer').length === 2);
+    assert.ok(await cardNumbers.first().evaluate(hasBottomCenterText), 'The card preview includes the page number');
     await page.locator('.page-card [data-action="preview"]').first().click();
     const watermarkLayer = page.locator('.preview-content-frame canvas.preview-watermark-layer');
     await watermarkLayer.waitFor({ timeout: 5000 });
@@ -256,6 +260,21 @@ async function exercise(browser, mobile) {
     await page.locator('#previewCanvasHost:not([hidden]) .preview-content-frame > canvas:first-child').waitFor();
     assert.equal(await watermarkLayer.count(), 0, 'Turning off the watermark also clears it from the normal preview');
     await page.locator('#closePreviewButton').click();
+    const movedPage = await page.locator('.page-card').first().getAttribute('data-page-id');
+    await page.evaluate(() => document.getElementById('moveEndButton').click());
+    const movedCard = page.locator('.page-card').last();
+    assert.equal(await movedCard.getAttribute('data-page-id'), movedPage);
+    assert.equal(await movedCard.locator('.thumb-frame').getAttribute('data-page-number'), '2');
+    await movedCard.locator('.thumbnail-page-number-layer').waitFor();
+    if (mobile) {
+      await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
+      await page.locator('.mobile-tools-dialog').getByRole('button', { name: /^(ページ番号|Page numbers)$/i }).click();
+    } else {
+      await page.locator('#saveOptionsButton').click();
+      await page.locator('#pageNumbersButton').click();
+      await page.keyboard.press('Escape');
+    }
+    assert.equal(await cardNumbers.count(), 0, 'Turning page numbers off removes them from both cards');
     if (!mobile) {
       await openSettings(page, false);
       await page.locator('#watermarkEnabled').check();

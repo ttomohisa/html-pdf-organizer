@@ -591,13 +591,13 @@
     }
 
     .thumb-frame > canvas, .thumb-frame > .pptx-slide-shell { grid-area: 1 / 1; }
-    .thumb-frame > .thumbnail-watermark-layer {
+    .thumb-frame > :is(.thumbnail-watermark-layer, .thumbnail-page-number-layer) {
       position: relative;
       pointer-events: none;
       background: transparent;
       box-shadow: none;
     }
-    .thumb-frame > .pptx-slide-shell + .thumbnail-watermark-layer { max-width: none; max-height: none; }
+    .thumb-frame > .pptx-slide-shell ~ :is(.thumbnail-watermark-layer, .thumbnail-page-number-layer) { max-width: none; max-height: none; }
 
     .thumb-placeholder {
       width: 58%;
@@ -3463,6 +3463,7 @@ body.is-sorting .page-card.drag-source {
     elements.pageNumbersButton.addEventListener("click", () => {
       if (!state.pages.length || state.isBusy) return;
       state.pageNumbers = !state.pageNumbers;
+      elements.pagesGrid.querySelectorAll('.thumb-frame[data-rendered="true"]').forEach(updateThumbnailPageNumber);
       updateUiState();
       if (window.matchMedia("(max-width: 760px)").matches) {
         showToast(t(state.pageNumbers ? "pageNumbersOn" : "pageNumbersOff"), "info", 2000);
@@ -3676,6 +3677,7 @@ body.is-sorting .page-card.drag-source {
       const frame = document.createElement("div");
       frame.className = "thumb-frame";
       frame.dataset.pageId = item.id;
+      frame.dataset.pageNumber = String(index + 1);
       frame.title = t("doubleClickPreview");
       const placeholder = document.createElement("div");
       placeholder.className = "thumb-placeholder";
@@ -4028,6 +4030,18 @@ body.is-sorting .page-card.drag-source {
       layer.className = "thumbnail-watermark-layer";
       layer.style.width = page.style.width;
       layer.style.height = page.style.height;
+      frame.insertBefore(layer, frame.querySelector(".thumbnail-page-number-layer"));
+    }
+
+    function updateThumbnailPageNumber(frame) {
+      frame.querySelector(".thumbnail-page-number-layer")?.remove();
+      if (!state.pageNumbers) return;
+      const page = frame.firstElementChild;
+      const layer = createPageNumberLayer(parseFloat(page.style.width), parseFloat(page.style.height),
+        Math.min(window.devicePixelRatio || 1, 2), Number(frame.dataset.pageNumber), 8);
+      layer.className = "thumbnail-page-number-layer";
+      layer.style.width = page.style.width;
+      layer.style.height = page.style.height;
       frame.append(layer);
     }
 
@@ -4047,6 +4061,7 @@ body.is-sorting .page-card.drag-source {
         frame.replaceChildren(canvas);
         frame.dataset.rendered = "true";
         updateThumbnailWatermark(frame);
+        updateThumbnailPageNumber(frame);
         return;
       }
       if (doc.kind === "pptx") {
@@ -4061,6 +4076,7 @@ body.is-sorting .page-card.drag-source {
         }
         frame.dataset.rendered = "true";
         updateThumbnailWatermark(frame);
+        updateThumbnailPageNumber(frame);
         return;
       }
       if (!doc.pdfjsDoc) throw new Error(t("sourceMissing"));
@@ -4093,6 +4109,7 @@ body.is-sorting .page-card.drag-source {
       frame.replaceChildren(canvas);
       frame.dataset.rendered = "true";
       updateThumbnailWatermark(frame);
+      updateThumbnailPageNumber(frame);
     }
 
     const PREVIEW_ZOOM_MIN = 0.75;
@@ -4131,22 +4148,8 @@ body.is-sorting .page-card.drag-source {
       }
       if (state.pageNumbers) {
         const index = state.pages.findIndex(page => page.id === state.previewPageId);
-        const layer = document.createElement("canvas");
+        const layer = createPageNumberLayer(width, height, pixelRatio, index + 1);
         layer.className = "preview-page-number-layer";
-        layer.setAttribute("aria-hidden", "true");
-        layer.width = Math.max(1, Math.round(width * pixelRatio));
-        layer.height = Math.max(1, Math.round(height * pixelRatio));
-        const ctx = layer.getContext("2d");
-        const { label, size, baseline } = getPageNumberLayout(layer.width, layer.height, index + 1, state.pages.length);
-        ctx.font = size + "px Arial, sans-serif";
-        ctx.textAlign = "center";
-        const textWidth = ctx.measureText(label).width;
-        const center = layer.width / 2;
-        const y = layer.height - baseline;
-        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-        ctx.fillRect(center - textWidth / 2 - size * 0.4, y - size, textWidth + size * 0.8, size * 1.25);
-        ctx.fillStyle = "#262626";
-        ctx.fillText(label, center, y);
         frame.append(layer);
       }
       host.replaceChildren(frame);
@@ -5239,11 +5242,30 @@ body.is-sorting .page-card.drag-source {
       });
     }
 
-    function getPageNumberLayout(width, height, number, total) {
+    function createPageNumberLayer(width, height, pixelRatio, number, minSize = 0) {
+      const layer = document.createElement("canvas");
+      layer.setAttribute("aria-hidden", "true");
+      layer.width = Math.max(1, Math.round(width * pixelRatio));
+      layer.height = Math.max(1, Math.round(height * pixelRatio));
+      const ctx = layer.getContext("2d");
+      const { label, size, baseline } = getPageNumberLayout(layer.width, layer.height, number, state.pages.length, minSize * pixelRatio);
+      ctx.font = size + "px Arial, sans-serif";
+      ctx.textAlign = "center";
+      const textWidth = ctx.measureText(label).width;
+      const center = layer.width / 2;
+      const y = layer.height - baseline;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.fillRect(center - textWidth / 2 - size * 0.4, y - size, textWidth + size * 0.8, size * 1.25);
+      ctx.fillStyle = "#262626";
+      ctx.fillText(label, center, y);
+      return layer;
+    }
+
+    function getPageNumberLayout(width, height, number, total, minSize = 0) {
       const label = `${number} / ${total}`;
       const shortSide = Math.min(width, height);
-      const size = Math.min(shortSide * 0.022, width / (label.length + 2));
-      return { label, size, baseline: shortSide * 0.04 };
+      const size = Math.min(Math.max(shortSide * 0.022, minSize), width / (label.length + 2), height / 4);
+      return { label, size, baseline: Math.max(shortSide * 0.04, size * 0.45) };
     }
 
     function drawPdfPageNumber(page, font, number, total) {
