@@ -295,11 +295,31 @@
     .toolbar-divider { width: 1px; height: 24px; background: var(--line); flex: 0 0 auto; }
 
     .selection-status {
+      display: grid;
+      flex: 0 0 auto;
       min-width: 86px;
       padding: 0 8px;
       color: var(--text-muted);
       font-size: 12px;
       white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .selection-status::before, .selection-status > span { grid-area: 1 / 1; }
+    .selection-status::before {
+      content: attr(data-selection-sample);
+      visibility: hidden;
+      font-weight: 650;
+    }
+    .toolbar-count { flex: 0 0 auto; }
+    .import-status {
+      width: 0;
+      min-width: 100%;
+      padding-inline: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--accent);
+      font-size: 11px;
     }
     .selection-status strong { color: var(--text); font-weight: 650; }
 
@@ -591,13 +611,13 @@
     }
 
     .thumb-frame > canvas, .thumb-frame > .pptx-slide-shell { grid-area: 1 / 1; }
-    .thumb-frame > .thumbnail-watermark-layer {
+    .thumb-frame > :is(.thumbnail-watermark-layer, .thumbnail-page-number-layer) {
       position: relative;
       pointer-events: none;
       background: transparent;
       box-shadow: none;
     }
-    .thumb-frame > .pptx-slide-shell + .thumbnail-watermark-layer { max-width: none; max-height: none; }
+    .thumb-frame > .pptx-slide-shell ~ :is(.thumbnail-watermark-layer, .thumbnail-page-number-layer) { max-width: none; max-height: none; }
 
     .thumb-placeholder {
       width: 58%;
@@ -776,13 +796,13 @@
       position: fixed;
       z-index: 40;
       left: 50%;
-      bottom: max(14px, env(safe-area-inset-bottom));
-      width: min(820px, calc(100% - 24px));
+      bottom: max(16px, env(safe-area-inset-bottom));
+      width: min(704px, calc(100% - 32px));
       transform: translateX(-50%);
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px;
+      gap: 8px;
+      padding: 8px;
       border: 1px solid var(--line);
       border-radius: 16px;
       background: color-mix(in srgb, var(--surface) 94%, transparent);
@@ -794,34 +814,71 @@
     .filename-input {
       width: 100%;
       min-height: 40px;
-      padding: 8px 46px 8px 11px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
+      padding: 8px 16px;
+      border: 1px solid transparent;
+      border-radius: 8px;
       background: var(--surface-muted);
       color: var(--text);
     }
     .filename-input:hover { border-color: var(--line-strong); }
     .filename-input:focus { border-color: var(--focus); background: var(--surface); }
-    .output-password-button {
-      position: absolute;
-      top: 50%;
-      right: 5px;
-      width: 32px;
-      min-width: 32px;
-      min-height: 32px;
-      padding: 0;
-      transform: translateY(-50%);
-      border-radius: 8px;
-      color: var(--text-muted);
-    }
-    .output-password-button:hover { color: var(--text); background: var(--surface-hover); }
-    .output-password-button:active:not(:disabled) { transform: translateY(-50%); }
-    .output-password-button.is-active {
-      color: var(--accent);
+    .export-bar #saveSelectedButton:not(.has-selection) { display: none; }
+    .export-bar #saveSelectedButton {
+      border-color: transparent;
       background: var(--accent-soft);
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
+      color: var(--accent);
     }
-    .output-password-button svg { width: 17px; height: 17px; }
+    .export-bar #saveSelectedButton:hover:not(:disabled) { background: var(--surface-hover); }
+    .save-options { position: relative; flex: 0 0 auto; }
+    .save-options-panel {
+      position: absolute;
+      inset-inline-end: 0;
+      bottom: calc(100% + 16px);
+      width: 224px;
+      max-height: calc(100dvh - 80px);
+      overflow: auto;
+      display: grid;
+      gap: 0;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+      box-shadow: var(--shadow-md);
+    }
+    .save-filename-label { display: none; }
+    .save-option-note {
+      margin: 0;
+      padding: 0 8px 8px;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .save-options-panel[hidden] { display: none; }
+    .button.save-option {
+      width: 100%;
+      justify-content: flex-start;
+      min-height: 40px;
+      padding: 0 8px;
+      gap: 8px;
+      border-radius: 8px;
+    }
+    .save-option-state {
+      visibility: hidden;
+      margin-inline-start: auto;
+      color: var(--accent);
+      font-size: 11px;
+    }
+    .save-option.is-active > .save-option-state,
+    .save-option[aria-pressed="true"] > .save-option-state { visibility: visible; }
+    #saveOptionsButton[aria-expanded="true"] { background: var(--surface-hover); }
+    #saveOptionsButton.is-active { color: var(--accent); }
+    .save-options-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    #saveOptionsButton:not(.is-active) .save-options-indicator { display: none; }
 
     .busy-overlay {
       position: fixed;
@@ -865,6 +922,12 @@
       display: grid;
       gap: 8px;
       pointer-events: none;
+    }
+    @media (min-width: 761px) {
+      body:has(.export-bar:not([hidden])) .toast-region {
+        top: auto;
+        bottom: calc(max(16px, env(safe-area-inset-bottom)) + 72px);
+      }
     }
     .toast {
       display: flex;
@@ -1023,7 +1086,8 @@
     #watermarkPageContent > canvas { display: block; }
     #watermarkPreviewStatus { margin: 0; text-align: center; }
     #watermarkPreviewStatus[hidden], .watermark-preview-page[hidden] { display: none; }
-    #watermarkButton.is-active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    .save-option.is-active, .save-option[aria-pressed="true"] { color: var(--accent); }
+    .mobile-tools-action[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
     @media (max-width: 580px) {
       .watermark-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "toggle" "preview" "fields"; grid-template-rows: auto; gap: 12px; }
       .watermark-dialog .dialog-body { padding: 14px; }
@@ -1109,7 +1173,7 @@
       background: #fff;
       box-shadow: 0 8px 32px rgba(0, 0, 0, .22);
     }
-    .preview-content-frame > .preview-watermark-layer {
+    .preview-content-frame > :is(.preview-watermark-layer, .preview-page-number-layer) {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -1182,8 +1246,9 @@
       overflow: visible;
     }
 
+    .toolbar :is(#moveStartButton, #moveEndButton) .button-label { display: none; }
     @media (761px <= width <= 1450px) {
-      .toolbar :is(#moveStartButton, #moveEndButton, #rotateLeftButton, #rotateRightButton) .button-label { display: none; }
+      .toolbar :is(#rotateLeftButton, #rotateRightButton) .button-label { display: none; }
     }
     @media (761px <= width <= 1220px) {
       .toolbar .button-label.optional { display: none; }
@@ -1484,27 +1549,43 @@ body.is-sorting .page-card.drag-source {
   .main { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
   .export-bar {
     bottom: max(8px, env(safe-area-inset-bottom));
-    width: calc(100% - 16px);
-    gap: 5px;
-    padding: 6px;
-    border-radius: 15px;
+    width: min(440px, calc(100% - 16px));
+    gap: 8px;
+    padding: 8px;
+    border-radius: 16px;
   }
-  .export-bar .filename-wrap {
-    flex: 1 1 110px;
-    min-width: 68px;
-  }
-  .filename-input {
-    min-width: 0;
-    min-height: 38px;
-    padding: 8px 42px 8px 9px;
-    font-size: 12px;
-  }
-  .output-password-button { right: 4px; width: 30px; min-width: 30px; min-height: 30px; }
   .export-bar .button {
-    min-height: 38px;
-    padding-inline: 9px;
+    min-height: 40px;
+    padding-inline: 8px;
   }
-  .export-bar .output-password-button { min-height: 30px; height: 30px; padding: 0; }
+  .export-bar .save-options { position: static; margin-inline-end: auto; }
+  .export-bar #saveOptionsButton { gap: 4px; font-size: 12px; }
+  .export-bar #saveOptionsButton > span[data-i18n] { display: inline; }
+  .save-options-panel {
+    inset-inline: 0;
+    bottom: calc(100% + 8px);
+    width: auto;
+    max-height: calc(100dvh - 80px - env(safe-area-inset-bottom));
+  }
+  .save-options-panel .save-option { min-height: 44px; }
+  .save-options-panel .filename-wrap { min-width: 0; margin: 0 8px 8px; }
+  .save-filename-label {
+    display: block;
+    margin: 8px 0;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .save-options-panel .filename-input { min-height: 40px; font-size: 16px; }
+  .preview-title { flex: 1; }
+  .preview-title h2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 14px;
+    line-height: 1.35;
+  }
   .export-bar #saveSelectedButton {
     display: none;
     flex: 0 0 auto;
@@ -1525,7 +1606,6 @@ body.is-sorting .page-card.drag-source {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .export-bar #saveSelectedButton svg { width: 16px; height: 16px; }
   .export-bar #saveAllButton {
     flex: 0 0 auto;
     min-width: 92px;
@@ -1536,21 +1616,11 @@ body.is-sorting .page-card.drag-source {
     font-size: 11px;
     white-space: nowrap;
   }
-  .export-bar #watermarkButton {
-    flex: 0 0 38px;
-    padding: 0;
-  }
-  .export-bar #watermarkButton:not(.is-active), #watermarkButtonLabel { display: none; }
-  @media (max-width: 390px) {
-    .export-bar:has(#watermarkButton.is-active):has(#saveSelectedButton.has-selection) :is(#saveSelectedIcon, #saveAllIcon) { display: none; }
-    .export-bar:has(#watermarkButton.is-active):has(#saveSelectedButton.has-selection) #saveAllButton { min-width: 0; }
-  }
-  .toast-region { bottom: calc(70px + env(safe-area-inset-bottom)); }
 
   .toast-region {
     top: auto;
     right: 50%;
-    bottom: calc(72px + env(safe-area-inset-bottom));
+    bottom: calc(80px + env(safe-area-inset-bottom));
     width: min(390px, calc(100% - 20px));
     transform: translateX(50%);
   }
@@ -1561,6 +1631,7 @@ body.is-sorting .page-card.drag-source {
     backdrop-filter: blur(14px);
   }
   .toast-message { font-size: 12px; }
+  body:has(#saveOptionsPanel:not([hidden])) .toast-region { visibility: hidden; }
 
   .mobile-tools-dialog {
     width: 100%;
@@ -1647,6 +1718,24 @@ body.is-sorting .page-card.drag-source {
   .mobile-dock-button span { font-size: 8px; }
 }
 
+@media (max-width: 430px) {
+  #saveOptionsButton > #saveOptionsIcon { display: none; }
+  .export-bar #saveAllButton { min-width: 0; gap: 4px; padding-inline: 8px; }
+  .preview-dialog .dialog-header {
+    display: grid;
+    grid-template-columns: 1fr 36px auto 36px 1fr;
+    gap: 0 4px;
+  }
+  .preview-title { grid-column: 1 / 5; grid-row: 1; }
+  .preview-title h2 { -webkit-line-clamp: 3; }
+  .preview-controls { display: contents; }
+  #closePreviewButton { grid-column: 5; grid-row: 1; justify-self: end; }
+  #previewPreviousButton { grid-column: 2; grid-row: 2; }
+  #previewCounter { grid-column: 3; grid-row: 2; }
+  #previewNextButton { grid-column: 4; grid-row: 2; }
+  .preview-dialog .dialog-header .button { min-height: 32px; width: 36px; }
+}
+
 @media (max-width: 760px) and (max-height: 480px) {
   .mobile-edit-dock { position: static; }
 }
@@ -1662,7 +1751,7 @@ body.is-sorting .page-card.drag-source {
           <svg class="brand-favicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#16624f"/><path d="M18 14h20l8 8v28H18z" fill="#fff" opacity=".96"/><path d="M38 14v8h8" fill="#dbe9e5"/><text x="32" y="39" text-anchor="middle" fill="#16624f" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="-.4">PDF</text></svg>
         </div>
         <div class="brand-copy">
-          <h1>PDF Organizer <span class="version-badge" title="Version 1.4.0">v1.4.0</span></h1>
+          <h1>PDF Organizer <span class="version-badge" title="Version 1.5.0">v1.5.0</span></h1>
           <p data-i18n="brandSubtitle">PDF・画像ページの並び替え・回転・削除・結合</p>
         </div>
       </div>
@@ -1696,12 +1785,15 @@ body.is-sorting .page-card.drag-source {
 
     <section class="workspace" id="workspace" hidden>
       <p class="workspace-guide" id="workspaceGuide" hidden>
-        <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">ドラッグして並び替え。選択したページもまとめて動かせます。</span>
+        <span class="workspace-guide-desktop" data-i18n="workspaceGuideBody">カードをドラッグして並び替え。選択中のページはまとめて動かせます。</span>
         <span class="workspace-guide-mobile" data-i18n="workspaceGuideBodyMobile">長押しして並び替え</span>
       </p>
 
       <div class="toolbar" role="toolbar" data-i18n-aria-label="pageEditing" aria-label="ページ編集">
-        <div class="selection-status" id="selectionStatus" aria-live="polite"></div>
+        <div class="toolbar-count">
+          <div class="selection-status" id="selectionStatus" aria-live="polite"></div>
+          <div class="import-status" id="importStatus" role="status"></div>
+        </div>
         <div class="toolbar-group">
           <button class="button" id="selectAllButton" type="button" data-i18n-title="selectAll" data-i18n-aria-label="selectAll"><span id="selectAllIcon"></span><span class="button-label optional" data-i18n="selectAll">すべて選択</span></button>
           <button class="button" id="clearSelectionButton" type="button" data-i18n-title="clearSelection" data-i18n-aria-label="clearSelection"><span id="clearSelectionIcon"></span><span class="button-label optional" data-i18n="clearSelection">選択解除</span></button>
@@ -1746,13 +1838,23 @@ body.is-sorting .page-card.drag-source {
   </main>
 
   <div class="export-bar" id="exportBar" hidden>
-    <div class="filename-wrap">
-      <label class="sr-only" for="filenameInput" data-i18n="filenameLabel">保存ファイル名</label>
-      <input class="filename-input" id="filenameInput" type="text" value="organized.pdf" maxlength="180" autocomplete="off" spellcheck="false">
-      <button class="button icon-only ghost output-password-button" id="outputPasswordButton" type="button" aria-label="出力PDFにパスワードを設定" title="出力PDFにパスワードを設定"><span id="outputPasswordIcon" aria-hidden="true"></span></button>
+    <div class="filename-wrap" id="filenameWrap">
+      <label class="save-filename-label" id="saveFilenameLabel" for="filenameInput" data-i18n="filenameLabel">保存ファイル名</label>
+      <input class="filename-input" id="filenameInput" type="text" aria-labelledby="saveFilenameLabel" value="organized.pdf" maxlength="180" autocomplete="off" spellcheck="false">
     </div>
-    <button class="button" id="watermarkButton" type="button" aria-haspopup="dialog" aria-controls="watermarkDialog"><span id="watermarkIcon" aria-hidden="true"></span><span id="watermarkButtonLabel" data-i18n="watermark">透かし</span></button>
-    <button class="button" id="saveSelectedButton" type="button"><span id="saveSelectedIcon"></span><span class="button-label" data-i18n="saveSelected">選択ページを保存</span></button>
+    <div class="save-options" id="saveOptions">
+      <button class="button ghost" id="saveOptionsButton" type="button" aria-expanded="false" aria-controls="saveOptionsPanel">
+        <span id="saveOptionsIcon" aria-hidden="true"></span><span data-i18n="saveOptions">保存設定</span><span class="save-options-indicator" aria-hidden="true"></span>
+      </button>
+      <div class="save-options-panel" id="saveOptionsPanel" hidden>
+        <button class="button ghost save-option" id="watermarkButton" type="button" aria-haspopup="dialog" aria-controls="watermarkDialog"><span id="watermarkIcon" aria-hidden="true"></span><span data-i18n="watermark">透かし</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
+        <button class="button ghost save-option" id="pageNumbersButton" type="button" aria-pressed="false"><span id="pageNumbersIcon" aria-hidden="true"></span><span data-i18n="pageNumbers">ページ番号</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
+        <p class="save-option-note" id="pageNumbersExportNote" data-i18n="pageNumbersExportNote" hidden>選択ページだけ保存すると、1から番号を振り直します。</p>
+        <button class="button ghost save-option" id="imageCompressionButton" type="button" aria-pressed="false" data-i18n-title="imageCompressionHint" title="PDF内のJPEG画像の画質を下げて、ファイルを小さくします。"><span id="imageCompressionIcon" aria-hidden="true"></span><span data-i18n="imageCompression">画像圧縮</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
+        <button class="button ghost save-option" id="saveOptionsPasswordButton" type="button" aria-haspopup="dialog" aria-controls="outputPasswordDialog"><span id="saveOptionsPasswordIcon" aria-hidden="true"></span><span data-i18n="saveOptionsPassword">パスワード</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
+      </div>
+    </div>
+    <button class="button" id="saveSelectedButton" type="button"><span class="button-label" data-i18n="saveSelected">選択ページを保存</span></button>
     <button class="button primary" id="saveAllButton" type="button"><span id="saveAllIcon"></span><span class="button-label" data-i18n="saveAll">すべて保存</span></button>
   </div>
 
@@ -1957,8 +2059,9 @@ body.is-sorting .page-card.drag-source {
         <li data-i18n="helpEdit">不要なページは選んで削除。回転や「元に戻す」も使えます。</li>
         <li data-i18n="helpMerge">「すべて保存」または「選択ページを保存」でPDFを書き出します。</li>
       </ol>
+      <p data-i18n="helpSaveSettings">「保存設定」から透かし・ページ番号・画像圧縮・パスワードを設定できます。スマホでは保存ファイル名もここで変更できます。</p>
       <h3 data-i18n="multipleSelection">ページの選び方</h3>
-      <p data-i18n-html="helpSelection">カードをクリックして選択します。複数ページは右上のチェックで追加できます。PCでは<kbd>Shift</kbd>＋クリックで範囲選択できます。</p>
+      <p data-i18n-html="helpSelection">カードをクリックして選択します。右上のチェックでページを追加でき、PCでは<kbd>Shift</kbd>＋クリックで範囲選択できます。「ページ番号で選択」（スマホでは「その他」内）には、2-5, 9 のように入力できます。</p>
       <p data-i18n="helpPreview">拡大ボタンでページを大きく確認できます。</p>
       <h3 data-i18n="imageLayoutHeading">画像の配置</h3>
       <p data-i18n="helpImageLayout">画像のFitは全体をA4内に収め、FillはA4いっぱいに配置してはみ出す部分を切り取ります。Original Sizeは画像の大きさに合わせたページを作ります。</p>
@@ -2254,6 +2357,7 @@ body.is-sorting .page-card.drag-source {
     const { PDFDocument, degrees, rgb } = window.PDFLib || {};
 
     const icons = {
+      sliders: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h5m4 0h7M4 17h7m4 0h5M9 4v6m6 4v6"/></svg>`,
       help: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.3 2.3 0 1 1 3.75 1.78c-.91.69-1.55 1.16-1.55 2.22"/><path d="M12 17h.01"/></svg>`,
       upload: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="m7.5 11.5 4.5 4.5 4.5-4.5"/><path d="M5 17v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2"/></svg>`,
       addFile: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M12 11v6M9 14h6"/></svg>`,
@@ -2304,6 +2408,7 @@ body.is-sorting .page-card.drag-source {
       addButton: $("#addButton"),
       emptyAddButton: $("#emptyAddButton"),
       selectionStatus: $("#selectionStatus"),
+      importStatus: $("#importStatus"),
       selectAllButton: $("#selectAllButton"),
       selectPageRangesButton: $("#selectPageRangesButton"),
       pageRangesDialog: $("#pageRangesDialog"),
@@ -2320,8 +2425,14 @@ body.is-sorting .page-card.drag-source {
       clearAllButton: $("#clearAllButton"),
       zoomSlider: $("#zoomSlider"),
       filenameInput: $("#filenameInput"),
+      saveOptions: $("#saveOptions"),
+      saveOptionsButton: $("#saveOptionsButton"),
+      saveOptionsPanel: $("#saveOptionsPanel"),
+      saveOptionsPasswordButton: $("#saveOptionsPasswordButton"),
       watermarkButton: $("#watermarkButton"),
-      watermarkButtonLabel: $("#watermarkButtonLabel"),
+      pageNumbersButton: $("#pageNumbersButton"),
+      pageNumbersExportNote: $("#pageNumbersExportNote"),
+      imageCompressionButton: $("#imageCompressionButton"),
       watermarkDialog: $("#watermarkDialog"),
       watermarkForm: $("#watermarkForm"),
       watermarkEnabled: $("#watermarkEnabled"),
@@ -2331,7 +2442,6 @@ body.is-sorting .page-card.drag-source {
       watermarkColor: $("#watermarkColor"),
       watermarkOpacity: $("#watermarkOpacity"),
       watermarkOpacityValue: $("#watermarkOpacityValue"),
-      outputPasswordButton: $("#outputPasswordButton"),
       outputPasswordDialog: $("#outputPasswordDialog"),
       outputPasswordForm: $("#outputPasswordForm"),
       outputPasswordEnabled: $("#outputPasswordEnabled"),
@@ -2382,6 +2492,8 @@ body.is-sorting .page-card.drag-source {
     const state = {
       documents: new Map(),
       watermark: null,
+      compressImages: false,
+      pageNumbers: false,
       pages: [],
       selected: new Set(),
       lastSelectedId: null,
@@ -2416,8 +2528,11 @@ body.is-sorting .page-card.drag-source {
       ["moveStartIcon", "moveStart"], ["moveEndIcon", "moveEnd"],
       ["deleteIcon", "trash"], ["undoButton", "undo"], ["redoButton", "redo"], ["zoomSmallIcon", "zoomSmall"],
       ["zoomLargeIcon", "zoomLarge"], ["clearAllIcon", "trash"], ["emptyIcon", "file"], ["emptyAddIcon", "addFile"],
-      ["saveSelectedIcon", "download"], ["saveAllIcon", "download"], ["outputPasswordIcon", "lockOpen"],
+      ["saveAllIcon", "download"],
       ["watermarkIcon", "watermark"], ["watermarkPrevious", "previous"], ["watermarkNext", "next"],
+      ["imageCompressionIcon", "image"],
+      ["saveOptionsIcon", "sliders"], ["saveOptionsPasswordIcon", "lockOpen"],
+      ["pageNumbersIcon", "pageRanges"],
       ["outputPasswordVisibilityIcon", "eye"], ["outputPasswordConfirmVisibilityIcon", "eye"], ["closeHelpButton", "close"],
       ["previewPreviousButton", "previous"], ["previewNextButton", "next"], ["closePreviewButton", "close"],
       ["previewZoomInButton", "previewZoomIn"], ["previewZoomOutButton", "previewZoomOut"]
@@ -2445,7 +2560,7 @@ body.is-sorting .page-card.drag-source {
         dropHint: "または、この枠内にPDF・画像・PowerPointをドラッグ＆ドロップ",
         choosePdf: "ファイルを選択",
         privacyNote: "完全ローカル処理",
-        workspaceGuideBody: "カードをそのままドラッグして並び替え。選択中のページはまとめて動かせます。",
+        workspaceGuideBody: "カードをドラッグして並び替え。選択中のページはまとめて動かせます。",
         workspaceGuideBodyMobile: "長押しして並び替え",
         dropMorePdf: "ここにPDF・画像・PowerPointを追加ドロップ",
         addPdf: "ファイルを追加",
@@ -2476,8 +2591,16 @@ body.is-sorting .page-card.drag-source {
         filenameLabel: "保存ファイル名",
         saveSelected: "選択ページを保存",
         saveSelectedCount: "選択 {count}ページを保存",
-        saveSelectedCompact: "選択 {count}P 保存",
+        saveSelectedCompact: "選択を保存",
         saveAll: "すべて保存",
+        saveOptions: "保存設定",
+        saveOptionsActive: "保存設定（適用中の設定あり）",
+        saveOptionOn: "オン",
+        pageNumbers: "ページ番号",
+        pageNumbersExportNote: "選択ページだけ保存すると、1から番号を振り直します。",
+        importStatus: "{pages}ページ追加",
+        importStatusSingle: "1ページ追加",
+        saveOptionsPassword: "パスワード",
         outputPasswordButtonInactive: "出力PDFにパスワードを設定",
         outputPasswordButtonActive: "出力パスワード設定済み",
         outputPasswordDialogTitle: "出力PDFをパスワードで保護",
@@ -2491,6 +2614,13 @@ body.is-sorting .page-card.drag-source {
         outputPasswordApply: "設定を反映",
         watermark: "透かし",
         watermarkOn: "透かし ON",
+        imageCompression: "画像圧縮",
+        imageCompressionHint: "PDF内のJPEG画像の画質を下げて、ファイルを小さくします。",
+        compressingImages: "画像を圧縮しています",
+        compressionProgress: "JPEG画像 {current} / {total}",
+        compressionResult: "PDFサイズ：{before} → {after}",
+        compressionResultEncrypted: "暗号化前のPDFサイズ：{before} → {after}",
+        compressionNoSavings: "画像圧縮によるサイズの削減はありませんでした。",
         watermarkTitle: "テキストの透かし",
         watermarkEnable: "保存するページに透かしを入れる",
         watermarkTextLabel: "テキスト（60文字まで）",
@@ -2541,10 +2671,11 @@ body.is-sorting .page-card.drag-source {
         helpEdit: "不要なページは選んで削除。回転や「元に戻す」も使えます。",
         helpPreview: "拡大ボタンでページを大きく確認できます。",
         helpMerge: "「すべて保存」または「選択ページを保存」でPDFを書き出します。",
+        helpSaveSettings: "「保存設定」から透かし・ページ番号・画像圧縮・パスワードを設定できます。スマホでは保存ファイル名もここで変更できます。",
         helpImageLayout: "画像のFitは全体をA4内に収め、FillはA4いっぱいに配置してはみ出す部分を切り取ります。Original Sizeは画像の大きさに合わせたページを作ります。",
         imageLayoutHeading: "画像の配置",
         multipleSelection: "ページの選び方",
-        helpSelection: "カードをクリックして選択します。複数ページは右上のチェックで追加できます。PCでは<kbd>Shift</kbd>＋クリックで範囲選択できます。",
+        helpSelection: "カードをクリックして選択します。右上のチェックでページを追加でき、PCでは<kbd>Shift</kbd>＋クリックで範囲選択できます。「ページ番号で選択」（スマホでは「その他」内）には、2-5, 9 のように入力できます。",
         keyboardShortcuts: "PCのキーボード操作",
         shortcutSelectAll: "すべてのページを選択",
         shortcutDelete: "選択ページを削除",
@@ -2674,8 +2805,16 @@ body.is-sorting .page-card.drag-source {
         filenameLabel: "Output filename",
         saveSelected: "Save selected",
         saveSelectedCount: "Save {count} selected",
-        saveSelectedCompact: "Save {count}",
+        saveSelectedCompact: "Save selected",
         saveAll: "Save all",
+        saveOptions: "Save settings",
+        saveOptionsActive: "Save settings (options enabled)",
+        saveOptionOn: "On",
+        pageNumbers: "Page numbers",
+        pageNumbersExportNote: "When you save only selected pages, numbering starts at 1.",
+        importStatus: "{pages} pages added",
+        importStatusSingle: "1 page added",
+        saveOptionsPassword: "Password",
         outputPasswordButtonInactive: "Set an output PDF password",
         outputPasswordButtonActive: "Output password is set",
         outputPasswordDialogTitle: "Password-protect output PDF",
@@ -2689,6 +2828,13 @@ body.is-sorting .page-card.drag-source {
         outputPasswordApply: "Apply",
         watermark: "Watermark",
         watermarkOn: "Watermark on",
+        imageCompression: "Compress images",
+        imageCompressionHint: "Reduce JPEG image quality to make the PDF smaller.",
+        compressingImages: "Compressing images",
+        compressionProgress: "JPEG image {current} of {total}",
+        compressionResult: "PDF size: {before} → {after}",
+        compressionResultEncrypted: "PDF size before encryption: {before} → {after}",
+        compressionNoSavings: "Image compression did not reduce the PDF size.",
         watermarkTitle: "Text watermark",
         watermarkEnable: "Add a watermark to exported pages",
         watermarkTextLabel: "Text (up to 60 characters)",
@@ -2739,10 +2885,11 @@ body.is-sorting .page-card.drag-source {
         helpEdit: "Select pages to remove or rotate them. You can undo changes.",
         helpPreview: "Use the expand button to inspect a page more closely.",
         helpMerge: "Use Save all or Save selected to download a PDF.",
+        helpSaveSettings: "Open Save settings for watermarks, page numbers, image compression, and password protection. On a phone, you can also change the output filename there.",
         helpImageLayout: "Fit keeps an entire image inside an A4 page. Fill covers the A4 page and crops the excess. Original Size creates a page sized to the image.",
         imageLayoutHeading: "Image placement",
         multipleSelection: "Selecting pages",
-        helpSelection: "Click a card to select it. Use its checkbox to add more pages. On a computer, <kbd>Shift</kbd>-click to select a range.",
+        helpSelection: "Click a card to select it or use its checkbox to add it to your selection. On a computer, <kbd>Shift</kbd>-click to select a range. To enter a range such as 2-5, 9, open Select by page number (under More on a phone).",
         keyboardShortcuts: "Keyboard shortcuts (desktop)",
         shortcutSelectAll: "Select every page",
         shortcutDelete: "Delete selected pages",
@@ -3168,7 +3315,11 @@ body.is-sorting .page-card.drag-source {
     }
 
     function reconcileSelection() {
-      if (!state.pages.length) state.watermark = null;
+      if (!state.pages.length) {
+        state.watermark = null;
+        state.compressImages = false;
+        state.pageNumbers = false;
+      }
       const validIds = new Set(state.pages.map((page) => page.id));
       for (const id of state.selected) {
         if (!validIds.has(id)) state.selected.delete(id);
@@ -3198,6 +3349,13 @@ body.is-sorting .page-card.drag-source {
       showToast(t("redoDone"), "info", 1800);
     }
 
+    function closeSaveOptions(restoreFocus = false) {
+      if (elements.saveOptionsPanel.hidden) return;
+      elements.saveOptionsButton.setAttribute("aria-expanded", "false");
+      elements.saveOptionsPanel.hidden = true;
+      if (restoreFocus) elements.saveOptionsButton.focus({ preventScroll: true });
+    }
+
     function updateUiState() {
       const pageCount = state.pages.length;
       const selectedCount = state.selected.size;
@@ -3212,16 +3370,27 @@ body.is-sorting .page-card.drag-source {
       elements.emptyState.hidden = hasPages || elements.workspace.hidden;
       elements.pagesGrid.hidden = !hasPages;
       elements.exportBar.hidden = !hasPages;
+      const lockSaveOptions = state.isBusy || !hasPages;
+      if (lockSaveOptions) closeSaveOptions();
+      elements.saveOptionsButton.disabled = lockSaveOptions;
+      elements.saveOptionsPasswordButton.disabled = lockSaveOptions;
+      elements.pageNumbersButton.disabled = lockSaveOptions;
+      elements.pageNumbersButton.setAttribute("aria-pressed", String(state.pageNumbers));
+      elements.pageNumbersExportNote.hidden = !state.pageNumbers;
+      elements.imageCompressionButton.disabled = state.isBusy || !hasPages;
+      elements.imageCompressionButton.setAttribute("aria-pressed", String(state.compressImages));
       elements.watermarkButton.disabled = state.isBusy || !hasPages;
       elements.watermarkButton.classList.toggle("is-active", !!state.watermark);
       const watermarkLabel = t(state.watermark ? "watermarkOn" : "watermark");
-      elements.watermarkButtonLabel.textContent = watermarkLabel;
       elements.watermarkButton.setAttribute("aria-label", watermarkLabel);
       elements.watermarkButton.title = watermarkLabel;
 
+      const selectedStatus = t("selectedStatusRest", { total: pageCount });
+      // Reserve space for the full selection count so editing controls stay in place.
+      elements.selectionStatus.dataset.selectionSample = `${pageCount} ${selectedStatus}`;
       elements.selectionStatus.innerHTML = hasSelection
-        ? `<strong>${selectedCount}</strong> ${t("selectedStatusRest", { total: pageCount })}`
-        : `<strong>${pageCount}</strong> ${t("pageCountRest")}`;
+        ? `<span><strong>${selectedCount}</strong> ${selectedStatus}</span>`
+        : `<span><strong>${pageCount}</strong> ${t("pageCountRest")}</span>`;
 
       const locked = state.isBusy;
       elements.moveStartButton.disabled = !canMoveSelectionToEdge("start");
@@ -3234,7 +3403,7 @@ body.is-sorting .page-card.drag-source {
       elements.saveSelectedButton.classList.toggle("has-selection", hasSelection);
       const saveSelectedLabel = elements.saveSelectedButton.querySelector(".button-label");
       const saveSelectedText = hasSelection ? t("saveSelectedCount", { count: selectedCount }) : t("saveSelected");
-      const saveSelectedCompactText = hasSelection ? t("saveSelectedCompact", { count: selectedCount }) : t("saveSelected");
+      const saveSelectedCompactText = t("saveSelectedCompact");
       if (saveSelectedLabel) saveSelectedLabel.textContent = window.matchMedia("(max-width: 760px)").matches ? saveSelectedCompactText : saveSelectedText;
       elements.saveSelectedButton.setAttribute("aria-label", saveSelectedText);
       elements.saveSelectedButton.title = saveSelectedText;
@@ -3246,7 +3415,7 @@ body.is-sorting .page-card.drag-source {
       elements.redoButton.disabled = locked || (state.future.length === 0);
       updateOutputPasswordUi();
       for (const control of [elements.addButton, elements.initialAddButton, elements.emptyAddButton,
-        elements.fileInput, elements.filenameInput, elements.outputPasswordButton]) control.disabled = locked;
+        elements.fileInput, elements.filenameInput]) control.disabled = locked;
     }
 
     function updatePasswordVisibilityButton(input, button, iconId) {
@@ -3316,7 +3485,52 @@ body.is-sorting .page-card.drag-source {
       openWatermarkPreview();
     }
 
-    elements.watermarkButton.addEventListener("click", openWatermarkDialog);
+    elements.saveOptionsButton.addEventListener("click", () => {
+      if (elements.saveOptionsPanel.hidden) {
+        elements.saveOptionsPanel.hidden = false;
+        elements.saveOptionsButton.setAttribute("aria-expanded", "true");
+      } else closeSaveOptions();
+    });
+    elements.saveOptions.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || elements.saveOptionsPanel.hidden) return;
+      event.preventDefault();
+      event.stopPropagation();
+      closeSaveOptions(true);
+    });
+    elements.saveOptions.addEventListener("focusout", (event) => {
+      if (event.relatedTarget && !elements.saveOptions.contains(event.relatedTarget)) closeSaveOptions();
+    });
+    document.addEventListener("click", (event) => {
+      if (!elements.saveOptions.contains(event.target)) closeSaveOptions();
+    });
+    const mobileSaveLayout = window.matchMedia("(max-width: 760px)");
+    const filenameWrap = $("#filenameWrap");
+    function syncSaveLayout() {
+      closeSaveOptions();
+      if (mobileSaveLayout.matches) elements.saveOptionsPanel.prepend(filenameWrap);
+      else elements.saveOptions.before(filenameWrap);
+      if (elements.previewDialog.open) updatePreviewUi();
+    }
+    syncSaveLayout();
+    mobileSaveLayout.addEventListener?.("change", () => {
+      syncSaveLayout();
+      updateUiState();
+    });
+    elements.watermarkButton.addEventListener("click", () => {
+      closeSaveOptions(true);
+      openWatermarkDialog();
+    });
+    elements.imageCompressionButton.addEventListener("click", () => {
+      if (!state.pages.length || state.isBusy) return;
+      state.compressImages = !state.compressImages;
+      updateUiState();
+    });
+    elements.pageNumbersButton.addEventListener("click", () => {
+      if (!state.pages.length || state.isBusy) return;
+      state.pageNumbers = !state.pageNumbers;
+      elements.pagesGrid.querySelectorAll('.thumb-frame[data-rendered="true"]').forEach(updateThumbnailPageNumber);
+      updateUiState();
+    });
     elements.watermarkForm.addEventListener("input", () => {
       updateWatermarkFields();
       updateWatermarkPreview();
@@ -3336,10 +3550,7 @@ body.is-sorting .page-card.drag-source {
       state.watermark = getWatermarkDraft();
       elements.pagesGrid.querySelectorAll('.thumb-frame[data-rendered="true"]').forEach(updateThumbnailWatermark);
       elements.watermarkDialog.close();
-      const focusSaveButton = !state.watermark && document.activeElement === elements.watermarkButton &&
-        window.matchMedia("(max-width: 760px)").matches;
       updateUiState();
-      if (focusSaveButton) elements.saveAllButton.focus({ preventScroll: true });
     });
     $("#watermarkCancel").addEventListener("click", () => elements.watermarkDialog.close());
     elements.watermarkDialog.addEventListener("click", (event) => {
@@ -3356,11 +3567,13 @@ body.is-sorting .page-card.drag-source {
 
     function updateOutputPasswordUi() {
       const active = outputProtection.enabled && !!outputProtection.password;
-      elements.outputPasswordButton.classList.toggle("is-active", active);
-      setIcon("outputPasswordIcon", active ? "lock" : "lockOpen");
+      elements.saveOptionsPasswordButton.classList.toggle("is-active", active);
+      setIcon("saveOptionsPasswordIcon", active ? "lock" : "lockOpen");
       const label = t(active ? "outputPasswordButtonActive" : "outputPasswordButtonInactive");
-      elements.outputPasswordButton.title = label;
-      elements.outputPasswordButton.setAttribute("aria-label", label);
+      elements.saveOptionsPasswordButton.setAttribute("aria-label", label);
+      const optionsActive = !!(active || state.watermark || state.compressImages || state.pageNumbers);
+      elements.saveOptionsButton.classList.toggle("is-active", optionsActive);
+      elements.saveOptionsButton.setAttribute("aria-label", t(optionsActive ? "saveOptionsActive" : "saveOptions"));
     }
 
     function updateOutputPasswordFields() {
@@ -3522,6 +3735,7 @@ body.is-sorting .page-card.drag-source {
       const frame = document.createElement("div");
       frame.className = "thumb-frame";
       frame.dataset.pageId = item.id;
+      frame.dataset.pageNumber = String(index + 1);
       frame.title = t("doubleClickPreview");
       const placeholder = document.createElement("div");
       placeholder.className = "thumb-placeholder";
@@ -3874,6 +4088,18 @@ body.is-sorting .page-card.drag-source {
       layer.className = "thumbnail-watermark-layer";
       layer.style.width = page.style.width;
       layer.style.height = page.style.height;
+      frame.insertBefore(layer, frame.querySelector(".thumbnail-page-number-layer"));
+    }
+
+    function updateThumbnailPageNumber(frame) {
+      frame.querySelector(".thumbnail-page-number-layer")?.remove();
+      if (!state.pageNumbers) return;
+      const page = frame.firstElementChild;
+      const layer = createPageNumberLayer(parseFloat(page.style.width), parseFloat(page.style.height),
+        Math.min(window.devicePixelRatio || 1, 2), Number(frame.dataset.pageNumber), 8);
+      layer.className = "thumbnail-page-number-layer";
+      layer.style.width = page.style.width;
+      layer.style.height = page.style.height;
       frame.append(layer);
     }
 
@@ -3893,6 +4119,7 @@ body.is-sorting .page-card.drag-source {
         frame.replaceChildren(canvas);
         frame.dataset.rendered = "true";
         updateThumbnailWatermark(frame);
+        updateThumbnailPageNumber(frame);
         return;
       }
       if (doc.kind === "pptx") {
@@ -3907,6 +4134,7 @@ body.is-sorting .page-card.drag-source {
         }
         frame.dataset.rendered = "true";
         updateThumbnailWatermark(frame);
+        updateThumbnailPageNumber(frame);
         return;
       }
       if (!doc.pdfjsDoc) throw new Error(t("sourceMissing"));
@@ -3939,6 +4167,7 @@ body.is-sorting .page-card.drag-source {
       frame.replaceChildren(canvas);
       frame.dataset.rendered = "true";
       updateThumbnailWatermark(frame);
+      updateThumbnailPageNumber(frame);
     }
 
     const PREVIEW_ZOOM_MIN = 0.75;
@@ -3969,10 +4198,16 @@ body.is-sorting .page-card.drag-source {
       frame.dataset.baseWidth = String(Math.max(1, width));
       frame.dataset.baseHeight = String(Math.max(1, height));
       frame.append(content);
+      const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
       if (state.watermark) {
-        const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
         const layer = createAppliedWatermarkLayer(width, height, pixelRatio);
         layer.className = "preview-watermark-layer";
+        frame.append(layer);
+      }
+      if (state.pageNumbers) {
+        const index = state.pages.findIndex(page => page.id === state.previewPageId);
+        const layer = createPageNumberLayer(width, height, pixelRatio, index + 1);
+        layer.className = "preview-page-number-layer";
         frame.append(layer);
       }
       host.replaceChildren(frame);
@@ -4039,7 +4274,10 @@ body.is-sorting .page-card.drag-source {
       if (index < 0) return;
       const item = state.pages[index];
       const doc = state.documents.get(item.docId);
-      elements.previewTitle.textContent = t("previewPageTitle", { position: index + 1 });
+      const filename = doc?.name || "PDF";
+      elements.previewTitle.textContent = window.matchMedia("(max-width: 760px)").matches
+        ? filename : t("previewPageTitle", { position: index + 1 });
+      elements.previewTitle.title = filename;
       const rotation = item.rotation ? t("rotationSuffix", { rotation: normalizeRotation(item.rotation) }) : "";
       elements.previewSubtitle.textContent = doc?.kind === "image"
         ? t("previewSubtitleImage", { name: doc.name, layout: imageLayoutLabel(item.imageLayout), rotation })
@@ -4569,7 +4807,14 @@ body.is-sorting .page-card.drag-source {
       if (addedPages > 0) {
         pushHistory(before);
         renderGrid();
-        showToast(t("addedFiles", { files: addedFiles, pages: addedPages }));
+        if (window.matchMedia("(max-width: 760px)").matches) {
+          showToast(t("addedFiles", { files: addedFiles, pages: addedPages }));
+        } else {
+          const status = elements.importStatus;
+          clearTimeout(status.importTimer);
+          status.textContent = t(addedPages === 1 ? "importStatusSingle" : "importStatus", { pages: addedPages });
+          status.importTimer = setTimeout(() => { status.textContent = ""; }, 3500);
+        }
       }
       setBusy(false);
       releaseUnusedDocuments();
@@ -5027,10 +5272,17 @@ body.is-sorting .page-card.drag-source {
       return layer;
     }
 
-    function drawPdfWatermark(page, image, settings) {
+    function getPdfPageView(page) {
       // PDF.js displays the intersection of CropBox and MediaBox, or MediaBox if they do not overlap.
-      const media = page.getMediaBox();
-      const crop = page.getCropBox();
+      // A PDF rectangle may store either pair of corners in either order.
+      const normalizeBox = ({ x, y, width, height }) => ({
+        x: Math.min(x, x + width),
+        y: Math.min(y, y + height),
+        width: Math.abs(width),
+        height: Math.abs(height)
+      });
+      const media = normalizeBox(page.getMediaBox());
+      const crop = normalizeBox(page.getCropBox());
       const x = Math.max(media.x, crop.x);
       const y = Math.max(media.y, crop.y);
       const width = Math.min(media.x + media.width, crop.x + crop.width) - x;
@@ -5038,20 +5290,194 @@ body.is-sorting .page-card.drag-source {
       const box = width > 0 && height > 0 ? { x, y, width, height } : media;
       const rotation = normalizeRotation(page.getRotation().angle);
       const swapped = rotation === 90 || rotation === 270;
-      const mark = getWatermarkPlacement(image, settings.placement,
-        swapped ? box.height : box.width, swapped ? box.width : box.height);
-      let cx = mark.cx, cy = mark.cy;
-      if (rotation === 90) { cx = box.width - mark.cy; cy = mark.cx; }
-      if (rotation === 180) { cx = box.width - mark.cx; cy = box.height - mark.cy; }
-      if (rotation === 270) { cx = mark.cy; cy = box.height - mark.cx; }
-      const angle = rotation + mark.angle;
+      return {
+        width: swapped ? box.height : box.width,
+        height: swapped ? box.width : box.height,
+        rotation,
+        toPdfPoint(x, y) {
+          if (rotation === 90) return { x: box.x + box.width - y, y: box.y + x };
+          if (rotation === 180) return { x: box.x + box.width - x, y: box.y + box.height - y };
+          if (rotation === 270) return { x: box.x + y, y: box.y + box.height - x };
+          return { x: box.x + x, y: box.y + y };
+        }
+      };
+    }
+
+    function drawPdfWatermark(page, image, settings) {
+      const view = getPdfPageView(page);
+      const mark = getWatermarkPlacement(image, settings.placement, view.width, view.height);
+      const center = view.toPdfPoint(mark.cx, mark.cy);
+      const angle = view.rotation + mark.angle;
       const radians = angle * Math.PI / 180;
       // pdf-lib rotates an image around its lower-left corner.
       page.drawImage(image, {
-        x: box.x + cx - (mark.width * Math.cos(radians) - mark.height * Math.sin(radians)) / 2,
-        y: box.y + cy - (mark.width * Math.sin(radians) + mark.height * Math.cos(radians)) / 2,
+        x: center.x - (mark.width * Math.cos(radians) - mark.height * Math.sin(radians)) / 2,
+        y: center.y - (mark.width * Math.sin(radians) + mark.height * Math.cos(radians)) / 2,
         width: mark.width, height: mark.height, rotate: degrees(angle), opacity: settings.opacity / 100
       });
+    }
+
+    function createPageNumberLayer(width, height, pixelRatio, number, minSize = 0) {
+      const layer = document.createElement("canvas");
+      layer.setAttribute("aria-hidden", "true");
+      layer.width = Math.max(1, Math.round(width * pixelRatio));
+      layer.height = Math.max(1, Math.round(height * pixelRatio));
+      const ctx = layer.getContext("2d");
+      const { label, size, baseline } = getPageNumberLayout(layer.width, layer.height, number, state.pages.length, minSize * pixelRatio);
+      ctx.font = size + "px Arial, sans-serif";
+      ctx.textAlign = "center";
+      const textWidth = ctx.measureText(label).width;
+      const center = layer.width / 2;
+      const y = layer.height - baseline;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.fillRect(center - textWidth / 2 - size * 0.4, y - size, textWidth + size * 0.8, size * 1.25);
+      ctx.fillStyle = "#262626";
+      ctx.fillText(label, center, y);
+      return layer;
+    }
+
+    function getPageNumberLayout(width, height, number, total, minSize = 0) {
+      const label = `${number} / ${total}`;
+      const shortSide = Math.min(width, height);
+      const size = Math.min(Math.max(shortSide * 0.022, minSize), width / (label.length + 2), height / 4);
+      return { label, size, baseline: Math.max(shortSide * 0.04, size * 0.45) };
+    }
+
+    function drawPdfPageNumber(page, font, number, total) {
+      const view = getPdfPageView(page);
+      const { label, size, baseline } = getPageNumberLayout(view.width, view.height, number, total);
+      const textWidth = font.widthOfTextAtSize(label, size);
+      const textX = (view.width - textWidth) / 2;
+      const rotate = degrees(view.rotation);
+      page.drawRectangle({
+        ...view.toPdfPoint(textX - size * 0.4, baseline - size * 0.25),
+        width: textWidth + size * 0.8, height: size * 1.25, rotate, color: rgb(1, 1, 1), opacity: 0.9
+      });
+      page.drawText(label, {
+        ...view.toPdfPoint(textX, baseline), font, size, rotate, color: rgb(0.15, 0.15, 0.15)
+      });
+    }
+
+    function getPdfJpegSize(stream) {
+      const { PDFRawStream, PDFName, PDFArray } = PDFLib;
+      if (!(stream instanceof PDFRawStream)) return null;
+      const dict = stream.dict;
+      const get = key => dict.lookup(PDFName.of(key));
+      if (get("Subtype") !== PDFName.of("Image") || get("ColorSpace") !== PDFName.of("DeviceRGB") ||
+          get("BitsPerComponent")?.toString() !== "8") return null;
+      let filter = get("Filter");
+      if (filter instanceof PDFArray && filter.size() === 1) filter = filter.lookup(0);
+      if (filter !== PDFName.of("DCTDecode")) return null;
+      // Leave images with masks, custom decoding, metadata, accessibility tags or other semantics untouched.
+      const ordinaryKeys = ["Type", "Subtype", "Name", "Width", "Height", "BitsPerComponent",
+        "ColorSpace", "Length", "Filter", "Interpolate"];
+      if (dict.keys().some(key => !ordinaryKeys.includes(key.decodeText()))) return null;
+      const width = get("Width")?.asNumber?.(), height = get("Height")?.asNumber?.();
+      if (!Number.isInteger(width) || width <= 0 || !Number.isInteger(height) || height <= 0) return null;
+      return { width, height };
+    }
+
+    function inspectPdfJpeg(bytes, width, height) {
+      // Bound native decoder memory before handing it any bytes. Verify against the JPEG frame itself.
+      if (width > 16384 || height > 16384 || width * height > 32_000_000 ||
+          bytes.length > 48 * 1024 * 1024 || bytes[0] !== 0xff || bytes[1] !== 0xd8) return null;
+      const parts = [];
+      let start = 0, offset = 2, foundFrame = false;
+      let colorProfile = null;
+      while (offset + 4 <= bytes.length) {
+        const segmentStart = offset;
+        if (bytes[offset++] !== 0xff) return null;
+        while (bytes[offset] === 0xff) offset++;
+        const marker = bytes[offset++];
+        const length = bytes[offset] * 256 + bytes[offset + 1];
+        const end = offset + length;
+        if (length < 2 || !Number.isFinite(end) || end > bytes.length) return null;
+        if (marker === 0xda) {
+          if (!foundFrame) return null;
+          parts.push(bytes.subarray(start));
+          return { parts, colorProfile };
+        }
+        if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+          if (foundFrame || length !== 17 || bytes[offset + 2] !== 8 || bytes[offset + 7] !== 3 ||
+              bytes[offset + 3] * 256 + bytes[offset + 4] !== height ||
+              bytes[offset + 5] * 256 + bytes[offset + 6] !== width) return null;
+          foundFrame = true;
+        } else if (marker === 0xe1 && length >= 8 &&
+            String.fromCharCode(...bytes.subarray(offset + 2, offset + 8)) === "Exif\0\0") {
+          // A PDF paints the stored scanlines and applies its own page/drawing transform.
+          // Omit EXIF when decoding, so browser auto-orientation cannot rotate them a second time.
+          if (parts.length >= 32) return null;
+          parts.push(bytes.subarray(start, segmentStart));
+          start = end;
+        } else if (marker === 0xe2 && length > 16 &&
+            String.fromCharCode(...bytes.subarray(offset + 2, offset + 14)) === "ICC_PROFILE\0" &&
+            bytes[offset + 14] === 1 && bytes[offset + 15] === 1) {
+          // A single complete ICC profile can be kept if the browser emits identical profile bytes.
+          if (colorProfile) return null;
+          colorProfile = bytes.subarray(offset + 16, end);
+        } else if (![0xe0, 0xdb, 0xc4, 0xdd, 0xfe].includes(marker)) {
+          // Includes split profiles, Adobe color transforms, multi-picture files and uncommon encodings.
+          return null;
+        }
+        offset = end;
+      }
+      return null;
+    }
+
+    async function reencodePdfJpeg(blob, width, height) {
+      const scale = Math.min(1, 2000 / Math.max(width, height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      const image = await decodeImageRenderable({ buffer: blob, mime: "image/jpeg" });
+      try {
+        if ((image.naturalWidth || image.width) !== width || (image.naturalHeight || image.height) !== height) return null;
+        const ctx = canvas.getContext("2d", { alpha: false });
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        const encoded = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.80));
+        if (encoded?.type !== "image/jpeg" || !encoded.size) return null;
+        return { bytes: new Uint8Array(await encoded.arrayBuffer()), width: canvas.width, height: canvas.height };
+      } finally {
+        image.close?.();
+        canvas.width = canvas.height = 1;
+      }
+    }
+
+    async function compressPdfImages(output, originalBytes) {
+      const { PDFName, PDFNumber, PDFRawStream } = PDFLib;
+      const candidates = [];
+      for (const [ref, stream] of output.context.enumerateIndirectObjects()) {
+        const size = getPdfJpegSize(stream);
+        if (size) candidates.push({ ref, ...size });
+      }
+      let changed = false;
+      for (const [index, { ref, width, height }] of candidates.entries()) {
+        elements.busyDetail.textContent = t("compressionProgress", { current: index + 1, total: candidates.length });
+        try {
+          const stream = output.context.lookup(ref);
+          const original = stream.getContents();
+          const jpeg = inspectPdfJpeg(original, width, height);
+          if (!jpeg) continue;
+          const result = await reencodePdfJpeg(new Blob(jpeg.parts, { type: "image/jpeg" }), width, height);
+          if (!result || result.bytes.length >= original.length) continue;
+          if (jpeg.colorProfile) {
+            const profile = inspectPdfJpeg(result.bytes, result.width, result.height)?.colorProfile;
+            if (profile?.length !== jpeg.colorProfile.length || jpeg.colorProfile.some((byte, i) => byte !== profile[i])) continue;
+          }
+          const dict = stream.dict.clone();
+          dict.set(PDFName.of("Width"), PDFNumber.of(result.width));
+          dict.set(PDFName.of("Height"), PDFNumber.of(result.height));
+          dict.set(PDFName.of("Length"), PDFNumber.of(result.bytes.length));
+          output.context.assign(ref, PDFRawStream.of(dict, result.bytes));
+          changed = true;
+        } catch {
+          // A single unsupported or damaged image must not prevent saving the rest.
+        }
+      }
+      if (!changed) return originalBytes;
+      const candidate = await output.save({ useObjectStreams: true });
+      return candidate.length < originalBytes.length ? candidate : originalBytes;
     }
 
     async function exportPdf(selectedOnly = false) {
@@ -5066,6 +5492,8 @@ body.is-sorting .page-card.drag-source {
 
       const outputFilename = sanitizeFilename(elements.filenameInput.value);
       const watermark = state.watermark;
+      const compressImages = state.compressImages;
+      const pageNumbers = state.pageNumbers;
       const exportPassword = outputProtection.enabled ? outputProtection.password : "";
       const protectOutput = !!exportPassword;
       setBusy(true, t("generatingPdf"), t("pageCount", { count: targetPages.length }));
@@ -5132,11 +5560,33 @@ body.is-sorting .page-card.drag-source {
           const image = await output.embedPng(canvas.toDataURL("image/png"));
           for (const page of output.getPages()) drawPdfWatermark(page, image, watermark);
         }
+        if (pageNumbers) {
+          const font = await output.embedFont(PDFLib.StandardFonts.Helvetica);
+          const pages = output.getPages();
+          pages.forEach((page, index) => drawPdfPageNumber(page, font, index + 1, pages.length));
+        }
         output.setProducer("PDF Organizer / pdf-lib");
         output.setCreator("PDF Organizer");
         output.setModificationDate(new Date());
 
         let bytes = await output.save({ useObjectStreams: true });
+        let compressionMessage = "";
+        if (compressImages) {
+          // The first save flushes pending image embeds and supplies an exact baseline and fallback.
+          const before = bytes.length;
+          elements.busyTitle.textContent = t("compressingImages");
+          elements.busyDetail.textContent = "";
+          try { bytes = await compressPdfImages(output, bytes); }
+          catch (error) { console.warn("Optional image compression skipped", error); }
+          if (bytes.length < before) {
+            const precise = formatBytes(before) === formatBytes(bytes.length);
+            const sizeLabel = size => precise ? size.toLocaleString() + " B" : formatBytes(size);
+            compressionMessage = t(protectOutput ? "compressionResultEncrypted" : "compressionResult",
+              { before: sizeLabel(before), after: sizeLabel(bytes.length) });
+          } else {
+            compressionMessage = t("compressionNoSavings");
+          }
+        }
         if (protectOutput) {
           elements.busyTitle.textContent = t("protectingPdf");
           elements.busyDetail.textContent = t("protectingPdfDetail");
@@ -5157,7 +5607,8 @@ body.is-sorting .page-card.drag-source {
         anchor.click();
         anchor.remove();
         setTimeout(() => URL.revokeObjectURL(url), 30_000);
-        showToast(t(protectOutput ? "savedProtectedPdf" : "savedPdf", { count: targetPages.length }));
+        const saved = t(protectOutput ? "savedProtectedPdf" : "savedPdf", { count: targetPages.length });
+        showToast(compressionMessage ? saved + "\n" + compressionMessage : saved);
       } catch (error) {
         console.error(error);
         const message = error?.message || t("generationFailed");
@@ -5692,7 +6143,10 @@ body.is-sorting .page-card.drag-source {
     elements.redoButton.addEventListener("click", redo);
     elements.saveSelectedButton.addEventListener("click", () => exportPdf(true));
     elements.saveAllButton.addEventListener("click", () => exportPdf(false));
-    elements.outputPasswordButton.addEventListener("click", openOutputPasswordDialog);
+    elements.saveOptionsPasswordButton.addEventListener("click", () => {
+      closeSaveOptions(true);
+      openOutputPasswordDialog();
+    });
     elements.selectPageRangesButton.addEventListener("click", openPageRangesDialog);
     $("#pageRangesForm").addEventListener("submit", applyPageRanges);
     elements.pageRangesInput.addEventListener("input", clearPageRangesError);
@@ -5714,6 +6168,14 @@ body.is-sorting .page-card.drag-source {
     elements.outputPasswordCancelButton.addEventListener("click", () => { resetOutputPasswordVisibility(); elements.outputPasswordDialog.close(); });
     elements.outputPasswordDialog.addEventListener("cancel", () => { resetOutputPasswordVisibility(); showOutputPasswordError(""); });
     elements.outputPasswordDialog.addEventListener("close", resetOutputPasswordVisibility);
+    elements.outputPasswordDialog.addEventListener("click", (event) => {
+      const dialog = elements.outputPasswordDialog;
+      if (event.target !== dialog) return;
+      const { left, right, top, bottom } = dialog.getBoundingClientRect();
+      if (event.clientX < left || event.clientX > right || event.clientY < top || event.clientY > bottom) {
+        dialog.close();
+      }
+    });
 
     elements.deleteConfirmCancelButton.addEventListener("click", () => {
       pendingDeleteAction = null;
@@ -6201,11 +6663,9 @@ body.is-sorting .page-card.drag-source {
         mobileToolsList.replaceChildren(
           createMobileTool(elements.addButton, icons.addFile, t("addPdf")),
           createMobileTool(elements.selectPageRangesButton, icons.pageRanges, t("selectPageRanges")),
-          createMobileTool(elements.watermarkButton, icons.watermark, t(state.watermark ? "watermarkOn" : "watermark")),
           createMobileTool(elements.clearSelectionButton, icons.clearSelection, t("clearSelection")),
           createMobileTool(elements.moveStartButton, icons.moveStart, t("moveSelectionStart")),
           createMobileTool(elements.moveEndButton, icons.moveEnd, t("moveSelectionEnd")),
-          createMobileTool(elements.redoButton, icons.redo, t("redo")),
           createMobileTool(elements.clearAllButton, icons.trash, mobileText("全ページを一覧から削除", "Remove every page"), true)
         );
       }

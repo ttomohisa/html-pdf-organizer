@@ -4,7 +4,9 @@ Main source: src/index.template.html
 Build offline single HTML: build-offline.bat or .\build-offline.ps1
 Output: dist/index.html
 
-pdf-organizer.html is a directly openable preview build.
-For the fully embedded/no-network build, run the offline builder.
+Open pdf-organizer.html in a current Chrome, Edge, Firefox, or Safari browser.
+This file includes the app and its runtime dependencies. It works offline.
 
-Mobile improvements are already integrated into the source; no patch step is required.
+To rebuild after editing the source, run the builder on Windows. The first
+build downloads the packages pinned in versions.json. Copy dist/index.html
+to pdf-organizer.html to update the checked-in download.
