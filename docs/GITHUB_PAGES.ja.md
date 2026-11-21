@@ -2,10 +2,12 @@
 
 このガイドでは、完全内包版のPDF OrganizerをGitHub Actionsで生成し、GitHub Pagesへ自動公開する手順を説明します。
 
+[English guide](GITHUB_PAGES.md)
+
 想定する公開URL：
 
 ```text
-https://ttomohisa.github.io/pdf-organizer/
+https://ttomohisa.github.io/html-pdf-organizer/
 ```
 
 ## 1. リポジトリを作成する
@@ -13,11 +15,11 @@ https://ttomohisa.github.io/pdf-organizer/
 GitHubで次のリポジトリを作成します。
 
 - Owner: `ttomohisa`
-- Repository name: `pdf-organizer`
+- Repository name: `html-pdf-organizer`
 - Visibility: Public
 - Default branch: `main`
 
-このZIPの中身を、フォルダーごとではなくリポジトリ直下へ配置してください。`README.md`、`src`、`.github` などがリポジトリ直下に見える状態が正しい構成です。
+`README.md`、`src`、`.github` などをリポジトリ直下に配置します。フォークして公開する場合は、そのリポジトリのPages URLを使用します。
 
 ## 2. GitHub Pagesを有効にする
 
@@ -33,14 +35,14 @@ GitHubで次のリポジトリを作成します。
 次のどちらかで開始できます。
 
 - `main` ブランチへプッシュする
-- **Actions → Deploy offline app to GitHub Pages → Run workflow** を選択する
+- **Actions → Deploy GitHub Pages → Run workflow** を選択する
 
 ワークフローでは次の処理が行われます。
 
 1. リポジトリをチェックアウト
-2. 固定バージョンのPDF.jsとpdf-libを取得
+2. `versions.json` で固定した依存パッケージをキャッシュまたはnpmから取得
 3. `build-offline.ps1` で `dist/index.html` を生成
-4. 外部ランタイム参照や未置換文字列が残っていないことを検証
+4. 外部ランタイム参照と未置換文字列を検査し、生成したHTMLを配布用ファイル名にコピーしてNode.jsの回帰テストを実行
 5. `dist` をGitHub Pages用成果物としてアップロード
 6. `github-pages` 環境へデプロイ
 
@@ -49,7 +51,7 @@ GitHubで次のリポジトリを作成します。
 Actionsの実行が成功すると、デプロイジョブに公開URLが表示されます。
 
 ```text
-https://ttomohisa.github.io/pdf-organizer/
+https://ttomohisa.github.io/html-pdf-organizer/
 ```
 
 公開直後は反映に少し時間がかかることがあります。ブラウザのキャッシュが残る場合は、再読み込みまたはプライベートウィンドウで確認してください。
@@ -59,26 +61,26 @@ https://ttomohisa.github.io/pdf-organizer/
 通常は次のファイルを変更して `main` へプッシュするだけです。
 
 - UIや機能：`src/index.template.html`
-- PDF.js / pdf-libのバージョン：`versions.json`
+- 内包する依存パッケージのバージョンとパス：`versions.json`
 - 埋め込み処理：`build-offline.ps1`
 
 `main` へのプッシュごとに、Pages用HTMLが自動で再生成・公開されます。`dist/index.html` を手動でコミットする必要はありません。
 
-Pull Requestでは `.github/workflows/build-offline.yml` がビルド検証を実行します。公開は行いません。
+Pull Requestでは **Build offline HTML** がビルドと回帰テストを実行します。同じリポジトリからのPull Requestでは、認証情報が設定されていれば別のワークフローがCloudflareにプレビューを公開します。本番のPagesは `main` へのプッシュまたはPagesワークフローの手動実行で更新されます。
 
 ## デモ版のプライバシー
 
 GitHub Pages版は、ページを開くためにGitHubのサーバーからHTMLを取得します。その後、ユーザーが追加したPDFはブラウザ内で処理され、アプリのコードから外部へアップロードされません。
 
-ネットワークを完全に切断して使う場合は、ActionsのBuild artifactまたはローカルビルドで生成した `dist/index.html` を保存し、ローカルファイルとして開いてください。
+オフラインで使う場合は、リリースからダウンロードした `pdf-organizer.html` またはローカルビルドで生成した `dist/index.html` を開きます。
 
 ## トラブルシューティング
 
 ### PagesのURLが404になる
 
 - **Settings → Pages → Source** が **GitHub Actions** になっているか確認します。
-- Actionsの **Deploy offline app to GitHub Pages** が成功しているか確認します。
-- リポジトリ名が `pdf-organizer` 以外の場合、URLも変わります。
+- Actionsの **Deploy GitHub Pages** が成功しているか確認します。
+- 公開URLはデプロイジョブの表示を確認します。フォークやリポジトリ名の変更によりURLが変わる場合があります。
 
 ### ワークフローにPages権限のエラーが出る
 

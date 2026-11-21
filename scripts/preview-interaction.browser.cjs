@@ -65,7 +65,26 @@ async function exercise(browser, buffer, width, height, mobile) {
       ];
     }), ['8px', '16px', 'rgba(0, 0, 0, 0)', true], 'The editing bar uses flat controls and 8px spacing');
     assert.equal(await page.locator('#addButton').isVisible(), !mobile, 'Only the desktop editing toolbar has the top add button');
+    if (mobile) {
+      await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
+      assert.equal(await page.locator('.mobile-tools-dialog').getByRole('button', { name: /^(やり直す|Redo)$/i }).count(), 0);
+      await page.locator('.mobile-tools-close').click();
+      assert.ok(await page.locator('.mobile-edit-dock').getByRole('button', { name: /^(やり直す|Redo)$/i }).isVisible());
+    }
     if (!mobile) {
+      const originalViewport = page.viewportSize();
+      for (const width of [1451, 1600]) {
+        await page.setViewportSize({ width, height: 680 });
+        assert.ok(await editingBar.evaluate(bar => bar.scrollWidth <= bar.clientWidth + 1),
+          'Editing actions fit at ' + width + 'px');
+      }
+      await page.setViewportSize(originalViewport);
+      const selectAll = page.locator('#selectAllButton');
+      const beforeSelection = await selectAll.boundingBox();
+      await selectAll.click();
+      const afterSelection = await selectAll.boundingBox();
+      assert.ok(Math.abs(afterSelection.x - beforeSelection.x) < 0.5, 'The page count does not shift toolbar actions');
+      await page.locator('#clearSelectionButton').click();
       const redo = await page.locator('#redoButton').boundingBox();
       const add = await page.locator('.toolbar #addButton').boundingBox();
       assert.ok(add.x >= redo.x + redo.width && add.x - (redo.x + redo.width) <= 16 && Math.abs(add.y - redo.y) < 1,
