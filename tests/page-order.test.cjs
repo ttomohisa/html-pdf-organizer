@@ -54,6 +54,7 @@ function harness(filename) {
   const names = ['setBusy', 'pushHistory', 'performEdit', 'reconcileSelection', 'undo', 'redo', 'selectPage', 'ensureTargetSelected', 'rotateSelected', 'deleteSelected', 'selectAll', 'clearSelection', 'addFiles', 'beginPointerDrag', 'finishPointerDrag', 'exportPdf', 'sanitizeFilename', 'updateUiState'];
   const optional = ['cancelPointerDrag', 'getSelectionEdgeOrder', 'canMoveSelectionToEdge', 'moveSelectionToEdge', 'askToDeleteAll', 'commitDeleteSelected', 'getWatermarkPlacement', 'drawPdfWatermark'];
   optional.push('getPdfJpegSize', 'inspectPdfJpeg', 'reencodePdfJpeg', 'compressPdfImages', 'formatBytes', 'closeSaveOptions');
+  optional.push('getPdfPageView', 'getPageNumberLayout', 'drawPdfPageNumber');
   for (const name of optional) if (source.includes('function ' + name + '(')) names.push(name);
   const initial = source.slice(source.indexOf('    const state = {'), source.indexOf('    function setIcon'));
   const helpers = source.slice(source.indexOf('    const makeId = '), source.indexOf('    const A4_WIDTH = '));
@@ -65,7 +66,7 @@ function harness(filename) {
   const controlsStart = source.indexOf('    elements.selectAllButton.addEventListener("click"');
   const controls = source.slice(controlsStart, source.indexOf('    elements.saveSelectedButton.addEventListener', controlsStart));
   vm.runInContext(pdfLibSource, ctx);
-  vm.runInContext('const { PDFDocument, degrees } = PDFLib;\n' + [initial, helpers, 'let pointerDrag = null;', ...(source.includes('let pendingDeleteAction = null;') ? ['let pendingDeleteAction = null;'] : []), ...names.map(n => extract(source, n)), keyboard, layout, cancellations, controls, revisions,
+  vm.runInContext('const { PDFDocument, degrees, rgb } = PDFLib;\n' + [initial, helpers, 'let pointerDrag = null;', ...(source.includes('let pendingDeleteAction = null;') ? ['let pendingDeleteAction = null;'] : []), ...names.map(n => extract(source, n)), keyboard, layout, cancellations, controls, revisions,
     `globalThis.app = { state, setBusy, updateUiState, addFiles, selectPage, selectAll, clearSelection, rotateSelected, deleteSelected, undo, redo, exportPdf, beginPointerDrag, finishPointerDrag, performEdit, pushHistory,
       moveSelectionToEdge: typeof moveSelectionToEdge === 'function' ? moveSelectionToEdge : null,
       drag: () => pointerDrag,
@@ -93,6 +94,20 @@ const compactJpeg = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAoHBwgHBgoICAg
 const jpegWithComment = Buffer.concat([compactJpeg.subarray(0, 2), Buffer.from([255, 254, 16, 2]), Buffer.alloc(4096), compactJpeg.subarray(2)]);
 for (const filename of targets) {
   const prefix = path.relative(root, filename) + ': ';
+  test(prefix + 'output numbers start at one and use the actual output page count', async () => {
+    const h = await setup(filename, [1, 3]);
+    const labels = pdf => Array.from(pdf.getPages(), page => Array.from(page.node.Contents().asArray())
+      .flatMap(ref => Buffer.from(PDFLib.decodePDFRawStream(pdf.context.lookup(ref)).decode())
+        .toString().match(/<[0-9A-F]+> Tj/g) || [])
+      .map(operator => Buffer.from(operator.slice(1, -4), 'hex').toString('ascii'))
+      .filter(text => /^\d+ \/ \d+$/.test(text)));
+    assert.deepEqual(labels(await output(h, 'numbers-off')), [[], [], [], []]);
+    h.blobs.length = 0;
+    h.app.state.pageNumbers = true;
+    assert.deepEqual(labels(await output(h, 'numbers-all')), [['1 / 4'], ['2 / 4'], ['3 / 4'], ['4 / 4']]);
+    h.blobs.length = 0;
+    assert.deepEqual(labels(await output(h, 'numbers-selected', true)), [['1 / 2'], ['2 / 2']]);
+  });
   test(prefix + 'compression preserves shared JPEG references, text, drawing commands and special image streams', async () => {
     const h = harness(filename), doc = await PDFLib.PDFDocument.create();
     const photo = await doc.embedJpg(Uint8Array.from(jpegWithComment));

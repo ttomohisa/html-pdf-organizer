@@ -30,22 +30,32 @@ async function savePdf(page, button) {
 }
 
 // Measure the actual colored glyphs, independent of the application's placement calculations.
-function redBounds(canvas) {
+function redBounds(canvas, minX = 0) {
   const { width, height } = canvas;
   const data = canvas.getContext('2d').getImageData(0, 0, width, height).data;
   let left = width, top = height, right = -1, bottom = -1;
   for (let i = 0; i < data.length; i += 4) {
     if (data[i + 3] < 18 || data[i] - data[i + 2] < 24) continue;
     const x = (i / 4) % width, y = Math.floor(i / 4 / width);
+    if (x < width * minX) continue;
     left = Math.min(left, x); right = Math.max(right, x);
     top = Math.min(top, y); bottom = Math.max(bottom, y);
   }
   return right < 0 ? null : [left / width, top / height, right / width, bottom / height];
 }
 
+function hasBottomCenterText(canvas) {
+  const data = canvas.getContext('2d').getImageData(
+    Math.floor(canvas.width * 0.45), Math.floor(canvas.height * 0.9),
+    Math.ceil(canvas.width * 0.1), Math.floor(canvas.height * 0.1)
+  ).data;
+  return data.some((value, i) => i % 4 === 0 && value < 200 && data[i + 1] < 200 && data[i + 2] < 200 && data[i + 3] > 160);
+}
+
 async function exercise(browser, mobile) {
   const context = await browser.newContext({
     locale: mobile ? 'ja-JP' : 'en-US', hasTouch: mobile, isMobile: mobile, offline: true,
+    deviceScaleFactor: mobile ? 2 : 1,
     viewport: mobile ? { width: 320, height: 650 } : { width: 1280, height: 800 }
   });
   try {
@@ -176,11 +186,23 @@ async function exercise(browser, mobile) {
     await page.locator('#watermarkCancel').click();
     assert.deepEqual(await cardMarks.first().evaluate(redBounds), cardMark, 'Unapplied edits leave the card unchanged');
 
+    if (mobile) {
+      await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
+      await page.locator('.mobile-tools-dialog').getByRole('button', { name: /^(ページ番号|Page numbers)$/i }).click();
+    } else {
+      await page.locator('#saveOptionsButton').click();
+      await page.locator('#pageNumbersButton').click();
+      await page.keyboard.press('Escape');
+    }
+    assert.equal(await page.locator('#pageNumbersButton').getAttribute('aria-pressed'), 'true');
     await page.locator('.page-card [data-action="preview"]').first().click();
     const watermarkLayer = page.locator('.preview-content-frame canvas.preview-watermark-layer');
     await watermarkLayer.waitFor({ timeout: 5000 });
     const actual = await watermarkLayer.evaluate(redBounds);
     assert.ok(actual, 'The normal page preview contains the applied watermark');
+    const pageNumberLayer = page.locator('.preview-content-frame .preview-page-number-layer');
+    await pageNumberLayer.waitFor();
+    assert.ok(await pageNumberLayer.evaluate(hasBottomCenterText), 'Page number is painted at the bottom center');
     actual.forEach((value, i) => assert.ok(Math.abs(value - preview[i]) < 0.025, 'Both previews agree'));
     await page.locator('#previewZoomInButton').click();
     assert.equal(await page.locator('#previewZoomResetButton').textContent(), '125%');
@@ -201,6 +223,13 @@ async function exercise(browser, mobile) {
       await page.screenshot({ path: path.join(process.env.PDF_ORGANIZER_SCREENSHOTS, 'mobile-workspace.png') });
     }
     const output = await savePdf(page, '#saveSelectedButton');
+    const labels = await page.evaluate(async encoded => {
+      const { PDFDocument, decodePDFRawStream } = PDFLib;
+      const pdf = await PDFDocument.load(encoded);
+      return pdf.getPage(0).node.Contents().asArray().map(ref =>
+        new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref)).decode()));
+    }, output.toString('base64'));
+    assert.ok(labels.some(stream => stream.includes('<31202F2031> Tj')), 'Selected export is numbered 1 / 1');
     const viewer = await context.newPage();
     await viewer.goto(app);
     await viewer.waitForSelector('#initialDropIcon svg');
@@ -208,7 +237,8 @@ async function exercise(browser, mobile) {
     await viewer.locator('.page-card [data-action="preview"]').click();
     const rendered = viewer.locator('#previewCanvasHost .preview-content-frame canvas');
     await rendered.waitFor();
-    const saved = await rendered.evaluate(redBounds);
+    assert.ok(await rendered.evaluate(hasBottomCenterText), 'The exported rotated page has its number at the bottom center');
+    const saved = await rendered.evaluate(redBounds, 0.65);
     assert.ok(saved, 'Watermark is present in the re-opened PDF');
     saved.forEach((value, i) => assert.ok(Math.abs(value - preview[i]) < 0.025,
       'Preview ' + JSON.stringify(preview) + ' and exported bounds ' + JSON.stringify(saved) + ' must agree'));
@@ -223,7 +253,7 @@ async function exercise(browser, mobile) {
     assert.equal(await watermarkButton.evaluate(button => button.classList.contains('is-active')), false);
     assert.equal(await cardMarks.count(), 0, 'Turning off the watermark clears the cards');
     await page.locator('.page-card [data-action="preview"]').first().click();
-    await page.locator('#previewCanvasHost:not([hidden]) .preview-content-frame canvas').waitFor();
+    await page.locator('#previewCanvasHost:not([hidden]) .preview-content-frame > canvas:first-child').waitFor();
     assert.equal(await watermarkLayer.count(), 0, 'Turning off the watermark also clears it from the normal preview');
     await page.locator('#closePreviewButton').click();
     if (!mobile) {
@@ -237,6 +267,7 @@ async function exercise(browser, mobile) {
       await openSettings(page, false);
       assert.equal(await page.locator('#watermarkEnabled').isChecked(), false);
       assert.notEqual(await page.locator('#watermarkText').inputValue(), 'Private recipient');
+      assert.equal(await page.locator('#pageNumbersButton').getAttribute('aria-pressed'), 'false');
     }
     assert.deepEqual(errors, []);
     console.log('PASS offline watermark preview and export (' + (mobile ? 'mobile' : 'desktop') + ')');

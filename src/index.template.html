@@ -1160,7 +1160,7 @@
       background: #fff;
       box-shadow: 0 8px 32px rgba(0, 0, 0, .22);
     }
-    .preview-content-frame > .preview-watermark-layer {
+    .preview-content-frame > :is(.preview-watermark-layer, .preview-page-number-layer) {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -1799,6 +1799,7 @@ body.is-sorting .page-card.drag-source {
       </button>
       <div class="save-options-panel" id="saveOptionsPanel" hidden>
         <button class="button ghost save-option" id="watermarkButton" type="button" aria-haspopup="dialog" aria-controls="watermarkDialog"><span id="watermarkIcon" aria-hidden="true"></span><span data-i18n="watermark">透かし</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
+        <button class="button ghost save-option" id="pageNumbersButton" type="button" aria-pressed="false"><span id="pageNumbersIcon" aria-hidden="true"></span><span data-i18n="pageNumbers">ページ番号</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
         <button class="button ghost save-option" id="imageCompressionButton" type="button" aria-pressed="false" data-i18n-title="imageCompressionHint" title="PDF内のJPEG画像の画質を下げて、ファイルを小さくします。"><span id="imageCompressionIcon" aria-hidden="true"></span><span data-i18n="imageCompression">画像圧縮</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
         <button class="button ghost save-option" id="saveOptionsPasswordButton" type="button" aria-haspopup="dialog" aria-controls="outputPasswordDialog"><span id="saveOptionsPasswordIcon" aria-hidden="true"></span><span data-i18n="saveOptionsPassword">パスワード</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
       </div>
@@ -2377,6 +2378,7 @@ body.is-sorting .page-card.drag-source {
       saveOptionsPanel: $("#saveOptionsPanel"),
       saveOptionsPasswordButton: $("#saveOptionsPasswordButton"),
       watermarkButton: $("#watermarkButton"),
+      pageNumbersButton: $("#pageNumbersButton"),
       imageCompressionButton: $("#imageCompressionButton"),
       watermarkDialog: $("#watermarkDialog"),
       watermarkForm: $("#watermarkForm"),
@@ -2439,6 +2441,7 @@ body.is-sorting .page-card.drag-source {
       documents: new Map(),
       watermark: null,
       compressImages: false,
+      pageNumbers: false,
       pages: [],
       selected: new Set(),
       lastSelectedId: null,
@@ -2477,6 +2480,7 @@ body.is-sorting .page-card.drag-source {
       ["watermarkIcon", "watermark"], ["watermarkPrevious", "previous"], ["watermarkNext", "next"],
       ["imageCompressionIcon", "image"],
       ["saveOptionsIcon", "sliders"], ["saveOptionsPasswordIcon", "lockOpen"],
+      ["pageNumbersIcon", "pageRanges"],
       ["outputPasswordVisibilityIcon", "eye"], ["outputPasswordConfirmVisibilityIcon", "eye"], ["closeHelpButton", "close"],
       ["previewPreviousButton", "previous"], ["previewNextButton", "next"], ["closePreviewButton", "close"],
       ["previewZoomInButton", "previewZoomIn"], ["previewZoomOutButton", "previewZoomOut"]
@@ -2540,6 +2544,9 @@ body.is-sorting .page-card.drag-source {
         saveOptions: "保存設定",
         saveOptionsActive: "保存設定（適用中の設定あり）",
         saveOptionOn: "オン",
+        pageNumbers: "ページ番号",
+        pageNumbersOn: "ページ番号 ON",
+        pageNumbersOff: "ページ番号 OFF",
         saveOptionsPassword: "パスワード",
         outputPasswordButtonInactive: "出力PDFにパスワードを設定",
         outputPasswordButtonActive: "出力パスワード設定済み",
@@ -2751,6 +2758,9 @@ body.is-sorting .page-card.drag-source {
         saveOptions: "Save settings",
         saveOptionsActive: "Save settings (options enabled)",
         saveOptionOn: "On",
+        pageNumbers: "Page numbers",
+        pageNumbersOn: "Page numbers (on)",
+        pageNumbersOff: "Page numbers off",
         saveOptionsPassword: "Password",
         outputPasswordButtonInactive: "Set an output PDF password",
         outputPasswordButtonActive: "Output password is set",
@@ -3256,6 +3266,7 @@ body.is-sorting .page-card.drag-source {
       if (!state.pages.length) {
         state.watermark = null;
         state.compressImages = false;
+        state.pageNumbers = false;
       }
       const validIds = new Set(state.pages.map((page) => page.id));
       for (const id of state.selected) {
@@ -3311,6 +3322,8 @@ body.is-sorting .page-card.drag-source {
       if (lockSaveOptions) closeSaveOptions();
       elements.saveOptionsButton.disabled = lockSaveOptions;
       elements.saveOptionsPasswordButton.disabled = lockSaveOptions;
+      elements.pageNumbersButton.disabled = lockSaveOptions;
+      elements.pageNumbersButton.setAttribute("aria-pressed", String(state.pageNumbers));
       elements.imageCompressionButton.disabled = state.isBusy || !hasPages;
       elements.imageCompressionButton.setAttribute("aria-pressed", String(state.compressImages));
       elements.watermarkButton.disabled = state.isBusy || !hasPages;
@@ -3447,6 +3460,14 @@ body.is-sorting .page-card.drag-source {
         showToast(t(state.compressImages ? "imageCompressionOn" : "imageCompressionOff"), "info", 2000);
       }
     });
+    elements.pageNumbersButton.addEventListener("click", () => {
+      if (!state.pages.length || state.isBusy) return;
+      state.pageNumbers = !state.pageNumbers;
+      updateUiState();
+      if (window.matchMedia("(max-width: 760px)").matches) {
+        showToast(t(state.pageNumbers ? "pageNumbersOn" : "pageNumbersOff"), "info", 2000);
+      }
+    });
     elements.watermarkForm.addEventListener("input", () => {
       updateWatermarkFields();
       updateWatermarkPreview();
@@ -3491,7 +3512,7 @@ body.is-sorting .page-card.drag-source {
       elements.outputPasswordButton.title = label;
       elements.outputPasswordButton.setAttribute("aria-label", label);
       elements.saveOptionsPasswordButton.setAttribute("aria-label", label);
-      const optionsActive = !!(active || state.watermark || state.compressImages);
+      const optionsActive = !!(active || state.watermark || state.compressImages || state.pageNumbers);
       elements.saveOptionsButton.classList.toggle("is-active", optionsActive);
       elements.saveOptionsButton.setAttribute("aria-label", t(optionsActive ? "saveOptionsActive" : "saveOptions"));
     }
@@ -4102,10 +4123,30 @@ body.is-sorting .page-card.drag-source {
       frame.dataset.baseWidth = String(Math.max(1, width));
       frame.dataset.baseHeight = String(Math.max(1, height));
       frame.append(content);
+      const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
       if (state.watermark) {
-        const pixelRatio = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, previewZoom));
         const layer = createAppliedWatermarkLayer(width, height, pixelRatio);
         layer.className = "preview-watermark-layer";
+        frame.append(layer);
+      }
+      if (state.pageNumbers) {
+        const index = state.pages.findIndex(page => page.id === state.previewPageId);
+        const layer = document.createElement("canvas");
+        layer.className = "preview-page-number-layer";
+        layer.setAttribute("aria-hidden", "true");
+        layer.width = Math.max(1, Math.round(width * pixelRatio));
+        layer.height = Math.max(1, Math.round(height * pixelRatio));
+        const ctx = layer.getContext("2d");
+        const { label, size, baseline } = getPageNumberLayout(layer.width, layer.height, index + 1, state.pages.length);
+        ctx.font = size + "px Arial, sans-serif";
+        ctx.textAlign = "center";
+        const textWidth = ctx.measureText(label).width;
+        const center = layer.width / 2;
+        const y = layer.height - baseline;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        ctx.fillRect(center - textWidth / 2 - size * 0.4, y - size, textWidth + size * 0.8, size * 1.25);
+        ctx.fillStyle = "#262626";
+        ctx.fillText(label, center, y);
         frame.append(layer);
       }
       host.replaceChildren(frame);
@@ -5160,7 +5201,7 @@ body.is-sorting .page-card.drag-source {
       return layer;
     }
 
-    function drawPdfWatermark(page, image, settings) {
+    function getPdfPageView(page) {
       // PDF.js displays the intersection of CropBox and MediaBox, or MediaBox if they do not overlap.
       const media = page.getMediaBox();
       const crop = page.getCropBox();
@@ -5171,19 +5212,52 @@ body.is-sorting .page-card.drag-source {
       const box = width > 0 && height > 0 ? { x, y, width, height } : media;
       const rotation = normalizeRotation(page.getRotation().angle);
       const swapped = rotation === 90 || rotation === 270;
-      const mark = getWatermarkPlacement(image, settings.placement,
-        swapped ? box.height : box.width, swapped ? box.width : box.height);
-      let cx = mark.cx, cy = mark.cy;
-      if (rotation === 90) { cx = box.width - mark.cy; cy = mark.cx; }
-      if (rotation === 180) { cx = box.width - mark.cx; cy = box.height - mark.cy; }
-      if (rotation === 270) { cx = mark.cy; cy = box.height - mark.cx; }
-      const angle = rotation + mark.angle;
+      return {
+        width: swapped ? box.height : box.width,
+        height: swapped ? box.width : box.height,
+        rotation,
+        toPdfPoint(x, y) {
+          if (rotation === 90) return { x: box.x + box.width - y, y: box.y + x };
+          if (rotation === 180) return { x: box.x + box.width - x, y: box.y + box.height - y };
+          if (rotation === 270) return { x: box.x + y, y: box.y + box.height - x };
+          return { x: box.x + x, y: box.y + y };
+        }
+      };
+    }
+
+    function drawPdfWatermark(page, image, settings) {
+      const view = getPdfPageView(page);
+      const mark = getWatermarkPlacement(image, settings.placement, view.width, view.height);
+      const center = view.toPdfPoint(mark.cx, mark.cy);
+      const angle = view.rotation + mark.angle;
       const radians = angle * Math.PI / 180;
       // pdf-lib rotates an image around its lower-left corner.
       page.drawImage(image, {
-        x: box.x + cx - (mark.width * Math.cos(radians) - mark.height * Math.sin(radians)) / 2,
-        y: box.y + cy - (mark.width * Math.sin(radians) + mark.height * Math.cos(radians)) / 2,
+        x: center.x - (mark.width * Math.cos(radians) - mark.height * Math.sin(radians)) / 2,
+        y: center.y - (mark.width * Math.sin(radians) + mark.height * Math.cos(radians)) / 2,
         width: mark.width, height: mark.height, rotate: degrees(angle), opacity: settings.opacity / 100
+      });
+    }
+
+    function getPageNumberLayout(width, height, number, total) {
+      const label = `${number} / ${total}`;
+      const shortSide = Math.min(width, height);
+      const size = Math.min(shortSide * 0.022, width / (label.length + 2));
+      return { label, size, baseline: shortSide * 0.04 };
+    }
+
+    function drawPdfPageNumber(page, font, number, total) {
+      const view = getPdfPageView(page);
+      const { label, size, baseline } = getPageNumberLayout(view.width, view.height, number, total);
+      const textWidth = font.widthOfTextAtSize(label, size);
+      const textX = (view.width - textWidth) / 2;
+      const rotate = degrees(view.rotation);
+      page.drawRectangle({
+        ...view.toPdfPoint(textX - size * 0.4, baseline - size * 0.25),
+        width: textWidth + size * 0.8, height: size * 1.25, rotate, color: rgb(1, 1, 1), opacity: 0.9
+      });
+      page.drawText(label, {
+        ...view.toPdfPoint(textX, baseline), font, size, rotate, color: rgb(0.15, 0.15, 0.15)
       });
     }
 
@@ -5322,6 +5396,7 @@ body.is-sorting .page-card.drag-source {
       const outputFilename = sanitizeFilename(elements.filenameInput.value);
       const watermark = state.watermark;
       const compressImages = state.compressImages;
+      const pageNumbers = state.pageNumbers;
       const exportPassword = outputProtection.enabled ? outputProtection.password : "";
       const protectOutput = !!exportPassword;
       setBusy(true, t("generatingPdf"), t("pageCount", { count: targetPages.length }));
@@ -5387,6 +5462,11 @@ body.is-sorting .page-card.drag-source {
           const canvas = createWatermarkCanvas(watermark);
           const image = await output.embedPng(canvas.toDataURL("image/png"));
           for (const page of output.getPages()) drawPdfWatermark(page, image, watermark);
+        }
+        if (pageNumbers) {
+          const font = await output.embedFont(PDFLib.StandardFonts.Helvetica);
+          const pages = output.getPages();
+          pages.forEach((page, index) => drawPdfPageNumber(page, font, index + 1, pages.length));
         }
         output.setProducer("PDF Organizer / pdf-lib");
         output.setCreator("PDF Organizer");
@@ -6489,10 +6569,15 @@ body.is-sorting .page-card.drag-source {
         compressionTool.setAttribute("aria-label", t("imageCompression"));
         compressionTool.setAttribute("aria-pressed", String(state.compressImages));
         compressionTool.title = t("imageCompressionHint");
+        const pageNumbersTool = createMobileTool(elements.pageNumbersButton, icons.pageRanges,
+          t(state.pageNumbers ? "pageNumbersOn" : "pageNumbers"));
+        pageNumbersTool.setAttribute("aria-label", t("pageNumbers"));
+        pageNumbersTool.setAttribute("aria-pressed", String(state.pageNumbers));
         mobileToolsList.replaceChildren(
           createMobileTool(elements.addButton, icons.addFile, t("addPdf")),
           createMobileTool(elements.selectPageRangesButton, icons.pageRanges, t("selectPageRanges")),
           createMobileTool(elements.watermarkButton, icons.watermark, t(state.watermark ? "watermarkOn" : "watermark")),
+          pageNumbersTool,
           compressionTool,
           createMobileTool(elements.clearSelectionButton, icons.clearSelection, t("clearSelection")),
           createMobileTool(elements.moveStartButton, icons.moveStart, t("moveSelectionStart")),
