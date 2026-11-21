@@ -13,19 +13,15 @@ async function importPages(page, files, count) {
     document.querySelector('#busyOverlay').hidden, count);
 }
 
-async function openSettings(page, mobile) {
-  if (mobile) {
-    await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
-    await page.locator('.mobile-tools-dialog').getByRole('button', { name: /透かし|watermark/i }).click();
-  } else {
-    await page.locator('#saveOptionsButton').click();
-    await page.locator('#watermarkButton').click();
-  }
+async function openSettings(page) {
+  await page.locator('#saveOptionsButton').click();
+  await page.locator('#watermarkButton').click();
   await page.locator('#watermarkDialog[open]').waitFor();
 }
 
-async function savePdf(page, button) {
+async function savePdf(page, button, expectedFilename) {
   const [download] = await Promise.all([page.waitForEvent('download'), page.locator(button).click()]);
+  if (expectedFilename) assert.equal(download.suggestedFilename(), expectedFilename);
   return fs.readFile(await download.path());
 }
 
@@ -91,46 +87,50 @@ async function exercise(browser, mobile) {
       return Array.from(await doc.save());
     });
     await importPages(page, { name: 'report.pdf', mimeType: 'application/pdf', buffer: Buffer.from(fixture) }, 2);
+    if (!mobile) {
+      await page.locator('#importStatus').filter({ hasText: /2 pages/ }).waitFor({timeout: 1500});
+      await page.locator('#zoomSlider').click({trial:true, timeout:1000});
+    }
+    const saveSettings = page.locator('#saveOptionsButton');
+    const filename = page.locator('#filenameInput');
+    assert.equal(await filename.isVisible(), !mobile);
+    await saveSettings.click();
+    assert.equal(await filename.isVisible(), true);
+    if (mobile) {
+      await filename.fill('revised.pdf');
+      await page.touchscreen.tap(2, 2);
+      assert.equal(await filename.isVisible(), false);
+      await saveSettings.click();
+      assert.equal(await filename.inputValue(), 'revised.pdf');
+    }
+    assert.equal(await page.locator('#pageNumbersExportNote').isVisible(), false);
+    await page.keyboard.press('Escape');
     assert.equal(await page.locator('#workspace h2').count(), 0, 'Workspace has no redundant heading');
     assert.equal(await page.locator('#addButton').isVisible(), !mobile, 'Toolbar Add files is desktop-only');
     if (mobile) {
       await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
+      assert.equal(await page.locator('.mobile-tools-dialog').getByRole('button', { name: /透かし|watermark/i }).count(), 0);
       const [chooser] = await Promise.all([
         page.waitForEvent('filechooser'),
         page.locator('.mobile-tools-dialog').getByRole('button', { name: /ファイルを追加|Add files/i }).click()
       ]);
       assert.ok(chooser.isMultiple(), 'More still opens the regular file picker');
     }
-    const password = page.locator('#outputPasswordButton');
-    if (mobile) {
-      const passwordBox = await password.boundingBox();
-      await page.mouse.move(passwordBox.x + passwordBox.width / 2, passwordBox.y + passwordBox.height / 2);
-      await page.mouse.down();
-      await password.evaluate(el => Promise.all(el.getAnimations().map(animation => animation.finished)));
-      const pressedBox = await password.boundingBox();
-      await page.mouse.up();
-      assert.ok(Math.abs(pressedBox.y - passwordBox.y) < 0.5, 'Pressing the password button keeps it centered');
-    } else {
-      assert.equal(await password.isVisible(), false, 'Desktop password settings are grouped with save settings');
-      await page.locator('#saveOptionsButton').click();
-      await page.locator('#saveOptionsPasswordButton').click();
-      assert.equal(await page.locator('#saveOptionsPanel').isVisible(), false);
-    }
+    await saveSettings.click();
+    await page.locator('#saveOptionsPasswordButton').click();
+    assert.equal(await page.locator('#saveOptionsPanel').isVisible(), false);
     await page.locator('#outputPasswordDialog[open]').waitFor();
     await page.locator('#outputPasswordEnabled').check();
     await page.locator('#outputPasswordInput').fill('Unapplied draft');
     if (mobile) await page.touchscreen.tap(2, 2);
     else await page.mouse.click(2, 2);
     await page.locator('#outputPasswordDialog').waitFor({ state: 'hidden', timeout: 3000 });
-    if (mobile) await password.click();
-    else {
-      await page.locator('#saveOptionsButton').click();
-      await page.locator('#saveOptionsPasswordButton').click();
-    }
+    await saveSettings.click();
+    await page.locator('#saveOptionsPasswordButton').click();
     assert.equal(await page.locator('#outputPasswordEnabled').isChecked(), false);
     assert.equal(await page.locator('#outputPasswordInput').inputValue(), '');
     await page.keyboard.press('Escape');
-    await openSettings(page, mobile);
+    await openSettings(page);
     await page.locator('#watermarkEnabled').check();
     await page.locator('#watermarkText').fill('   ');
     await page.locator('#watermarkApply').click();
@@ -174,27 +174,23 @@ async function exercise(browser, mobile) {
       return Math.abs(page.x - mark.x) < 1 && Math.abs(page.y - mark.y) < 1 &&
         Math.abs(page.width - mark.width) < 1 && Math.abs(page.height - mark.height) < 1;
     }), 'The watermark aligns to the page on the card');
-    await openSettings(page, mobile);
+    await openSettings(page);
     await page.locator('#watermarkText').fill('Discard this edit');
     await page.locator('#watermarkCancel').click();
-    await openSettings(page, mobile);
+    await openSettings(page);
     assert.equal(await page.locator('#watermarkText').inputValue(), '山田様 配布用');
     await page.locator('#watermarkText').fill('Discard this too');
     await page.mouse.click(2, 2);
     await page.locator('#watermarkDialog').waitFor({ state: 'hidden', timeout: 3000 });
-    await openSettings(page, mobile);
+    await openSettings(page);
     assert.equal(await page.locator('#watermarkText').inputValue(), '山田様 配布用');
     await page.locator('#watermarkCancel').click();
     assert.deepEqual(await cardMarks.first().evaluate(redBounds), cardMark, 'Unapplied edits leave the card unchanged');
 
-    if (mobile) {
-      await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
-      await page.locator('.mobile-tools-dialog').getByRole('button', { name: /^(ページ番号|Page numbers)$/i }).click();
-    } else {
-      await page.locator('#saveOptionsButton').click();
-      await page.locator('#pageNumbersButton').click();
-      await page.keyboard.press('Escape');
-    }
+    await saveSettings.click();
+    await page.locator('#pageNumbersButton').click();
+    assert.equal(await page.locator('#pageNumbersExportNote').isVisible(), true);
+    await page.keyboard.press('Escape');
     assert.equal(await page.locator('#pageNumbersButton').getAttribute('aria-pressed'), 'true');
     const cardNumbers = page.locator('.thumb-frame .thumbnail-page-number-layer');
     await cardNumbers.first().waitFor({ timeout: 3000 });
@@ -203,6 +199,7 @@ async function exercise(browser, mobile) {
     await page.locator('.page-card [data-action="preview"]').first().click();
     const watermarkLayer = page.locator('.preview-content-frame canvas.preview-watermark-layer');
     await watermarkLayer.waitFor({ timeout: 5000 });
+    if (mobile) assert.equal(await page.locator("#previewTitle").textContent(), "report.pdf");
     const actual = await watermarkLayer.evaluate(redBounds);
     assert.ok(actual, 'The normal page preview contains the applied watermark');
     const pageNumberLayer = page.locator('.preview-content-frame .preview-page-number-layer');
@@ -227,7 +224,7 @@ async function exercise(browser, mobile) {
     if (mobile && process.env.PDF_ORGANIZER_SCREENSHOTS) {
       await page.screenshot({ path: path.join(process.env.PDF_ORGANIZER_SCREENSHOTS, 'mobile-workspace.png') });
     }
-    const output = await savePdf(page, '#saveSelectedButton');
+    const output = await savePdf(page, '#saveSelectedButton', mobile ? 'revised.pdf' : undefined);
     const viewer = await context.newPage();
     await viewer.goto(app);
     await viewer.waitForSelector('#initialDropIcon svg');
@@ -240,14 +237,11 @@ async function exercise(browser, mobile) {
     assert.ok(saved, 'Watermark is present in the re-opened PDF');
     saved.forEach((value, i) => assert.ok(Math.abs(value - preview[i]) < 0.025,
       'Preview ' + JSON.stringify(preview) + ' and exported bounds ' + JSON.stringify(saved) + ' must agree'));
-    await openSettings(page, mobile);
+    await openSettings(page);
     await page.locator('#watermarkEnabled').uncheck();
     await page.locator('#watermarkApply').click();
     assert.equal(await watermarkButton.isVisible(), false);
-    const watermarkEntry = mobile
-      ? page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i })
-      : page.locator('#saveOptionsButton');
-    assert.ok(await watermarkEntry.evaluate(el => el === document.activeElement), 'Closing the dialog restores focus');
+    assert.ok(await saveSettings.evaluate(el => el === document.activeElement), 'Closing the dialog restores focus');
     assert.equal(await watermarkButton.evaluate(button => button.classList.contains('is-active')), false);
     assert.equal(await cardMarks.count(), 0, 'Turning off the watermark clears the cards');
     await page.locator('.page-card [data-action="preview"]').first().click();
@@ -260,28 +254,24 @@ async function exercise(browser, mobile) {
     assert.equal(await movedCard.getAttribute('data-page-id'), movedPage);
     assert.equal(await movedCard.locator('.thumb-frame').getAttribute('data-page-number'), '2');
     await movedCard.locator('.thumbnail-page-number-layer').waitFor();
-    if (mobile) {
-      await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
-      await page.locator('.mobile-tools-dialog').getByRole('button', { name: /^(ページ番号|Page numbers)$/i }).click();
-    } else {
-      await page.locator('#saveOptionsButton').click();
-      await page.locator('#pageNumbersButton').click();
-      await page.keyboard.press('Escape');
-    }
+    await saveSettings.click();
+    await page.locator('#pageNumbersButton').click();
+    assert.equal(await page.locator('#pageNumbersExportNote').isVisible(), false);
+    await page.keyboard.press('Escape');
     assert.equal(await cardNumbers.count(), 0, 'Turning page numbers off removes them from both cards');
     if (!mobile) {
       await page.locator('#saveOptionsButton').click();
       await page.locator('#pageNumbersButton').click();
       assert.equal(await page.locator('#pageNumbersButton').getAttribute('aria-pressed'), 'true');
       await page.keyboard.press('Escape');
-      await openSettings(page, false);
+      await openSettings(page);
       await page.locator('#watermarkEnabled').check();
       await page.locator('#watermarkText').fill('Private recipient');
       await page.locator('#watermarkApply').click();
       await page.locator('#clearAllButton').click();
       await page.locator('#deleteConfirmApplyButton').click();
       await importPages(page, { name: 'new-workspace.pdf', mimeType: 'application/pdf', buffer: Buffer.from(fixture) }, 2);
-      await openSettings(page, false);
+      await openSettings(page);
       assert.equal(await page.locator('#watermarkEnabled').isChecked(), false);
       assert.notEqual(await page.locator('#watermarkText').inputValue(), 'Private recipient');
       assert.equal(await page.locator('#pageNumbersButton').getAttribute('aria-pressed'), 'false');

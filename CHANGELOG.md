@@ -3,9 +3,10 @@
 ## 1.5.0 - 2026-11-21
 
 - Optionally shrink eligible JPEG images when saving all or selected pages. Save feedback shows the actual PDF size before and after compression.
-- Keep watermark settings under More on phones and remove the stamp button from the mobile save bar.
+- Group filename and export options under Save settings on phones. Show the source filename in the mobile page preview.
 - Group desktop export options under Save settings and show selected-page saving when pages are selected.
 - Add optional page numbers to cards, the preview, and saved PDFs, numbered in export order.
+- Explain numbering for selected-page exports in Save settings. Show desktop import confirmation beside the page count.
 - Close the output password dialog when the user clicks outside it.
 - Keep the desktop toolbar steady as the selection count changes, and remove Redo from the mobile More menu.
 

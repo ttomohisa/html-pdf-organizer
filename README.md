@@ -57,7 +57,7 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 
 ### Export options
 
-On desktop, open **Save settings** for watermark, page numbers, image compression, and password options. On a phone, open **More** for watermark, page numbers, and image compression, and use the lock button in the save bar for password protection.
+Open **Save settings** for watermark, page numbers, image compression, and password options. On a phone, you can also change the output filename there. The page preview shows the source filename.
 
 Turn on **Page numbers** to add a number such as `1 / 24` at the bottom center. The page cards and preview show numbers for the full list. Saving selected pages numbers just those pages, starting at 1.
 

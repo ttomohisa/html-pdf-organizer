@@ -148,18 +148,18 @@ async function exerciseMobile(browser) {
     await page.waitForFunction(() => document.querySelector('.page-card') && document.querySelector('#busyOverlay').hidden);
     const compression = page.locator('#imageCompressionButton');
     assert.equal(await compression.isVisible(), false);
-    const more = page.locator('.mobile-edit-dock').getByRole('button', { name: 'More actions' });
-    await more.click();
-    await page.locator('.mobile-tools-dialog').getByRole('button', { name: /compress images|image compression/i }).click();
+    const saveSettings = page.locator('#saveOptionsButton');
+    await saveSettings.click();
+    await compression.click();
     assert.equal(await compression.getAttribute('aria-pressed'), 'true');
+    await page.keyboard.press('Escape');
     const saved = await inspectPdf(page, await downloadPdf(page, '#saveAllButton'));
     assert.equal(saved.pages.length, 1);
     assert.deepEqual(saved.images, []);
     await page.locator('.toast-message').filter({ hasText: /did not reduce/i }).waitFor();
-    await more.click();
-    const toggle = page.locator('.mobile-tools-dialog').getByRole('button', { name: /compress images|image compression/i });
-    assert.match(await toggle.innerText(), /\(on\)/i);
-    await toggle.click();
+    await saveSettings.click();
+    assert.equal(await compression.getAttribute('aria-pressed'), 'true');
+    await compression.click();
     assert.equal(await compression.getAttribute('aria-pressed'), 'false');
     console.log('PASS mobile compression toggle and text-only export');
   } finally {

@@ -310,6 +310,17 @@
       visibility: hidden;
       font-weight: 650;
     }
+    .toolbar-count { flex: 0 0 auto; }
+    .import-status {
+      width: 0;
+      min-width: 100%;
+      padding-inline: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--accent);
+      font-size: 11px;
+    }
     .selection-status strong { color: var(--text); font-weight: 650; }
 
     .button {
@@ -811,27 +822,6 @@
     }
     .filename-input:hover { border-color: var(--line-strong); }
     .filename-input:focus { border-color: var(--focus); background: var(--surface); }
-    .output-password-button {
-      display: none;
-      position: absolute;
-      top: 50%;
-      right: 5px;
-      width: 32px;
-      min-width: 32px;
-      min-height: 32px;
-      padding: 0;
-      transform: translateY(-50%);
-      border-radius: 8px;
-      color: var(--text-muted);
-    }
-    .output-password-button:hover { color: var(--text); background: var(--surface-hover); }
-    .output-password-button:active:not(:disabled) { transform: translateY(-50%); }
-    .output-password-button.is-active {
-      color: var(--accent);
-      background: var(--accent-soft);
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
-    }
-    .output-password-button svg { width: 17px; height: 17px; }
     .export-bar #saveSelectedButton:not(.has-selection) { display: none; }
     .export-bar #saveSelectedButton {
       border-color: transparent;
@@ -854,6 +844,14 @@
       border-radius: 12px;
       background: var(--surface);
       box-shadow: var(--shadow-md);
+    }
+    .save-filename-label { display: none; }
+    .save-option-note {
+      margin: 0;
+      padding: 0 8px 8px;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.45;
     }
     .save-options-panel[hidden] { display: none; }
     .button.save-option {
@@ -924,6 +922,12 @@
       display: grid;
       gap: 8px;
       pointer-events: none;
+    }
+    @media (min-width: 761px) {
+      body:has(.export-bar:not([hidden])) .toast-region {
+        top: auto;
+        bottom: calc(max(16px, env(safe-area-inset-bottom)) + 72px);
+      }
     }
     .toast {
       display: flex;
@@ -1545,27 +1549,43 @@ body.is-sorting .page-card.drag-source {
   .main { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
   .export-bar {
     bottom: max(8px, env(safe-area-inset-bottom));
-    width: calc(100% - 16px);
-    gap: 5px;
-    padding: 6px;
-    border-radius: 15px;
+    width: min(440px, calc(100% - 16px));
+    gap: 8px;
+    padding: 8px;
+    border-radius: 16px;
   }
-  .export-bar .filename-wrap {
-    flex: 1 1 110px;
-    min-width: 68px;
-  }
-  .filename-input {
-    min-width: 0;
-    min-height: 38px;
-    padding: 8px 42px 8px 9px;
-    font-size: 12px;
-  }
-  .output-password-button { right: 4px; width: 30px; min-width: 30px; min-height: 30px; }
   .export-bar .button {
-    min-height: 38px;
-    padding-inline: 9px;
+    min-height: 40px;
+    padding-inline: 8px;
   }
-  .export-bar .output-password-button { display: inline-flex; min-height: 30px; height: 30px; padding: 0; }
+  .export-bar .save-options { position: static; margin-inline-end: auto; }
+  .export-bar #saveOptionsButton { gap: 4px; font-size: 12px; }
+  .export-bar #saveOptionsButton > span[data-i18n] { display: inline; }
+  .save-options-panel {
+    inset-inline: 0;
+    bottom: calc(100% + 8px);
+    width: auto;
+    max-height: calc(100dvh - 80px - env(safe-area-inset-bottom));
+  }
+  .save-options-panel .save-option { min-height: 44px; }
+  .save-options-panel .filename-wrap { min-width: 0; margin: 0 8px 8px; }
+  .save-filename-label {
+    display: block;
+    margin: 8px 0;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .save-options-panel .filename-input { min-height: 40px; font-size: 16px; }
+  .preview-title { flex: 1; }
+  .preview-title h2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 14px;
+    line-height: 1.35;
+  }
   .export-bar #saveSelectedButton {
     display: none;
     flex: 0 0 auto;
@@ -1596,13 +1616,11 @@ body.is-sorting .page-card.drag-source {
     font-size: 11px;
     white-space: nowrap;
   }
-  .export-bar .save-options { display: none; }
-  .toast-region { bottom: calc(70px + env(safe-area-inset-bottom)); }
 
   .toast-region {
     top: auto;
     right: 50%;
-    bottom: calc(72px + env(safe-area-inset-bottom));
+    bottom: calc(80px + env(safe-area-inset-bottom));
     width: min(390px, calc(100% - 20px));
     transform: translateX(50%);
   }
@@ -1613,6 +1631,7 @@ body.is-sorting .page-card.drag-source {
     backdrop-filter: blur(14px);
   }
   .toast-message { font-size: 12px; }
+  body:has(#saveOptionsPanel:not([hidden])) .toast-region { visibility: hidden; }
 
   .mobile-tools-dialog {
     width: 100%;
@@ -1699,6 +1718,24 @@ body.is-sorting .page-card.drag-source {
   .mobile-dock-button span { font-size: 8px; }
 }
 
+@media (max-width: 430px) {
+  #saveOptionsButton > #saveOptionsIcon { display: none; }
+  .export-bar #saveAllButton { min-width: 0; gap: 4px; padding-inline: 8px; }
+  .preview-dialog .dialog-header {
+    display: grid;
+    grid-template-columns: 1fr 36px auto 36px 1fr;
+    gap: 0 4px;
+  }
+  .preview-title { grid-column: 1 / 5; grid-row: 1; }
+  .preview-title h2 { -webkit-line-clamp: 3; }
+  .preview-controls { display: contents; }
+  #closePreviewButton { grid-column: 5; grid-row: 1; justify-self: end; }
+  #previewPreviousButton { grid-column: 2; grid-row: 2; }
+  #previewCounter { grid-column: 3; grid-row: 2; }
+  #previewNextButton { grid-column: 4; grid-row: 2; }
+  .preview-dialog .dialog-header .button { min-height: 32px; width: 36px; }
+}
+
 @media (max-width: 760px) and (max-height: 480px) {
   .mobile-edit-dock { position: static; }
 }
@@ -1753,7 +1790,10 @@ body.is-sorting .page-card.drag-source {
       </p>
 
       <div class="toolbar" role="toolbar" data-i18n-aria-label="pageEditing" aria-label="ページ編集">
-        <div class="selection-status" id="selectionStatus" aria-live="polite"></div>
+        <div class="toolbar-count">
+          <div class="selection-status" id="selectionStatus" aria-live="polite"></div>
+          <div class="import-status" id="importStatus" role="status"></div>
+        </div>
         <div class="toolbar-group">
           <button class="button" id="selectAllButton" type="button" data-i18n-title="selectAll" data-i18n-aria-label="selectAll"><span id="selectAllIcon"></span><span class="button-label optional" data-i18n="selectAll">すべて選択</span></button>
           <button class="button" id="clearSelectionButton" type="button" data-i18n-title="clearSelection" data-i18n-aria-label="clearSelection"><span id="clearSelectionIcon"></span><span class="button-label optional" data-i18n="clearSelection">選択解除</span></button>
@@ -1798,10 +1838,9 @@ body.is-sorting .page-card.drag-source {
   </main>
 
   <div class="export-bar" id="exportBar" hidden>
-    <div class="filename-wrap">
-      <label class="sr-only" for="filenameInput" data-i18n="filenameLabel">保存ファイル名</label>
-      <input class="filename-input" id="filenameInput" type="text" value="organized.pdf" maxlength="180" autocomplete="off" spellcheck="false">
-      <button class="button icon-only ghost output-password-button" id="outputPasswordButton" type="button" aria-label="出力PDFにパスワードを設定" title="出力PDFにパスワードを設定"><span id="outputPasswordIcon" aria-hidden="true"></span></button>
+    <div class="filename-wrap" id="filenameWrap">
+      <label class="save-filename-label" id="saveFilenameLabel" for="filenameInput" data-i18n="filenameLabel">保存ファイル名</label>
+      <input class="filename-input" id="filenameInput" type="text" aria-labelledby="saveFilenameLabel" value="organized.pdf" maxlength="180" autocomplete="off" spellcheck="false">
     </div>
     <div class="save-options" id="saveOptions">
       <button class="button ghost" id="saveOptionsButton" type="button" aria-expanded="false" aria-controls="saveOptionsPanel">
@@ -1810,6 +1849,7 @@ body.is-sorting .page-card.drag-source {
       <div class="save-options-panel" id="saveOptionsPanel" hidden>
         <button class="button ghost save-option" id="watermarkButton" type="button" aria-haspopup="dialog" aria-controls="watermarkDialog"><span id="watermarkIcon" aria-hidden="true"></span><span data-i18n="watermark">透かし</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
         <button class="button ghost save-option" id="pageNumbersButton" type="button" aria-pressed="false"><span id="pageNumbersIcon" aria-hidden="true"></span><span data-i18n="pageNumbers">ページ番号</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
+        <p class="save-option-note" id="pageNumbersExportNote" data-i18n="pageNumbersExportNote" hidden>選択ページだけ保存すると、1から番号を振り直します。</p>
         <button class="button ghost save-option" id="imageCompressionButton" type="button" aria-pressed="false" data-i18n-title="imageCompressionHint" title="PDF内のJPEG画像の画質を下げて、ファイルを小さくします。"><span id="imageCompressionIcon" aria-hidden="true"></span><span data-i18n="imageCompression">画像圧縮</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
         <button class="button ghost save-option" id="saveOptionsPasswordButton" type="button" aria-haspopup="dialog" aria-controls="outputPasswordDialog"><span id="saveOptionsPasswordIcon" aria-hidden="true"></span><span data-i18n="saveOptionsPassword">パスワード</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
       </div>
@@ -2019,7 +2059,7 @@ body.is-sorting .page-card.drag-source {
         <li data-i18n="helpEdit">不要なページは選んで削除。回転や「元に戻す」も使えます。</li>
         <li data-i18n="helpMerge">「すべて保存」または「選択ページを保存」でPDFを書き出します。</li>
       </ol>
-      <p data-i18n="helpSaveSettings">PCでは「保存設定」で透かし・ページ番号・画像圧縮・パスワードを設定できます。スマホでは「その他」から透かし・ページ番号・画像圧縮を、保存バーの鍵ボタンからパスワードを設定します。</p>
+      <p data-i18n="helpSaveSettings">「保存設定」から透かし・ページ番号・画像圧縮・パスワードを設定できます。スマホでは保存ファイル名もここで変更できます。</p>
       <h3 data-i18n="multipleSelection">ページの選び方</h3>
       <p data-i18n-html="helpSelection">カードをクリックして選択します。右上のチェックでページを追加でき、PCでは<kbd>Shift</kbd>＋クリックで範囲選択できます。「ページ番号で選択」（スマホでは「その他」内）には、2-5, 9 のように入力できます。</p>
       <p data-i18n="helpPreview">拡大ボタンでページを大きく確認できます。</p>
@@ -2368,6 +2408,7 @@ body.is-sorting .page-card.drag-source {
       addButton: $("#addButton"),
       emptyAddButton: $("#emptyAddButton"),
       selectionStatus: $("#selectionStatus"),
+      importStatus: $("#importStatus"),
       selectAllButton: $("#selectAllButton"),
       selectPageRangesButton: $("#selectPageRangesButton"),
       pageRangesDialog: $("#pageRangesDialog"),
@@ -2390,6 +2431,7 @@ body.is-sorting .page-card.drag-source {
       saveOptionsPasswordButton: $("#saveOptionsPasswordButton"),
       watermarkButton: $("#watermarkButton"),
       pageNumbersButton: $("#pageNumbersButton"),
+      pageNumbersExportNote: $("#pageNumbersExportNote"),
       imageCompressionButton: $("#imageCompressionButton"),
       watermarkDialog: $("#watermarkDialog"),
       watermarkForm: $("#watermarkForm"),
@@ -2400,7 +2442,6 @@ body.is-sorting .page-card.drag-source {
       watermarkColor: $("#watermarkColor"),
       watermarkOpacity: $("#watermarkOpacity"),
       watermarkOpacityValue: $("#watermarkOpacityValue"),
-      outputPasswordButton: $("#outputPasswordButton"),
       outputPasswordDialog: $("#outputPasswordDialog"),
       outputPasswordForm: $("#outputPasswordForm"),
       outputPasswordEnabled: $("#outputPasswordEnabled"),
@@ -2487,7 +2528,7 @@ body.is-sorting .page-card.drag-source {
       ["moveStartIcon", "moveStart"], ["moveEndIcon", "moveEnd"],
       ["deleteIcon", "trash"], ["undoButton", "undo"], ["redoButton", "redo"], ["zoomSmallIcon", "zoomSmall"],
       ["zoomLargeIcon", "zoomLarge"], ["clearAllIcon", "trash"], ["emptyIcon", "file"], ["emptyAddIcon", "addFile"],
-      ["saveAllIcon", "download"], ["outputPasswordIcon", "lockOpen"],
+      ["saveAllIcon", "download"],
       ["watermarkIcon", "watermark"], ["watermarkPrevious", "previous"], ["watermarkNext", "next"],
       ["imageCompressionIcon", "image"],
       ["saveOptionsIcon", "sliders"], ["saveOptionsPasswordIcon", "lockOpen"],
@@ -2550,14 +2591,15 @@ body.is-sorting .page-card.drag-source {
         filenameLabel: "保存ファイル名",
         saveSelected: "選択ページを保存",
         saveSelectedCount: "選択 {count}ページを保存",
-        saveSelectedCompact: "選択 {count}P 保存",
+        saveSelectedCompact: "選択を保存",
         saveAll: "すべて保存",
         saveOptions: "保存設定",
         saveOptionsActive: "保存設定（適用中の設定あり）",
         saveOptionOn: "オン",
         pageNumbers: "ページ番号",
-        pageNumbersOn: "ページ番号 ON",
-        pageNumbersOff: "ページ番号 OFF",
+        pageNumbersExportNote: "選択ページだけ保存すると、1から番号を振り直します。",
+        importStatus: "{pages}ページ追加",
+        importStatusSingle: "1ページ追加",
         saveOptionsPassword: "パスワード",
         outputPasswordButtonInactive: "出力PDFにパスワードを設定",
         outputPasswordButtonActive: "出力パスワード設定済み",
@@ -2573,8 +2615,6 @@ body.is-sorting .page-card.drag-source {
         watermark: "透かし",
         watermarkOn: "透かし ON",
         imageCompression: "画像圧縮",
-        imageCompressionOn: "画像圧縮 ON",
-        imageCompressionOff: "画像圧縮 OFF",
         imageCompressionHint: "PDF内のJPEG画像の画質を下げて、ファイルを小さくします。",
         compressingImages: "画像を圧縮しています",
         compressionProgress: "JPEG画像 {current} / {total}",
@@ -2631,7 +2671,7 @@ body.is-sorting .page-card.drag-source {
         helpEdit: "不要なページは選んで削除。回転や「元に戻す」も使えます。",
         helpPreview: "拡大ボタンでページを大きく確認できます。",
         helpMerge: "「すべて保存」または「選択ページを保存」でPDFを書き出します。",
-        helpSaveSettings: "PCでは「保存設定」で透かし・ページ番号・画像圧縮・パスワードを設定できます。スマホでは「その他」から透かし・ページ番号・画像圧縮を、保存バーの鍵ボタンからパスワードを設定します。",
+        helpSaveSettings: "「保存設定」から透かし・ページ番号・画像圧縮・パスワードを設定できます。スマホでは保存ファイル名もここで変更できます。",
         helpImageLayout: "画像のFitは全体をA4内に収め、FillはA4いっぱいに配置してはみ出す部分を切り取ります。Original Sizeは画像の大きさに合わせたページを作ります。",
         imageLayoutHeading: "画像の配置",
         multipleSelection: "ページの選び方",
@@ -2765,14 +2805,15 @@ body.is-sorting .page-card.drag-source {
         filenameLabel: "Output filename",
         saveSelected: "Save selected",
         saveSelectedCount: "Save {count} selected",
-        saveSelectedCompact: "Save {count}",
+        saveSelectedCompact: "Save selected",
         saveAll: "Save all",
         saveOptions: "Save settings",
         saveOptionsActive: "Save settings (options enabled)",
         saveOptionOn: "On",
         pageNumbers: "Page numbers",
-        pageNumbersOn: "Page numbers (on)",
-        pageNumbersOff: "Page numbers off",
+        pageNumbersExportNote: "When you save only selected pages, numbering starts at 1.",
+        importStatus: "{pages} pages added",
+        importStatusSingle: "1 page added",
         saveOptionsPassword: "Password",
         outputPasswordButtonInactive: "Set an output PDF password",
         outputPasswordButtonActive: "Output password is set",
@@ -2788,8 +2829,6 @@ body.is-sorting .page-card.drag-source {
         watermark: "Watermark",
         watermarkOn: "Watermark on",
         imageCompression: "Compress images",
-        imageCompressionOn: "Compress images (on)",
-        imageCompressionOff: "Image compression off",
         imageCompressionHint: "Reduce JPEG image quality to make the PDF smaller.",
         compressingImages: "Compressing images",
         compressionProgress: "JPEG image {current} of {total}",
@@ -2846,7 +2885,7 @@ body.is-sorting .page-card.drag-source {
         helpEdit: "Select pages to remove or rotate them. You can undo changes.",
         helpPreview: "Use the expand button to inspect a page more closely.",
         helpMerge: "Use Save all or Save selected to download a PDF.",
-        helpSaveSettings: "On desktop, open Save settings for watermarks, page numbers, image compression, and password protection. On a phone, use More for the first three options and the lock button in the save bar for the password.",
+        helpSaveSettings: "Open Save settings for watermarks, page numbers, image compression, and password protection. On a phone, you can also change the output filename there.",
         helpImageLayout: "Fit keeps an entire image inside an A4 page. Fill covers the A4 page and crops the excess. Original Size creates a page sized to the image.",
         imageLayoutHeading: "Image placement",
         multipleSelection: "Selecting pages",
@@ -3337,6 +3376,7 @@ body.is-sorting .page-card.drag-source {
       elements.saveOptionsPasswordButton.disabled = lockSaveOptions;
       elements.pageNumbersButton.disabled = lockSaveOptions;
       elements.pageNumbersButton.setAttribute("aria-pressed", String(state.pageNumbers));
+      elements.pageNumbersExportNote.hidden = !state.pageNumbers;
       elements.imageCompressionButton.disabled = state.isBusy || !hasPages;
       elements.imageCompressionButton.setAttribute("aria-pressed", String(state.compressImages));
       elements.watermarkButton.disabled = state.isBusy || !hasPages;
@@ -3363,7 +3403,7 @@ body.is-sorting .page-card.drag-source {
       elements.saveSelectedButton.classList.toggle("has-selection", hasSelection);
       const saveSelectedLabel = elements.saveSelectedButton.querySelector(".button-label");
       const saveSelectedText = hasSelection ? t("saveSelectedCount", { count: selectedCount }) : t("saveSelected");
-      const saveSelectedCompactText = hasSelection ? t("saveSelectedCompact", { count: selectedCount }) : t("saveSelected");
+      const saveSelectedCompactText = t("saveSelectedCompact");
       if (saveSelectedLabel) saveSelectedLabel.textContent = window.matchMedia("(max-width: 760px)").matches ? saveSelectedCompactText : saveSelectedText;
       elements.saveSelectedButton.setAttribute("aria-label", saveSelectedText);
       elements.saveSelectedButton.title = saveSelectedText;
@@ -3375,7 +3415,7 @@ body.is-sorting .page-card.drag-source {
       elements.redoButton.disabled = locked || (state.future.length === 0);
       updateOutputPasswordUi();
       for (const control of [elements.addButton, elements.initialAddButton, elements.emptyAddButton,
-        elements.fileInput, elements.filenameInput, elements.outputPasswordButton]) control.disabled = locked;
+        elements.fileInput, elements.filenameInput]) control.disabled = locked;
     }
 
     function updatePasswordVisibilityButton(input, button, iconId) {
@@ -3463,7 +3503,19 @@ body.is-sorting .page-card.drag-source {
     document.addEventListener("click", (event) => {
       if (!elements.saveOptions.contains(event.target)) closeSaveOptions();
     });
-    window.matchMedia("(max-width: 760px)").addEventListener?.("change", () => closeSaveOptions());
+    const mobileSaveLayout = window.matchMedia("(max-width: 760px)");
+    const filenameWrap = $("#filenameWrap");
+    function syncSaveLayout() {
+      closeSaveOptions();
+      if (mobileSaveLayout.matches) elements.saveOptionsPanel.prepend(filenameWrap);
+      else elements.saveOptions.before(filenameWrap);
+      if (elements.previewDialog.open) updatePreviewUi();
+    }
+    syncSaveLayout();
+    mobileSaveLayout.addEventListener?.("change", () => {
+      syncSaveLayout();
+      updateUiState();
+    });
     elements.watermarkButton.addEventListener("click", () => {
       closeSaveOptions(true);
       openWatermarkDialog();
@@ -3472,18 +3524,12 @@ body.is-sorting .page-card.drag-source {
       if (!state.pages.length || state.isBusy) return;
       state.compressImages = !state.compressImages;
       updateUiState();
-      if (window.matchMedia("(max-width: 760px)").matches) {
-        showToast(t(state.compressImages ? "imageCompressionOn" : "imageCompressionOff"), "info", 2000);
-      }
     });
     elements.pageNumbersButton.addEventListener("click", () => {
       if (!state.pages.length || state.isBusy) return;
       state.pageNumbers = !state.pageNumbers;
       elements.pagesGrid.querySelectorAll('.thumb-frame[data-rendered="true"]').forEach(updateThumbnailPageNumber);
       updateUiState();
-      if (window.matchMedia("(max-width: 760px)").matches) {
-        showToast(t(state.pageNumbers ? "pageNumbersOn" : "pageNumbersOff"), "info", 2000);
-      }
     });
     elements.watermarkForm.addEventListener("input", () => {
       updateWatermarkFields();
@@ -3521,13 +3567,9 @@ body.is-sorting .page-card.drag-source {
 
     function updateOutputPasswordUi() {
       const active = outputProtection.enabled && !!outputProtection.password;
-      elements.outputPasswordButton.classList.toggle("is-active", active);
       elements.saveOptionsPasswordButton.classList.toggle("is-active", active);
-      setIcon("outputPasswordIcon", active ? "lock" : "lockOpen");
       setIcon("saveOptionsPasswordIcon", active ? "lock" : "lockOpen");
       const label = t(active ? "outputPasswordButtonActive" : "outputPasswordButtonInactive");
-      elements.outputPasswordButton.title = label;
-      elements.outputPasswordButton.setAttribute("aria-label", label);
       elements.saveOptionsPasswordButton.setAttribute("aria-label", label);
       const optionsActive = !!(active || state.watermark || state.compressImages || state.pageNumbers);
       elements.saveOptionsButton.classList.toggle("is-active", optionsActive);
@@ -4232,7 +4274,10 @@ body.is-sorting .page-card.drag-source {
       if (index < 0) return;
       const item = state.pages[index];
       const doc = state.documents.get(item.docId);
-      elements.previewTitle.textContent = t("previewPageTitle", { position: index + 1 });
+      const filename = doc?.name || "PDF";
+      elements.previewTitle.textContent = window.matchMedia("(max-width: 760px)").matches
+        ? filename : t("previewPageTitle", { position: index + 1 });
+      elements.previewTitle.title = filename;
       const rotation = item.rotation ? t("rotationSuffix", { rotation: normalizeRotation(item.rotation) }) : "";
       elements.previewSubtitle.textContent = doc?.kind === "image"
         ? t("previewSubtitleImage", { name: doc.name, layout: imageLayoutLabel(item.imageLayout), rotation })
@@ -4762,7 +4807,14 @@ body.is-sorting .page-card.drag-source {
       if (addedPages > 0) {
         pushHistory(before);
         renderGrid();
-        showToast(t("addedFiles", { files: addedFiles, pages: addedPages }));
+        if (window.matchMedia("(max-width: 760px)").matches) {
+          showToast(t("addedFiles", { files: addedFiles, pages: addedPages }));
+        } else {
+          const status = elements.importStatus;
+          clearTimeout(status.importTimer);
+          status.textContent = t(addedPages === 1 ? "importStatusSingle" : "importStatus", { pages: addedPages });
+          status.importTimer = setTimeout(() => { status.textContent = ""; }, 3500);
+        }
       }
       setBusy(false);
       releaseUnusedDocuments();
@@ -6091,7 +6143,6 @@ body.is-sorting .page-card.drag-source {
     elements.redoButton.addEventListener("click", redo);
     elements.saveSelectedButton.addEventListener("click", () => exportPdf(true));
     elements.saveAllButton.addEventListener("click", () => exportPdf(false));
-    elements.outputPasswordButton.addEventListener("click", openOutputPasswordDialog);
     elements.saveOptionsPasswordButton.addEventListener("click", () => {
       closeSaveOptions(true);
       openOutputPasswordDialog();
@@ -6609,21 +6660,9 @@ body.is-sorting .page-card.drag-source {
       function renderMobileTools() {
         mobileToolsTitle.textContent = mobileText("その他の操作", "More actions");
         mobileToolsClose.setAttribute("aria-label", mobileText("閉じる", "Close"));
-        const compressionTool = createMobileTool(elements.imageCompressionButton, icons.image,
-          t(state.compressImages ? "imageCompressionOn" : "imageCompression"));
-        compressionTool.setAttribute("aria-label", t("imageCompression"));
-        compressionTool.setAttribute("aria-pressed", String(state.compressImages));
-        compressionTool.title = t("imageCompressionHint");
-        const pageNumbersTool = createMobileTool(elements.pageNumbersButton, icons.pageRanges,
-          t(state.pageNumbers ? "pageNumbersOn" : "pageNumbers"));
-        pageNumbersTool.setAttribute("aria-label", t("pageNumbers"));
-        pageNumbersTool.setAttribute("aria-pressed", String(state.pageNumbers));
         mobileToolsList.replaceChildren(
           createMobileTool(elements.addButton, icons.addFile, t("addPdf")),
           createMobileTool(elements.selectPageRangesButton, icons.pageRanges, t("selectPageRanges")),
-          createMobileTool(elements.watermarkButton, icons.watermark, t(state.watermark ? "watermarkOn" : "watermark")),
-          pageNumbersTool,
-          compressionTool,
           createMobileTool(elements.clearSelectionButton, icons.clearSelection, t("clearSelection")),
           createMobileTool(elements.moveStartButton, icons.moveStart, t("moveSelectionStart")),
           createMobileTool(elements.moveEndButton, icons.moveEnd, t("moveSelectionEnd")),
