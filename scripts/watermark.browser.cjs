@@ -228,13 +228,6 @@ async function exercise(browser, mobile) {
       await page.screenshot({ path: path.join(process.env.PDF_ORGANIZER_SCREENSHOTS, 'mobile-workspace.png') });
     }
     const output = await savePdf(page, '#saveSelectedButton');
-    const labels = await page.evaluate(async encoded => {
-      const { PDFDocument, decodePDFRawStream } = PDFLib;
-      const pdf = await PDFDocument.load(encoded);
-      return pdf.getPage(0).node.Contents().asArray().map(ref =>
-        new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref)).decode()));
-    }, output.toString('base64'));
-    assert.ok(labels.some(stream => stream.includes('<31202F2031> Tj')), 'Selected export is numbered 1 / 1');
     const viewer = await context.newPage();
     await viewer.goto(app);
     await viewer.waitForSelector('#initialDropIcon svg');
@@ -277,6 +270,10 @@ async function exercise(browser, mobile) {
     }
     assert.equal(await cardNumbers.count(), 0, 'Turning page numbers off removes them from both cards');
     if (!mobile) {
+      await page.locator('#saveOptionsButton').click();
+      await page.locator('#pageNumbersButton').click();
+      assert.equal(await page.locator('#pageNumbersButton').getAttribute('aria-pressed'), 'true');
+      await page.keyboard.press('Escape');
       await openSettings(page, false);
       await page.locator('#watermarkEnabled').check();
       await page.locator('#watermarkText').fill('Private recipient');

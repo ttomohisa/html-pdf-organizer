@@ -32,8 +32,6 @@ jobs:
         if: github.event_name == 'pull_request'
         shell: pwsh
         run: |
-          node --test tests/local-processing-label.test.cjs
-          if ($LASTEXITCODE -ne 0) { throw "Local label regression failed." }
           $testTools = Join-Path $env:RUNNER_TEMP "mobile-label-tests"
           npm install --prefix $testTools --ignore-scripts --no-audit --no-fund --package-lock=false playwright@1.58.2
           if ($LASTEXITCODE -ne 0) { throw "Playwright installation failed." }

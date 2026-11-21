@@ -6,6 +6,8 @@
 - Keep watermark settings under More on phones and remove the stamp button from the mobile save bar.
 - Group desktop export options under Save settings and show selected-page saving when pages are selected.
 - Add optional page numbers to cards, the preview, and saved PDFs, numbered in export order.
+- Close the output password dialog when the user clicks outside it.
+- Keep the desktop toolbar steady as the selection count changes, and remove Redo from the mobile More menu.
 
 ## 1.4.0 - 2026-11-21
 

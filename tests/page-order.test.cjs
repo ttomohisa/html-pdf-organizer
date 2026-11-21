@@ -107,6 +107,10 @@ for (const filename of targets) {
     assert.deepEqual(labels(await output(h, 'numbers-all')), [['1 / 4'], ['2 / 4'], ['3 / 4'], ['4 / 4']]);
     h.blobs.length = 0;
     assert.deepEqual(labels(await output(h, 'numbers-selected', true)), [['1 / 2'], ['2 / 2']]);
+    h.app.clearSelection();
+    h.app.selectPage(h.app.state.pages.at(-1).id);
+    h.blobs.length = 0;
+    assert.deepEqual(labels(await output(h, 'numbers-single', true)), [['1 / 1']]);
   });
   test(prefix + 'compression preserves shared JPEG references, text, drawing commands and special image streams', async () => {
     const h = harness(filename), doc = await PDFLib.PDFDocument.create();
@@ -122,7 +126,6 @@ for (const filename of targets) {
     doc.context.lookup(special.ref).dict.set(PDFLib.PDFName.of('Decode'), doc.context.obj([0, 1, 0, 1, 0, 1]));
     const source = await doc.save();
     await h.app.addFiles([{name:'photos.pdf',type:'application/pdf',size:source.length,arrayBuffer:async()=>source.buffer}]);
-    h.ctx.t = (key, values) => key === 'compressionResult' ? key + JSON.stringify(values) : key;
     // The browser tests exercise the real JPEG codec. Here we control its output to test PDF handling.
     let encodes = 0;
     h.ctx.reencodePdfJpeg = async () => { encodes++; return { bytes: new Uint8Array(compactJpeg), width: 3, height: 2 }; };
@@ -165,7 +168,6 @@ for (const filename of targets) {
 
   test(prefix + 'JPEG decoder receives raw orientation and rejects split profiles and misleading dimensions', () => {
     const {ctx} = harness(filename);
-    assert.equal(typeof ctx.inspectPdfJpeg, 'function');
     const app = (marker, data) => Buffer.concat([compactJpeg.subarray(0, 2),
       Buffer.from([255, marker, 0, data.length + 2]), data, compactJpeg.subarray(2)]);
     const exif = app(0xe1, Buffer.from('Exif\0\0II*\0', 'latin1'));

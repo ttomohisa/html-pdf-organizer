@@ -14,7 +14,7 @@ A privacy-focused, single-HTML app for organizing PDF pages, JPG/PNG/WebP images
 
 GitHub Pages delivers the initial HTML. After it loads, PDF parsing, thumbnails, reordering, rotation, preview, and export are processed locally on your device. The PDFs you select are not uploaded by the app.
 
-[![PDF Organizer screenshot](assets/screenshot.png)](https://ttomohisa.github.io/html-pdf-organizer/)
+[![PDF Organizer screenshot](assets/screenshot-en.png)](https://ttomohisa.github.io/html-pdf-organizer/)
 
 ## Features
 
@@ -31,12 +31,12 @@ GitHub Pages delivers the initial HTML. After it loads, PDF parsing, thumbnails,
 
 Just [open the demo](https://ttomohisa.github.io/html-pdf-organizer/). No installation or account is required.
 
-### Use the download file
+### Download the offline app
 
-1. Download [pdf-organizer.html](https://github.com/ttomohisa/html-pdf-organizer/blob/main/pdf-organizer.html) from this repository.
-2. Open it in a current Chromium-based browser, Firefox, or Safari.
+1. Download [pdf-organizer.html from the latest release](https://github.com/ttomohisa/html-pdf-organizer/releases/latest/download/pdf-organizer.html).
+2. Open the downloaded file in a current version of Chrome, Edge, Firefox, or Safari. It also works with the network disconnected.
 
-### Use it fully offline(advance)
+### Build the offline app from source
 
 1. Download or clone this repository.
 2. Double-click `build-offline.bat` on Windows.
@@ -61,7 +61,7 @@ On desktop, open **Save settings** for watermark, page numbers, image compressio
 
 Turn on **Page numbers** to add a number such as `1 / 24` at the bottom center. The page cards and preview show numbers for the full list. Saving selected pages numbers just those pages, starting at 1.
 
-Enable **Compress images** to recompress eligible RGB JPEG images. Large images are resized to a maximum of 2,000 pixels on the longest side. Text stays searchable and selectable, and other image types such as PNG retain their data. The save message shows the PDF size before and after a successful reduction. If the PDF size stays the same, the app saves the regular export. This setting starts off.
+**Compress images** starts off. Enable it to recompress eligible RGB JPEG images and reduce their longest side to at most 2,000 pixels. Existing searchable text and other image streams, such as PNG-derived graphics, are preserved. The app uses the compressed PDF only when it is smaller, and shows the sizes before and after the reduction. For password-protected output, both sizes are measured before encryption.
 
 In **Watermark**, enter a line of text or choose a preset, then check its position, color and opacity on an actual page. Apply the settings and save all pages or your selection. Clearing the workspace or reloading the app clears the text.
 Once applied, the watermark also appears on page cards and in the regular page preview.
@@ -84,7 +84,7 @@ A selection move keeps rotations, image placement, and selection intact and can 
 | --- | --- |
 | `Ctrl` / `⌘` + `A` | Select all pages |
 | `Ctrl` / `⌘` + `Z` | Undo |
-| `Ctrl` / `⌘` + `Shift` + `Z` | Redo |
+| `Ctrl` / `⌘` + `Shift` + `Z`, or `Ctrl` / `⌘` + `Y` | Redo |
 | `Delete` / `Backspace` | Delete selected pages |
 | `Esc` | Clear the selection or close the preview |
 | `←` / `→` | Move through pages in the preview |
@@ -95,8 +95,8 @@ The repository includes a workflow that builds the fully embedded HTML and deplo
 
 1. Push the repository to GitHub as `html-pdf-organizer`.
 2. Open **Settings → Pages → Build and deployment → Source** and select **GitHub Actions**.
-3. Push to `main`, or manually run **Deploy offline app to GitHub Pages** from the Actions tab.
-4. After a successful deployment, the demo is available at `https://ttomohisa.github.io/html-pdf-organizer/`.
+3. Push to `main`, or run **Deploy GitHub Pages** from the Actions tab.
+4. Open the site URL shown by the successful deploy job.
 
 Each push to `main` rebuilds `dist/index.html` from pinned dependencies, verifies that no external runtime script references remain, and then publishes the result.
 
@@ -132,7 +132,7 @@ The build process automatically:
 - Gzip-compresses dependency libraries and embeds PDF.js support assets for lazy decompression; CMaps are grouped into small compressed chunks for better cross-file compression
 - Records SHA-256 hashes for the tarballs, PDF.js entry, and worker
 - Rejects remaining external script references and unresolved placeholders
-- Fails the build if the generated HTML exceeds 4.75 MB by default, catching size regressions
+- Fails the build if the generated HTML exceeds 4.75 MiB by default (4,980,736 bytes)
 - Stops when an incompatible PDF.js package-layout change requires review
 - Generates `dist/dependency-manifest.json`
 
@@ -158,7 +158,7 @@ The GitHub Pages version requires an initial HTML request, but the PDF content s
 - Large PDFs, high-resolution images, and PowerPoint decks with many slides or charts can consume substantial device memory.
 - Complex PowerPoint effects, charts, and unsupported content are rasterized for visual fidelity. Supported basic shapes are overlaid as vectors where possible, and a Unicode text layer is added for search/copy.
 - Word (DOCX) input is not supported yet.
-- The current UI accepts files up to 250 MB each.
+- The file size limit is 250 MiB per input file.
 
 ## Dependencies
 
@@ -186,6 +186,4 @@ Licensed under the [MIT License](LICENSE).
 
 `app.config.json` describes the existing standalone artifact and its network-blocking CSP. Metadata does not add runtime network permissions.
 
-The canonical build writes `dist/index.html`. After `build-offline.ps1`, copy that file unchanged to the committed `pdf-organizer.html` distribution alias (`Copy-Item dist/index.html pdf-organizer.html` in PowerShell). `build.aliases` declares that alias; it is not a separate or multithreaded build. Node metadata tests verify exact runtime and decoded dependency parity whenever the canonical build output is present, allowing only build timestamps, line endings, and equivalent gzip/chunk encodings.
-
-While a dialog or More actions is open, background editing shortcuts and page scrolling are paused. In short windows, scroll within password fields or the action list.
+`build.output` identifies the generated `dist/index.html` and `build.aliases` lists the checked-in download, `pdf-organizer.html`. After rebuilding, run `Copy-Item dist/index.html pdf-organizer.html` in PowerShell. The metadata tests compare the application code and decoded dependencies in both files.
