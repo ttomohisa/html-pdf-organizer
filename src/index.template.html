@@ -207,19 +207,13 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 24px;
+      gap: 12px;
+      margin-bottom: 12px;
     }
     .initial-overview[hidden] { display: none !important; }
     .overview-copy { min-width: 0; }
-    .initial-overview h2 {
-      margin: 0;
-      font-size: clamp(18px, 1.6vw, 22px);
-      letter-spacing: -.018em;
-      line-height: 1.35;
-    }
     .overview-summary {
-      margin: 8px 0 0;
+      margin: 0;
       color: var(--text-muted);
       font-size: 13px;
       line-height: 1.5;
@@ -1279,8 +1273,7 @@
       .header-actions .button-label { display: none; }
       .language-button { min-width: 43px; padding-inline: 8px; }
       .main { padding-top: 16px; }
-      .initial-overview { gap: 8px; margin-bottom: 16px; }
-      .initial-overview h2 { font-size: 19px; }
+      .initial-overview { gap: 8px; margin-bottom: 10px; }
       .overview-summary { font-size: 12px; }
       .privacy-promise { margin-top: 8px; padding: 6px 0; font-size: 10px; }
       .drop-zone { min-height: 210px; padding: 24px 16px; }
@@ -1776,13 +1769,12 @@ body.is-sorting .page-card.drag-source {
   </header>
 
   <main class="main">
-    <section class="initial-overview" id="initialOverview" aria-labelledby="overviewHeading">
+    <div class="initial-overview" id="initialOverview">
       <div class="overview-copy">
-        <h2 id="overviewHeading" data-i18n="overviewHeading">PDFのページを整理・結合</h2>
-        <p class="overview-summary" data-i18n="overviewSummary">並べ替えや回転、削除をして、1つのPDFに保存できます。</p>
+        <p class="overview-summary" data-i18n="overviewSummary">PDFや画像、PowerPointをまとめて、ページの並べ替え・回転・削除やPDFの分割ができます。</p>
       </div>
       <div class="privacy-promise"><span id="shieldIcon" aria-hidden="true"></span><span data-i18n="privacyNote">完全ローカル処理</span></div>
-    </section>
+    </div>
 
     <section class="drop-zone" id="initialDropZone" tabindex="0" role="button" data-i18n-aria-label="addPdfAria" aria-label="PDF・JPG・PNG・WebP・PowerPointファイルを追加">
       <div class="drop-content">
@@ -2458,6 +2450,8 @@ body.is-sorting .page-card.drag-source {
       clearSelectionButton: $("#clearSelectionButton"),
       moveStartButton: $("#moveStartButton"),
       moveEndButton: $("#moveEndButton"),
+      moveTargetButton: $("#moveTargetButton"),
+      splitButton: $("#splitButton"),
       rotateLeftButton: $("#rotateLeftButton"),
       rotateRightButton: $("#rotateRightButton"),
       deleteButton: $("#deleteButton"),
@@ -2587,8 +2581,7 @@ body.is-sorting .page-card.drag-source {
         switchLanguage: "Switch to English",
         helpTitle: "使い方と注意事項",
         addPdfAria: "PDF・JPG・PNG・WebP・PowerPointファイルを追加",
-        overviewHeading: "PDFのページを整理・結合",
-        overviewSummary: "並べ替えや回転、削除をして、1つのPDFに保存できます。",
+        overviewSummary: "PDFや画像、PowerPointをまとめて、ページの並べ替え・回転・削除やPDFの分割ができます。",
         overviewReorder: "並べ替え",
         overviewReorderNote: "ドラッグで順番変更",
         overviewEdit: "回転・削除",
@@ -2820,8 +2813,7 @@ body.is-sorting .page-card.drag-source {
         switchLanguage: "日本語に切り替え",
         helpTitle: "How to use & notes",
         addPdfAria: "Add PDF, JPG, PNG, WebP, or PowerPoint files",
-        overviewHeading: "Organize and combine PDF pages",
-        overviewSummary: "Reorder, rotate, or remove pages, then save them as one PDF.",
+        overviewSummary: "Combine PDFs, images and PowerPoint files, reorder, rotate or remove pages, and split PDFs.",
         overviewReorder: "Reorder",
         overviewReorderNote: "Drag pages into place",
         overviewEdit: "Rotate & delete",
@@ -3484,8 +3476,8 @@ body.is-sorting .page-card.drag-source {
       const locked = state.isBusy;
       elements.moveStartButton.disabled = !canMoveSelectionToEdge("start");
       elements.moveEndButton.disabled = !canMoveSelectionToEdge("end");
-      $("#moveTargetButton").disabled = locked || !hasSelection || selectedCount === pageCount;
-      $("#splitButton").disabled = locked || pageCount < 2;
+      elements.moveTargetButton.disabled = locked || !hasSelection || selectedCount === pageCount;
+      elements.splitButton.disabled = locked || pageCount < 2;
       elements.clearSelectionButton.disabled = locked || (!hasSelection);
       elements.rotateLeftButton.disabled = locked || (!hasSelection);
       elements.rotateRightButton.disabled = locked || (!hasSelection);

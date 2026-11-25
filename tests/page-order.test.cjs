@@ -54,7 +54,7 @@ function harness(filename) {
   const names = ['setBusy', 'pushHistory', 'performEdit', 'reconcileSelection', 'undo', 'redo', 'selectPage', 'ensureTargetSelected', 'rotateSelected', 'deleteSelected', 'selectAll', 'clearSelection', 'addFiles', 'beginPointerDrag', 'finishPointerDrag', 'exportPdf', 'sanitizeFilename', 'updateUiState'];
   const optional = ['cancelPointerDrag', 'getSelectionEdgeOrder', 'canMoveSelectionToEdge', 'moveSelectionToEdge', 'askToDeleteAll', 'commitDeleteSelected', 'getWatermarkPlacement', 'drawPdfWatermark'];
   optional.push('getPdfJpegSize', 'inspectPdfJpeg', 'reencodePdfJpeg', 'compressPdfImages', 'formatBytes', 'closeSaveOptions');
-  optional.push('getPdfPageView', 'getPageNumberLayout', 'drawPdfPageNumber');
+  optional.push('getPdfPageView', 'getPageNumberLayout', 'drawPdfPageNumber', 'buildPdfBytes');
   for (const name of optional) if (source.includes('function ' + name + '(')) names.push(name);
   const initial = source.slice(source.indexOf('    const state = {'), source.indexOf('    function setIcon'));
   const helpers = source.slice(source.indexOf('    const makeId = '), source.indexOf('    const A4_WIDTH = '));
