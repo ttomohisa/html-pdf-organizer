@@ -11,7 +11,10 @@ for (const file of ['src/index.template.html', 'pdf-organizer.html']) {
     assert.doesNotMatch(html, /fileFallbackButton|fileFallbackInput|overviewLabel|workspaceGuideIcon/);
     assert.match(html, /data-i18n="addPdf">ファイルを追加/);
     assert.match(html, /workspaceGuideBodyMobile">長押しして並び替え/);
-    assert.match(html, /data-i18n="overviewSummary">並べ替えや回転、削除をして/);
+    assert.match(html, /data-i18n="overviewSummary">PDFや画像、PowerPointをまとめて、ページの並べ替え・回転・削除やPDFの分割ができます。/);
+    assert.match(html, /overviewSummary: "Combine PDFs, images and PowerPoint files, reorder, rotate or remove pages, and split PDFs\."/);
+    assert.doesNotMatch(html, /id="overviewHeading"|data-i18n="overviewHeading"/);
+    assert.match(html, /\.overview-summary\s*\{\s*margin: 0;/);
     assert.doesNotMatch(html, /<ul class="overview-actions">/);
     assert.doesNotMatch(html, /data-i18n="dropDescription"/);
     assert.match(html, /data-i18n="choosePdf">ファイルを選択/);
