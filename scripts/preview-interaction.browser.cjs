@@ -25,9 +25,11 @@ async function exercise(browser, buffer, width, height, mobile) {
     await page.goto(pathToFileURL(path.resolve(__dirname, '../dist/index.html')).href);
     // The initial HTML already has a Japanese label; wait for the embedded runtime to finish initializing.
     await page.waitForFunction(() => !!document.querySelector('#initialDropIcon svg') && !!document.querySelector('#helpButton svg'), null, { timeout: 30000 });
-    const heading = await page.locator('#initialDropZone h2').boundingBox();
+    assert.equal(await page.locator('#initialDropZone h2').count(), 0, 'No redundant first-run heading');
+    assert.ok(await page.locator('[data-i18n="overviewSummary"]').isVisible(), 'The overview explains the tool');
+    const icon = await page.locator('#initialDropIcon').boundingBox();
     const picker = await page.locator('#initialAddButton').boundingBox();
-    assert.ok(picker.y - (heading.y + heading.height) >= 14, 'The first-run heading has space above the file picker');
+    assert.ok(icon && picker && picker.y - (icon.y + icon.height) >= 10, 'The file picker has space below its icon');
     await page.locator('#fileInput').setInputFiles(buffer);
     try {
       await page.waitForFunction(() => document.querySelectorAll('.page-card').length === 12, null, { timeout: 15000 });
