@@ -1196,6 +1196,9 @@
     .split-parts label { display: grid; gap: 4px; }
     .preview-selection { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; cursor: pointer; color: var(--text); font-size: 13px; }
     .preview-selection input { width: 18px; height: 18px; accent-color: #16624F; }
+    #moveTargetDialog .dialog-body { display: grid; align-content: start; gap: 12px; }
+    #moveTargetDialog .dialog-body p { margin: 0; overflow-wrap: anywhere; }
+    #moveTargetDialog .password-field { gap: 6px; }
     .move-target-thumb { min-height: 84px; display: flex; justify-content: center; align-items: center; background: var(--surface-muted); border-radius: 8px; padding: 8px; }
     .move-target-thumb canvas { display: block; max-width: 100%; max-height: 120px; width: auto !important; height: auto !important; object-fit: contain; }
     .preview-footer {
@@ -1892,8 +1895,10 @@ body.is-sorting .page-card.drag-source {
       <div class="dialog-header"><h2 id="moveTargetTitle" data-i18n="moveTarget">移動先を指定</h2></div>
       <div class="dialog-body">
         <p data-i18n="moveTargetHint">選択したページを、指定したページの前または後に移動します。</p>
-        <label for="moveTargetNumber" data-i18n="pageRangesLabel">ページ番号</label>
-        <input class="password-input" id="moveTargetNumber" type="number" min="1" step="1" required>
+        <div class="password-field">
+          <label for="moveTargetNumber" data-i18n="pageRangesLabel">ページ番号</label>
+          <input class="password-input" id="moveTargetNumber" type="number" min="1" step="1" required>
+        </div>
         <select class="password-input" id="moveTargetSide" data-i18n-aria-label="moveTargetSide"><option value="before" data-i18n="moveBefore">前</option><option value="after" data-i18n="moveAfter">後</option></select>
         <div id="moveTargetThumb" class="move-target-thumb"></div>
         <p id="moveTargetInfo" role="status"></p>
@@ -5905,6 +5910,20 @@ body.is-sorting .page-card.drag-source {
     $("#splitClose").addEventListener("click", () => $("#splitDialog").close());
     $("#splitCancel").addEventListener("click", () => $("#splitDialog").close());
     $("#splitApply").addEventListener("click", exportSplit);
+    for (const dialog of [$("#moveTargetDialog"), $("#splitDialog")]) {
+      const isOutside = event => {
+        const { left, right, top, bottom } = dialog.getBoundingClientRect();
+        return event.target === dialog && (event.clientX < left || event.clientX > right || event.clientY < top || event.clientY > bottom);
+      };
+      let startedOutside = false;
+      dialog.addEventListener("pointerdown", event => { startedOutside = isOutside(event); });
+      dialog.addEventListener("pointercancel", () => { startedOutside = false; });
+      dialog.addEventListener("close", () => { startedOutside = false; });
+      dialog.addEventListener("click", event => {
+        if (startedOutside && isOutside(event)) dialog.close();
+        startedOutside = false;
+      });
+    }
 
     let pointerDrag = null;
 
