@@ -145,10 +145,35 @@ async function exercise(browser, buffer, width, height, mobile) {
     assert.deepEqual(await page.locator('.page-card.selected .page-order').allTextContents(), ['1','2']);
     assert.ok(await page.locator('.page-card .source-name').first().isVisible(), 'Multiple source names are visible');
     const orderBefore = await page.locator('.page-card .source-name').allTextContents();
-    if (mobile) {
-      await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
-      await page.locator('.mobile-tools-dialog').getByRole('button', { name: /移動先を指定|Move to page/i }).click();
-    } else await page.locator('#moveTargetButton').click();
+    const dismissBackdrop = async (selector) => {
+      if (mobile) await page.touchscreen.tap(2, 2);
+      else await page.mouse.click(2, 2);
+      await page.locator(selector).waitFor({ state: 'hidden', timeout: 3000 });
+    };
+    const openMoveTarget = async () => {
+      if (mobile) {
+        await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
+        await page.locator('.mobile-tools-dialog').getByRole('button', { name: /移動先を指定|Move to page/i }).click();
+      } else await page.locator('#moveTargetButton').click();
+      await page.locator('#moveTargetDialog[open]').waitFor();
+    };
+    await openMoveTarget();
+    const spacing = await page.locator('#moveTargetDialog').evaluate(dialog => {
+      const rect = selector => dialog.querySelector(selector).getBoundingClientRect();
+      return [
+        rect('#moveTargetNumber').top - rect('label[for="moveTargetNumber"]').bottom,
+        rect('#moveTargetSide').top - rect('#moveTargetNumber').bottom,
+        rect('#moveTargetThumb').top - rect('#moveTargetSide').bottom
+      ];
+    });
+    assert.ok(spacing[0] >= 6 && spacing.slice(1).every(gap => gap >= 12), 'Move target fields and thumbnail have breathing room');
+    await page.locator('#moveTargetNumber').fill('5');
+    await page.locator('#moveTargetSide').selectOption('after');
+    assert.ok(await page.locator('#moveTargetDialog').isVisible(), 'Interacting with fields does not dismiss the dialog');
+    await dismissBackdrop('#moveTargetDialog');
+    assert.deepEqual(await page.locator('.page-card .source-name').allTextContents(), orderBefore, 'Backdrop cancels the move');
+    assert.deepEqual(await page.locator('.page-card.selected .page-order').allTextContents(), ['1','2'], 'Backdrop preserves selection');
+    await openMoveTarget();
     await page.locator('#moveTargetNumber').fill('1');
     assert.ok(await page.locator('#moveTargetApply').isDisabled(), 'Cannot target a selected page');
     await page.locator('#moveTargetNumber').fill('5');
@@ -162,6 +187,13 @@ async function exercise(browser, buffer, width, height, mobile) {
 
     await page.locator('#saveOptionsButton').click();
     await page.locator('#splitButton').click();
+    await page.locator('#splitBoundaries input').nth(2).check();
+    assert.ok(await page.locator('#splitDialog').isVisible(), 'Checking a split boundary does not dismiss the dialog');
+    await dismissBackdrop('#splitDialog');
+    assert.deepEqual(await page.locator('.page-card .source-name').allTextContents(), orderBefore, 'Backdrop cancels splitting');
+    await page.locator('#saveOptionsButton').click();
+    await page.locator('#splitButton').click();
+    assert.equal(await page.locator('#splitBoundaries input:checked').count(), 0, 'Reopening split starts with no pending boundaries');
     await page.locator('#splitBoundaries input').nth(2).check(); // page 4
     await page.locator('#splitBoundaries input').nth(4).check(); // page 6
     const partNames = page.locator('#splitParts input');
