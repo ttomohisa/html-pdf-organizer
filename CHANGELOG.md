@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.0 - 2026-11-25
+
+- Move selected pages before or after a specified page with a target preview.
+- Show source filenames on mobile when multiple files are present; select pages directly in the preview.
+- Split the current page order into named PDFs and save them together as a ZIP, using the current export settings.
+- Fix inaccessible top and left edges when zooming the page preview.
+
 ## 1.5.0 - 2026-11-21
 
 - Optionally shrink eligible JPEG images when saving all or selected pages. Save feedback shows the actual PDF size before and after compression.

@@ -102,6 +102,21 @@ async function exercise(browser, buffer, width, height, mobile) {
     assert.equal((await level.textContent()).trim(), '125%', 'Plus button enlarges');
     await page.locator('#previewZoomOutButton').click();
     assert.equal((await level.textContent()).trim(), '100%', 'Minus button restores');
+
+    // New preview selection and scrollable zoom edges, including after a detailed redraw.
+    await page.locator('#previewSelectButton').click();
+    assert.equal(await page.locator('#previewSelectButton').getAttribute('aria-pressed'), 'true');
+    await page.locator('#previewSelectButton').click();
+    assert.equal(await page.locator('#previewSelectButton').getAttribute('aria-pressed'), 'false');
+    for (let i=0;i<8;i++) await page.locator('#previewZoomInButton').click();
+    await page.waitForTimeout(500);
+    const edges = await page.locator('#previewStage').evaluate(stage => {
+      stage.scrollLeft = 0; stage.scrollTop = 0;
+      const frame = stage.querySelector('.preview-content-frame').getBoundingClientRect(), box = stage.getBoundingClientRect();
+      return [frame.left >= box.left - 1, frame.top >= box.top - 1];
+    });
+    assert.deepEqual(edges, [true,true], 'Zoomed top and left edges are reachable');
+    await page.locator('#previewZoomResetButton').click();
     if (mobile) {
       assert.equal(await page.locator('[data-i18n="previewFooterKeys"]').isVisible(), false, 'Desktop keys are hidden on phone');
       const stage = await page.locator('#previewStage').boundingBox();
