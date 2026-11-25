@@ -116,8 +116,74 @@ async function exercise(browser, buffer, width, height, mobile) {
       await level.click();
       assert.equal((await level.textContent()).trim(), '100%', 'Fit button restores page');
     }
-    await page.locator('#closePreviewButton').click();
+    // All four corners remain reachable at maximum zoom, including the upper left.
+    for (let i = 0; i < 8; i++) await page.locator('#previewZoomInButton').click();
+    assert.equal((await level.textContent()).trim(), '300%');
+    for (const corner of [[0,0],[1,0],[0,1],[1,1]]) {
+      const visible = await page.evaluate(([right,bottom]) => {
+        const stage = document.querySelector('#previewStage');
+        const frame = stage.querySelector('.preview-content-frame');
+        stage.scrollLeft = right ? stage.scrollWidth : 0;
+        stage.scrollTop = bottom ? stage.scrollHeight : 0;
+        const r = frame.getBoundingClientRect(), v = stage.getBoundingClientRect();
+        const x = right ? r.right : r.left, y = bottom ? r.bottom : r.top;
+        return x >= v.left - 1 && x <= v.left + stage.clientWidth + 1 &&
+          y >= v.top - 1 && y <= v.top + stage.clientHeight + 1;
+      }, corner);
+      assert.ok(visible, 'Zoomed page corner reachable: ' + corner);
+    }
+    await level.click();
+    await page.locator('#previewSelection').check();
+    await page.locator('#previewNextButton').click();
+    await page.locator('#previewSelection').check();
+    await page.locator('#previewPreviousButton').click();
+    assert.ok(await page.locator('#previewSelection').isChecked(), 'Preview selection survives navigation');
+        await page.locator('#closePreviewButton').click();
     await page.locator('#previewDialog').waitFor({ state: 'hidden' });
+    assert.deepEqual(await page.locator('.page-card.selected .page-order').allTextContents(), ['1','2']);
+    assert.ok(await page.locator('.page-card .source-name').first().isVisible(), 'Multiple source names are visible');
+    const orderBefore = await page.locator('.page-card .source-name').allTextContents();
+    if (mobile) {
+      await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
+      await page.locator('.mobile-tools-dialog').getByRole('button', { name: /移動先を指定|Move to page/i }).click();
+    } else await page.locator('#moveTargetButton').click();
+    await page.locator('#moveTargetNumber').fill('1');
+    assert.ok(await page.locator('#moveTargetApply').isDisabled(), 'Cannot target a selected page');
+    await page.locator('#moveTargetNumber').fill('5');
+    await page.locator('#moveTargetSide').selectOption('after');
+    await page.locator('#moveTargetThumb canvas').waitFor();
+    await page.locator('#moveTargetApply').click();
+    assert.deepEqual(await page.locator('.page-card .source-name').allTextContents(), [...orderBefore.slice(2,5),...orderBefore.slice(0,2),...orderBefore.slice(5)]);
+    await page.evaluate(() => document.getElementById('undoButton').click());
+    assert.deepEqual(await page.locator('.page-card .source-name').allTextContents(), orderBefore);
+    await page.evaluate(() => document.getElementById('clearSelectionButton').click());
+
+    await page.locator('#saveOptionsButton').click();
+    await page.locator('#splitButton').click();
+    await page.locator('#splitBoundaries input').nth(2).check(); // page 4
+    await page.locator('#splitBoundaries input').nth(4).check(); // page 6
+    const partNames = page.locator('#splitParts input');
+    assert.equal(await partNames.count(), 3);
+    await partNames.nth(0).fill('申請書');
+    await partNames.nth(1).fill('申請書');
+    await partNames.nth(2).fill('図面');
+    const [zipDownload] = await Promise.all([page.waitForEvent('download'), page.locator('#splitApply').click()]);
+    const zip = await fs.readFile(await zipDownload.path());
+    const names = [], counts = [];
+    let offset = 0;
+    while (zip.readUInt32LE(offset) === 0x04034b50) {
+      const size = zip.readUInt32LE(offset + 18), nameLength = zip.readUInt16LE(offset + 26);
+      const dataStart = offset + 30 + nameLength + zip.readUInt16LE(offset + 28);
+      names.push(zip.toString('utf8', offset + 30, offset + 30 + nameLength));
+      const bytes = [...zip.subarray(dataStart, dataStart + size)];
+      counts.push(await page.evaluate(async data => (await PDFLib.PDFDocument.load(Uint8Array.from(data))).getPageCount(), bytes));
+      offset = dataStart + size;
+    }
+    assert.deepEqual(names, ['申請書.pdf', '申請書-2.pdf', '図面.pdf']);
+    assert.deepEqual(counts, [3,2,7]);
+    assert.equal(zip.readUInt32LE(offset), 0x02014b50, 'ZIP central directory follows local entries');
+    await page.locator('#busyOverlay').waitFor({ state: 'hidden' });
+    assert.deepEqual(await page.locator('.page-card .source-name').allTextContents(), orderBefore, 'Split does not change the workspace');
     const openRanges = async () => {
       if (mobile) {
         await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
