@@ -55,6 +55,10 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 5. Rotate, preview, or delete pages from the toolbar or card controls. Image cards also let you choose `Fit`, `Fill`, or `Original Size`.
 6. Save all pages or only the selection. With one source file, the default filename adds `_organized.pdf` to the original name without its extension. With multiple source files, it defaults to `organized.pdf`. On mobile, selecting pages reveals **Save selected** in the save bar.
 
+Use **Move to page** to move selected pages before or after an unselected page number (under **More** on mobile). The destination thumbnail helps identify the page. Undo restores the previous order. When multiple source files are present, mobile cards show their original filenames. In the preview, check or uncheck **Select page** while browsing; selection stays in sync with the list.
+
+To split the current list, open **Save settings → Split and save**, mark the first page of each new PDF, and name the parts. Save them together in a ZIP; repeated names receive a numeric suffix. Current PDF export settings apply to each part, and page numbers restart at 1.
+
 ### Export options
 
 Open **Save settings** for watermark, page numbers, image compression, and password options. On a phone, you can also change the output filename there. The page preview shows the source filename.
