@@ -1130,8 +1130,9 @@
     .preview-stage {
       position: relative;
       min-height: 0;
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
       overflow: auto;
       padding: 20px;
       background:
@@ -1141,7 +1142,9 @@
       background-position: 0 0, 10px 10px;
       background-size: 20px 20px;
     }
-    .preview-canvas-host { display: grid; place-items: center; min-width: 100%; min-height: 100%; }
+    .preview-canvas-host { display: grid; place-items: center; flex: none; width: max-content; height: max-content; min-width: 100%; min-height: 100%; }
+    .preview-loading, .preview-error { margin: auto; }
+    .preview-content-frame > :first-child { position: absolute; top: 0; left: 0; }
     .preview-canvas-host[hidden] { display: none; }
     .preview-content-frame { position: relative; flex: none; }
     .preview-content-frame > * { transform-origin: top left; }
@@ -1191,6 +1194,17 @@
     }
     .preview-loading[hidden], .preview-error[hidden] { display: none; }
     .preview-loading .spinner { margin: 0; }
+    .split-boundaries { max-height: min(32dvh, 260px); overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+    .split-boundaries label { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 10px; border-bottom: 1px solid var(--line); cursor: pointer; }
+    .split-boundaries label:last-child { border-bottom: 0; }
+    .split-boundaries input { flex: none; accent-color: #16624F; }
+    .split-boundaries span { min-width: 0; overflow-wrap: anywhere; }
+    .split-parts { display: grid; gap: 8px; }
+    .split-parts label { display: grid; gap: 4px; }
+    .preview-selection { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; cursor: pointer; color: var(--text); font-size: 13px; }
+    .preview-selection input { width: 18px; height: 18px; accent-color: #16624F; }
+    .move-target-thumb { min-height: 84px; display: flex; justify-content: center; align-items: center; background: var(--surface-muted); border-radius: 8px; padding: 8px; }
+    .move-target-thumb canvas { display: block; max-width: 100%; max-height: 120px; width: auto !important; height: auto !important; object-fit: contain; }
     .preview-footer {
       display: flex;
       align-items: center;
@@ -1522,6 +1536,8 @@ body.is-sorting .page-card.drag-source {
     padding: 5px 1px 1px;
   }
   .source-name { display: none; }
+  .has-multiple-sources .source-name { display: block; text-align: center; font-size: 10px; }
+  .has-multiple-sources .card-actions { bottom: 43px !important; }
   .source-page {
     overflow: hidden;
     font-size: 9px;
@@ -1748,7 +1764,7 @@ body.is-sorting .page-card.drag-source {
           <svg class="brand-favicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#16624f"/><path d="M18 14h20l8 8v28H18z" fill="#fff" opacity=".96"/><path d="M38 14v8h8" fill="#dbe9e5"/><text x="32" y="39" text-anchor="middle" fill="#16624f" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" letter-spacing="-.4">PDF</text></svg>
         </div>
         <div class="brand-copy">
-          <h1>PDF Organizer <span class="version-badge" title="Version 1.5.0">v1.5.0</span></h1>
+          <h1>PDF Organizer <span class="version-badge" title="Version 1.6.0">v1.6.0</span></h1>
           <p data-i18n="brandSubtitle">PDF・画像ページの並び替え・回転・削除・結合</p>
         </div>
       </div>
@@ -1800,6 +1816,7 @@ body.is-sorting .page-card.drag-source {
         <div class="toolbar-group">
           <button class="button" id="moveStartButton" type="button" data-i18n-title="moveSelectionStart" data-i18n-aria-label="moveSelectionStart" title="選択ページを先頭へ" aria-label="選択ページを先頭へ"><span id="moveStartIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveStart">先頭へ</span></button>
           <button class="button" id="moveEndButton" type="button" data-i18n-title="moveSelectionEnd" data-i18n-aria-label="moveSelectionEnd" title="選択ページを末尾へ" aria-label="選択ページを末尾へ"><span id="moveEndIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveEnd">末尾へ</span></button>
+          <button class="button icon-only" id="moveTargetButton" type="button" aria-haspopup="dialog" data-i18n-title="moveTarget" data-i18n-aria-label="moveTarget"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 5h16M4 19h16M12 8v8m-3-3 3 3 3-3"/></svg></button>
           <button class="button" id="rotateLeftButton" type="button" data-i18n-title="rotateLeft" data-i18n-aria-label="rotateLeft"><span id="rotateLeftIcon"></span><span class="button-label optional" data-i18n="rotateLeft">左回転</span></button>
           <button class="button" id="rotateRightButton" type="button" data-i18n-title="rotateRight" data-i18n-aria-label="rotateRight"><span id="rotateRightIcon"></span><span class="button-label optional" data-i18n="rotateRight">右回転</span></button>
           <button class="button danger" id="deleteButton" type="button" data-i18n-title="delete" data-i18n-aria-label="delete"><span id="deleteIcon"></span><span class="button-label optional" data-i18n="delete">削除</span></button>
@@ -1844,6 +1861,7 @@ body.is-sorting .page-card.drag-source {
         <span id="saveOptionsIcon" aria-hidden="true"></span><span data-i18n="saveOptions">保存設定</span><span class="save-options-indicator" aria-hidden="true"></span>
       </button>
       <div class="save-options-panel" id="saveOptionsPanel" hidden>
+        <button class="button ghost save-option" id="splitButton" type="button" aria-haspopup="dialog"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M7 3h10v7H7zM3 14h7v7H3zM14 14h7v7h-7zM12 10v2M6 12h12"/></svg><span data-i18n="splitSave">分割して保存</span></button>
         <button class="button ghost save-option" id="watermarkButton" type="button" aria-haspopup="dialog" aria-controls="watermarkDialog"><span id="watermarkIcon" aria-hidden="true"></span><span data-i18n="watermark">透かし</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
         <button class="button ghost save-option" id="pageNumbersButton" type="button" aria-pressed="false"><span id="pageNumbersIcon" aria-hidden="true"></span><span data-i18n="pageNumbers">ページ番号</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
         <p class="save-option-note" id="pageNumbersExportNote" data-i18n="pageNumbersExportNote" hidden>選択ページだけ保存すると、1から番号を振り直します。</p>
@@ -1868,6 +1886,32 @@ body.is-sorting .page-card.drag-source {
   </div>
 
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+
+  <dialog id="splitDialog" aria-labelledby="splitTitle">
+    <div class="dialog-header"><h2 id="splitTitle" data-i18n="splitSave">分割して保存</h2><button class="dialog-close" id="splitClose" type="button" data-i18n-aria-label="close"></button></div>
+    <div class="dialog-body">
+      <p data-i18n="splitHint">次のPDFが始まるページにチェックを付けてください。</p>
+      <div id="splitBoundaries" class="split-boundaries"></div>
+      <p data-i18n="splitNames">保存するPDFの名前</p>
+      <div id="splitParts" class="split-parts"></div>
+      <p data-i18n="splitSettings">現在の保存設定を使用します。ページ番号はPDFごとに振り直します。</p>
+    </div>
+    <div class="dialog-actions"><button class="button ghost" id="splitCancel" type="button" data-i18n="cancel">キャンセル</button><button class="button primary" id="splitApply" type="button" data-i18n="splitZip">ZIPで保存</button></div>
+  </dialog>
+  <dialog class="password-dialog" id="moveTargetDialog" aria-labelledby="moveTargetTitle">
+    <form id="moveTargetForm">
+      <div class="dialog-header"><h2 id="moveTargetTitle" data-i18n="moveTarget">移動先を指定</h2></div>
+      <div class="dialog-body">
+        <p data-i18n="moveTargetHint">選択したページを、指定したページの前または後に移動します。</p>
+        <label for="moveTargetNumber" data-i18n="pageRangesLabel">ページ番号</label>
+        <input class="password-input" id="moveTargetNumber" type="number" min="1" step="1" required>
+        <select class="password-input" id="moveTargetSide" data-i18n-aria-label="moveTargetSide"><option value="before" data-i18n="moveBefore">前</option><option value="after" data-i18n="moveAfter">後</option></select>
+        <div id="moveTargetThumb" class="move-target-thumb"></div>
+        <p id="moveTargetInfo" role="status"></p>
+      </div>
+      <div class="dialog-actions"><button class="button ghost" type="button" id="moveTargetCancel" data-i18n="cancel">キャンセル</button><button class="button primary" id="moveTargetApply" type="submit" data-i18n="moveApply">移動</button></div>
+    </form>
+  </dialog>
 
   <dialog class="password-dialog" id="pageRangesDialog" aria-labelledby="pageRangesTitle">
     <form id="pageRangesForm">
@@ -2033,7 +2077,7 @@ body.is-sorting .page-card.drag-source {
       <div class="preview-error" id="previewError" hidden></div>
     </div>
     <div class="preview-footer">
-      <span data-i18n="previewFooterOpen">カードの拡大ボタンまたはダブルクリックで表示</span>
+      <label class="preview-selection"><input type="checkbox" id="previewSelection"><span id="previewSelectionLabel" data-i18n="previewSelect">ページを選択</span></label>
       <div class="preview-zoom-tools" role="group" data-i18n-aria-label="previewZoomControls" aria-label="プレビューの拡大縮小">
         <button class="preview-zoom-button" id="previewZoomOutButton" type="button" data-i18n-title="previewZoomOut" data-i18n-aria-label="previewZoomOut" title="縮小" aria-label="縮小"></button>
         <button class="preview-zoom-level" id="previewZoomResetButton" type="button" data-i18n-title="previewZoomReset" data-i18n-aria-label="previewZoomReset" title="画面に合わせる" aria-label="画面に合わせる">100%</button>
@@ -2569,6 +2613,25 @@ body.is-sorting .page-card.drag-source {
         pageRangesHint: "カード左上の番号（1〜{total}）を使います。複数の番号はカンマで区切り、連続するページはハイフンでつなげます。",
         pageRangesError: "1〜{total} の範囲で入力してください。範囲は小さい番号から指定します。",
         pageRangesApply: "選択",
+        moveTarget: "移動先を指定",
+        moveTargetHint: "選択したページを、指定したページの前または後に移動します。",
+        moveTargetSide: "移動先の位置",
+        moveBefore: "前",
+        moveAfter: "後",
+        moveApply: "移動",
+        moveInvalid: "選択されていないページ番号を指定してください。",
+        moveNoChange: "現在の順番と同じです。",
+        previewSelect: "ページを選択",
+        previewSelected: "選択済み",
+        splitSave: "分割して保存",
+        splitHint: "次のPDFが始まるページにチェックを付けてください。",
+        splitNames: "保存するPDFの名前",
+        splitSettings: "透かし、ページ番号、画像圧縮、パスワードは現在の保存設定を使用します。ページ番号はPDFごとに振り直します。",
+        splitZip: "ZIPで保存",
+        splitRange: "{start}–{end}ページ",
+        splitSaved: "{count}個のPDFをZIPで保存しました。",
+        splitTooLarge: "ZIPが大きすぎます。分割数を減らしてお試しください。",
+        splitProgress: "PDF {current} / {total}",
         moveStart: "先頭へ",
         moveEnd: "末尾へ",
         moveSelectionStart: "選択ページを先頭へ",
@@ -2783,6 +2846,25 @@ body.is-sorting .page-card.drag-source {
         pageRangesHint: "Use the numbers on the cards (1–{total}). Separate entries with commas and use a dash for a range.",
         pageRangesError: "Enter page numbers from 1 to {total}. For a range, enter the lower number first.",
         pageRangesApply: "Select",
+        moveTarget: "Move to page",
+        moveTargetHint: "Move selected pages before or after the specified page.",
+        moveTargetSide: "Destination position",
+        moveBefore: "Before",
+        moveAfter: "After",
+        moveApply: "Move",
+        moveInvalid: "Enter the number of an unselected page.",
+        moveNoChange: "The page order is unchanged.",
+        previewSelect: "Select page",
+        previewSelected: "Selected",
+        splitSave: "Split and save",
+        splitHint: "Mark the first page of each new PDF.",
+        splitNames: "PDF filenames",
+        splitSettings: "Current watermark, page numbers, image compression and password settings apply. Page numbering restarts in each PDF.",
+        splitZip: "Save ZIP",
+        splitRange: "Pages {start}–{end}",
+        splitSaved: "Saved {count} PDFs in a ZIP.",
+        splitTooLarge: "The ZIP is too large. Try saving fewer parts.",
+        splitProgress: "PDF {current} / {total}",
         moveStart: "To start",
         moveEnd: "To end",
         moveSelectionStart: "Move selection to start",
@@ -3402,6 +3484,8 @@ body.is-sorting .page-card.drag-source {
       const locked = state.isBusy;
       elements.moveStartButton.disabled = !canMoveSelectionToEdge("start");
       elements.moveEndButton.disabled = !canMoveSelectionToEdge("end");
+      $("#moveTargetButton").disabled = locked || !hasSelection || selectedCount === pageCount;
+      $("#splitButton").disabled = locked || pageCount < 2;
       elements.clearSelectionButton.disabled = locked || (!hasSelection);
       elements.rotateLeftButton.disabled = locked || (!hasSelection);
       elements.rotateRightButton.disabled = locked || (!hasSelection);
@@ -3848,6 +3932,7 @@ body.is-sorting .page-card.drag-source {
       if (thumbnailObserver) thumbnailObserver.disconnect();
       disposeThumbnailPptxHandles();
       state.renderQueue.length = 0;
+      elements.pagesGrid.classList.toggle("has-multiple-sources", new Set(state.pages.map(page => page.docId)).size > 1);
       const children = state.pages.map(createPageCard);
       if (state.pages.length) children.push(createAddPdfCard());
       elements.pagesGrid.replaceChildren(...children);
@@ -3922,6 +4007,75 @@ body.is-sorting .page-card.drag-source {
       const nextPages = getSelectionEdgeOrder(edge);
       performEdit(() => { state.pages = nextPages; });
     }
+
+    function getTargetOrder(pages, selected, targetId, side) {
+      if (selected.has(targetId)) return null;
+      const moving = pages.filter(page => selected.has(page.id));
+      const remaining = pages.filter(page => !selected.has(page.id));
+      const index = remaining.findIndex(page => page.id === targetId);
+      if (!moving.length || index < 0) return null;
+      remaining.splice(index + (side === "after" ? 1 : 0), 0, ...moving);
+      return remaining;
+    }
+
+    let moveThumbToken = 0;
+    async function updateMoveTarget() {
+      const token = ++moveThumbToken;
+      const target = state.pages[Number($("#moveTargetNumber").value) - 1];
+      const order = target && getTargetOrder(state.pages, state.selected, target.id, $("#moveTargetSide").value);
+      const changed = order && order.some((page, index) => page.id !== state.pages[index].id);
+      $("#moveTargetApply").disabled = !changed || state.isBusy;
+      const info = $("#moveTargetInfo"), thumb = $("#moveTargetThumb");
+      thumb.replaceChildren();
+      info.textContent = !order ? t("moveInvalid") : !changed ? t("moveNoChange") : state.documents.get(target.docId)?.name || "";
+      if (!target || !order) return;
+      try {
+        const source = state.documents.get(target.docId);
+        let visual;
+        if (source.kind === "image") visual = await renderImagePageCanvas(target, source, 150, 110, 1);
+        else if (source.kind === "pdf") {
+          const page = await source.pdfjsDoc.getPage(target.pageIndex + 1);
+          const rotation = normalizeRotation((page.rotate || 0) + target.rotation);
+          const base = page.getViewport({ scale: 1, rotation });
+          const viewport = page.getViewport({ scale: Math.min(150 / base.width, 110 / base.height), rotation });
+          visual = document.createElement("canvas");
+          visual.width = Math.max(1, Math.ceil(viewport.width));
+          visual.height = Math.max(1, Math.ceil(viewport.height));
+          await page.render({canvasContext: visual.getContext("2d"), viewport, background: "rgb(255,255,255)"}).promise;
+        } else {
+          const handle = await createPptxSlideHandle(source, target.pageIndex);
+          try {
+            await handle.ready;
+            visual = createPptxScaledShell(handle.element, source, 150, 110, target.rotation).cloneNode(true);
+            const canvases = handle.element.querySelectorAll("canvas");
+            visual.querySelectorAll("canvas").forEach((canvas, i) => { if (canvases[i]) canvas.getContext("2d")?.drawImage(canvases[i], 0, 0); });
+          } finally { disposePptxHandle(handle); }
+        }
+        if (token === moveThumbToken && $("#moveTargetDialog").open && visual) thumb.append(visual);
+      } catch (error) { console.warn(error); }
+    }
+    $("#moveTargetButton").addEventListener("click", () => {
+      if (state.isBusy || !state.selected.size) return;
+      const index = state.pages.findIndex(page => !state.selected.has(page.id));
+      if (index < 0) return;
+      $("#moveTargetNumber").max = state.pages.length;
+      $("#moveTargetNumber").value = index + 1;
+      $("#moveTargetSide").value = "before";
+      $("#moveTargetDialog").showModal();
+      updateMoveTarget();
+    });
+    $("#moveTargetNumber").addEventListener("input", updateMoveTarget);
+    $("#moveTargetSide").addEventListener("change", updateMoveTarget);
+    $("#moveTargetCancel").addEventListener("click", () => $("#moveTargetDialog").close());
+    $("#moveTargetDialog").addEventListener("close", () => { moveThumbToken++; $("#moveTargetThumb").replaceChildren(); });
+    $("#moveTargetForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const target = state.pages[Number($("#moveTargetNumber").value) - 1];
+      const next = target && getTargetOrder(state.pages, state.selected, target.id, $("#moveTargetSide").value);
+      if (state.isBusy || !next || !next.some((page, index) => page.id !== state.pages[index].id)) return;
+      $("#moveTargetDialog").close();
+      performEdit(() => { state.pages = next; });
+    });
 
     function rotateSelected(delta) {
       if (!state.selected.size || state.isBusy) return;
@@ -4255,12 +4409,16 @@ body.is-sorting .page-card.drag-source {
       const rect = stage.getBoundingClientRect();
       const localX = anchor ? Math.max(0, Math.min(rect.width, anchor.clientX - rect.left)) : rect.width / 2;
       const localY = anchor ? Math.max(0, Math.min(rect.height, anchor.clientY - rect.top)) : rect.height / 2;
-      const targetX = stage.scrollLeft + localX;
-      const targetY = stage.scrollTop + localY;
+      const frame = elements.previewCanvasHost.querySelector(".preview-content-frame");
+      const before = frame?.getBoundingClientRect();
+      const x = rect.left + localX, y = rect.top + localY;
       previewZoom = next;
       resizePreviewContent();
-      stage.scrollLeft = Math.max(0, targetX * next / oldZoom - localX);
-      stage.scrollTop = Math.max(0, targetY * next / oldZoom - localY);
+      if (before && frame) {
+        const after = frame.getBoundingClientRect();
+        stage.scrollLeft += after.left + (x - before.left) * next / oldZoom - x;
+        stage.scrollTop += after.top + (y - before.top) * next / oldZoom - y;
+      }
       updatePreviewZoomControls();
       if (refreshDetail) schedulePreviewDetail();
     }
@@ -4292,6 +4450,9 @@ body.is-sorting .page-card.drag-source {
           ? t("previewSubtitlePptx", { name: doc.name, slide: item.pageIndex + 1, rotation })
           : t("previewSubtitle", { name: doc?.name || "PDF", sourcePage: item.pageIndex + 1, rotation });
       elements.previewCounter.textContent = `${index + 1} / ${state.pages.length}`;
+      $("#previewSelection").checked = state.selected.has(item.id);
+      $("#previewSelection").disabled = state.isBusy;
+      $("#previewSelectionLabel").textContent = t(state.selected.has(item.id) ? "previewSelected" : "previewSelect");
       elements.previewPreviousButton.disabled = index <= 0;
       elements.previewNextButton.disabled = index >= state.pages.length - 1;
     }
@@ -5487,24 +5648,8 @@ body.is-sorting .page-card.drag-source {
       return candidate.length < originalBytes.length ? candidate : originalBytes;
     }
 
-    async function exportPdf(selectedOnly = false) {
-      if (state.isBusy) return;
-      const targetPages = selectedOnly
-        ? state.pages.filter((page) => state.selected.has(page.id))
-        : [...state.pages];
-      if (!targetPages.length) {
-        showToast(t("noPagesToSave"), "error");
-        return;
-      }
-
-      const outputFilename = sanitizeFilename(elements.filenameInput.value);
-      const watermark = state.watermark;
-      const compressImages = state.compressImages;
-      const pageNumbers = state.pageNumbers;
-      const exportPassword = outputProtection.enabled ? outputProtection.password : "";
-      const protectOutput = !!exportPassword;
-      setBusy(true, t("generatingPdf"), t("pageCount", { count: targetPages.length }));
-      try {
+    async function buildPdfBytes(targetPages, { watermark, compressImages, pageNumbers, exportPassword }) {
+        const protectOutput = !!exportPassword;
         const output = await PDFDocument.create();
         const copiedByPageId = new Map();
         const groupedPdfs = new Map();
@@ -5605,6 +5750,28 @@ body.is-sorting .page-card.drag-source {
             throw new Error(`${t("outputPasswordProtectionFailed")}: ${error?.message || ""}`.replace(/:\s*$/, ""));
           }
         }
+        return { bytes, compressionMessage };
+    }
+
+    async function exportPdf(selectedOnly = false) {
+      if (state.isBusy) return;
+      const targetPages = selectedOnly
+        ? state.pages.filter((page) => state.selected.has(page.id))
+        : [...state.pages];
+      if (!targetPages.length) {
+        showToast(t("noPagesToSave"), "error");
+        return;
+      }
+
+      const outputFilename = sanitizeFilename(elements.filenameInput.value);
+      const watermark = state.watermark;
+      const compressImages = state.compressImages;
+      const pageNumbers = state.pageNumbers;
+      const exportPassword = outputProtection.enabled ? outputProtection.password : "";
+      const protectOutput = !!exportPassword;
+      setBusy(true, t("generatingPdf"), t("pageCount", { count: targetPages.length }));
+      try {
+        const { bytes, compressionMessage } = await buildPdfBytes(targetPages, { watermark, compressImages, pageNumbers, exportPassword });
         const blob = new Blob([bytes], { type: "application/pdf" });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
@@ -5624,6 +5791,133 @@ body.is-sorting .page-card.drag-source {
         setBusy(false);
       }
     }
+
+    // ZIP32 stored entries. PDF streams are already compressed; UTF-8 filenames.
+    const zipCrcTable = Uint32Array.from({length: 256}, (_, n) => {
+      for (let i = 0; i < 8; i++) n = n & 1 ? 0xedb88320 ^ (n >>> 1) : n >>> 1;
+      return n >>> 0;
+    });
+    function zipCrc32(bytes) {
+      let crc = 0xffffffff;
+      for (const byte of bytes) crc = zipCrcTable[(crc ^ byte) & 255] ^ (crc >>> 8);
+      return (crc ^ 0xffffffff) >>> 0;
+    }
+    function createStoredZip(entries) {
+      const local = [], central = [];
+      let offset = 0, centralSize = 0;
+      if (entries.length > 65535) throw new Error(t("splitTooLarge"));
+      for (const entry of entries) {
+        const name = new TextEncoder().encode(entry.name);
+        const bytes = entry.bytes;
+        if (name.length > 65535 || bytes.length > 0xffffffff || offset + 30 + name.length + bytes.length > 0xffffffff) throw new Error(t("splitTooLarge"));
+        const crc = zipCrc32(bytes);
+        const header = new Uint8Array(30 + name.length), h = new DataView(header.buffer);
+        h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true);
+        h.setUint16(6, 0x800, true); h.setUint16(12, 33, true);
+        h.setUint32(14, crc, true); h.setUint32(18, bytes.length, true); h.setUint32(22, bytes.length, true);
+        h.setUint16(26, name.length, true); header.set(name, 30);
+        const directory = new Uint8Array(46 + name.length), d = new DataView(directory.buffer);
+        d.setUint32(0, 0x02014b50, true); d.setUint16(4, 20, true); d.setUint16(6, 20, true);
+        d.setUint16(8, 0x800, true); d.setUint16(14, 33, true);
+        d.setUint32(16, crc, true); d.setUint32(20, bytes.length, true); d.setUint32(24, bytes.length, true);
+        d.setUint16(28, name.length, true); d.setUint32(42, offset, true); directory.set(name, 46);
+        local.push(header, bytes); central.push(directory);
+        offset += header.length + bytes.length; centralSize += directory.length;
+      }
+      if (offset + centralSize + 22 > 0xffffffff) throw new Error(t("splitTooLarge"));
+      const end = new Uint8Array(22), e = new DataView(end.buffer);
+      e.setUint32(0, 0x06054b50, true); e.setUint16(8, entries.length, true); e.setUint16(10, entries.length, true);
+      e.setUint32(12, centralSize, true); e.setUint32(16, offset, true);
+      return new Blob([...local, ...central, end], { type: "application/zip" });
+    }
+    function uniqueSplitNames(values) {
+      const used = new Set();
+      return values.map((value, index) => {
+        let base = String(value || "").trim().replace(/\.pdf$/i, "").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").replace(/[. ]+$/g, "");
+        if (!base || /^\.+$/.test(base)) base = "part-" + (index + 1);
+        if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(base)) base = "_" + base;
+        base = base.slice(0, 150).replace(/[\uD800-\uDBFF]$/, "");
+        let name = base + ".pdf", suffix = 2;
+        while (used.has(name.normalize("NFC").toLowerCase())) name = base + "-" + suffix++ + ".pdf";
+        used.add(name.normalize("NFC").toLowerCase());
+        return name;
+      });
+    }
+    function getSplitRanges(count, starts) {
+      if (!count) return [];
+      const boundaries = [0, ...[...new Set(starts)].filter(n => Number.isInteger(n) && n > 0 && n < count).sort((a,b) => a-b), count];
+      return boundaries.slice(0, -1).map((start, i) => ({ start, end: boundaries[i+1] }));
+    }
+    const splitStarts = new Set();
+    const splitNames = new Map();
+    function renderSplitParts() {
+      const ranges = getSplitRanges(state.pages.length, splitStarts);
+      $("#splitParts").replaceChildren(...ranges.map(({start,end}, index) => {
+        const label = document.createElement("label");
+        const title = document.createElement("span");
+        title.textContent = t("splitRange", { start: start + 1, end });
+        const input = document.createElement("input");
+        input.className = "password-input"; input.type = "text"; input.maxLength = 150;
+        input.value = splitNames.get(start) ?? ("part-" + (index + 1));
+        input.addEventListener("input", () => splitNames.set(start, input.value));
+        label.append(title, input); return label;
+      }));
+      $("#splitApply").disabled = ranges.length < 2 || state.isBusy;
+    }
+    function openSplitDialog() {
+      if (state.isBusy || state.pages.length < 2) return;
+      closeSaveOptions(true);
+      splitStarts.clear(); splitNames.clear();
+      $("#splitBoundaries").replaceChildren(...state.pages.slice(1).map((page, i) => {
+        const label = document.createElement("label");
+        const input = document.createElement("input"); input.type = "checkbox";
+        const span = document.createElement("span");
+        span.textContent = (i + 2) + " · " + (state.documents.get(page.docId)?.name || "PDF") + " · " + (page.pageIndex + 1);
+        input.addEventListener("change", () => {
+          if (input.checked) splitStarts.add(i + 1); else splitStarts.delete(i + 1);
+          renderSplitParts();
+        });
+        label.append(input, span); return label;
+      }));
+      renderSplitParts();
+      $("#splitDialog").showModal();
+    }
+    async function exportSplit() {
+      if (state.isBusy) return;
+      const ranges = getSplitRanges(state.pages.length, splitStarts);
+      if (ranges.length < 2) return;
+      const names = uniqueSplitNames([...$("#splitParts").querySelectorAll("input")].map(input => input.value));
+      const pages = [...state.pages];
+      const settings = { watermark: state.watermark, compressImages: state.compressImages, pageNumbers: state.pageNumbers, exportPassword: outputProtection.enabled ? outputProtection.password : "" };
+      const zipName = sanitizeFilename(elements.filenameInput.value).replace(/\.pdf$/i, "") + "-split.zip";
+      $("#splitDialog").close();
+      setBusy(true, t("generatingPdf"));
+      try {
+        const entries = [];
+        let totalSize = 0;
+        for (let i = 0; i < ranges.length; i++) {
+          elements.busyTitle.textContent = t("splitProgress", { current: i + 1, total: ranges.length });
+          const {start,end} = ranges[i];
+          const {bytes} = await buildPdfBytes(pages.slice(start,end), settings);
+          totalSize += bytes.length;
+          if (totalSize > 0xffffffff) throw new Error(t("splitTooLarge"));
+          entries.push({name: names[i], bytes});
+        }
+        const blob = createStoredZip(entries);
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url; anchor.download = zipName; document.body.append(anchor); anchor.click(); anchor.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 30_000);
+        showToast(t("splitSaved", { count: ranges.length }));
+      } catch (error) {
+        console.error(error); showToast(error?.message || t("generationFailed"), "error", 0);
+      } finally { setBusy(false); }
+    }
+    $("#splitButton").addEventListener("click", openSplitDialog);
+    $("#splitClose").innerHTML = icons.close;
+    $("#splitClose").addEventListener("click", () => $("#splitDialog").close());
+    $("#splitCancel").addEventListener("click", () => $("#splitDialog").close());
+    $("#splitApply").addEventListener("click", exportSplit);
 
     let pointerDrag = null;
 
@@ -6227,6 +6521,11 @@ body.is-sorting .page-card.drag-source {
       input.value = sanitizeFilename(input.value.trim() || input.defaultValue);
     });
 
+    $("#previewSelection").addEventListener("change", () => {
+      if (state.isBusy || !state.pages.some(page => page.id === state.previewPageId)) return;
+      selectPage(state.previewPageId, { ctrlKey: true });
+      updatePreviewUi();
+    });
     elements.previewZoomOutButton.addEventListener("click", () => setPreviewZoom(previewZoom - .25));
     elements.previewZoomInButton.addEventListener("click", () => setPreviewZoom(previewZoom + .25));
     elements.previewZoomResetButton.addEventListener("click", () => setPreviewZoom(1));
@@ -6677,6 +6976,7 @@ body.is-sorting .page-card.drag-source {
           createMobileTool(elements.clearSelectionButton, icons.clearSelection, t("clearSelection")),
           createMobileTool(elements.moveStartButton, icons.moveStart, t("moveSelectionStart")),
           createMobileTool(elements.moveEndButton, icons.moveEnd, t("moveSelectionEnd")),
+          createMobileTool($("#moveTargetButton"), icons.pageRanges, t("moveTarget")),
           createMobileTool(elements.clearAllButton, icons.trash, mobileText("全ページを一覧から削除", "Remove every page"), true)
         );
       }
