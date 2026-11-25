@@ -1130,8 +1130,9 @@
     .preview-stage {
       position: relative;
       min-height: 0;
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
       overflow: auto;
       padding: 20px;
       background:
@@ -1141,7 +1142,9 @@
       background-position: 0 0, 10px 10px;
       background-size: 20px 20px;
     }
-    .preview-canvas-host { display: grid; place-items: center; min-width: 100%; min-height: 100%; }
+    .preview-canvas-host { display: grid; place-items: center; flex: none; width: max-content; height: max-content; min-width: 100%; min-height: 100%; }
+    .preview-loading, .preview-error { margin: auto; }
+    .preview-content-frame > :first-child { position: absolute; top: 0; left: 0; }
     .preview-canvas-host[hidden] { display: none; }
     .preview-content-frame { position: relative; flex: none; }
     .preview-content-frame > * { transform-origin: top left; }
@@ -1191,6 +1194,10 @@
     }
     .preview-loading[hidden], .preview-error[hidden] { display: none; }
     .preview-loading .spinner { margin: 0; }
+    .preview-selection { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; cursor: pointer; color: var(--text); font-size: 13px; }
+    .preview-selection input { width: 18px; height: 18px; accent-color: #16624F; }
+    .move-target-thumb { min-height: 84px; display: flex; justify-content: center; align-items: center; background: var(--surface-muted); border-radius: 8px; padding: 8px; }
+    .move-target-thumb canvas { display: block; max-width: 100%; max-height: 120px; width: auto !important; height: auto !important; object-fit: contain; }
     .preview-footer {
       display: flex;
       align-items: center;
@@ -1522,6 +1529,8 @@ body.is-sorting .page-card.drag-source {
     padding: 5px 1px 1px;
   }
   .source-name { display: none; }
+  .has-multiple-sources .source-name { display: block; text-align: center; font-size: 10px; }
+  .has-multiple-sources .card-actions { bottom: 43px !important; }
   .source-page {
     overflow: hidden;
     font-size: 9px;
@@ -1800,6 +1809,7 @@ body.is-sorting .page-card.drag-source {
         <div class="toolbar-group">
           <button class="button" id="moveStartButton" type="button" data-i18n-title="moveSelectionStart" data-i18n-aria-label="moveSelectionStart" title="選択ページを先頭へ" aria-label="選択ページを先頭へ"><span id="moveStartIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveStart">先頭へ</span></button>
           <button class="button" id="moveEndButton" type="button" data-i18n-title="moveSelectionEnd" data-i18n-aria-label="moveSelectionEnd" title="選択ページを末尾へ" aria-label="選択ページを末尾へ"><span id="moveEndIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveEnd">末尾へ</span></button>
+          <button class="button" id="moveTargetButton" type="button" aria-haspopup="dialog" data-i18n-title="moveTarget" data-i18n-aria-label="moveTarget"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 5h16M4 19h16M12 8v8m-3-3 3 3 3-3"/></svg><span class="button-label optional" data-i18n="moveTarget">移動先を指定</span></button>
           <button class="button" id="rotateLeftButton" type="button" data-i18n-title="rotateLeft" data-i18n-aria-label="rotateLeft"><span id="rotateLeftIcon"></span><span class="button-label optional" data-i18n="rotateLeft">左回転</span></button>
           <button class="button" id="rotateRightButton" type="button" data-i18n-title="rotateRight" data-i18n-aria-label="rotateRight"><span id="rotateRightIcon"></span><span class="button-label optional" data-i18n="rotateRight">右回転</span></button>
           <button class="button danger" id="deleteButton" type="button" data-i18n-title="delete" data-i18n-aria-label="delete"><span id="deleteIcon"></span><span class="button-label optional" data-i18n="delete">削除</span></button>
@@ -1868,6 +1878,21 @@ body.is-sorting .page-card.drag-source {
   </div>
 
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+
+  <dialog class="password-dialog" id="moveTargetDialog" aria-labelledby="moveTargetTitle">
+    <form id="moveTargetForm">
+      <div class="dialog-header"><h2 id="moveTargetTitle" data-i18n="moveTarget">移動先を指定</h2></div>
+      <div class="dialog-body">
+        <p data-i18n="moveTargetHint">選択したページを、指定したページの前または後に移動します。</p>
+        <label for="moveTargetNumber" data-i18n="pageRangesLabel">ページ番号</label>
+        <input class="password-input" id="moveTargetNumber" type="number" min="1" step="1" required>
+        <select class="password-input" id="moveTargetSide" data-i18n-aria-label="moveTargetSide"><option value="before" data-i18n="moveBefore">前</option><option value="after" data-i18n="moveAfter">後</option></select>
+        <div id="moveTargetThumb" class="move-target-thumb"></div>
+        <p id="moveTargetInfo" role="status"></p>
+      </div>
+      <div class="dialog-actions"><button class="button ghost" type="button" id="moveTargetCancel" data-i18n="cancel">キャンセル</button><button class="button primary" id="moveTargetApply" type="submit" data-i18n="moveApply">移動</button></div>
+    </form>
+  </dialog>
 
   <dialog class="password-dialog" id="pageRangesDialog" aria-labelledby="pageRangesTitle">
     <form id="pageRangesForm">
@@ -2033,7 +2058,7 @@ body.is-sorting .page-card.drag-source {
       <div class="preview-error" id="previewError" hidden></div>
     </div>
     <div class="preview-footer">
-      <span data-i18n="previewFooterOpen">カードの拡大ボタンまたはダブルクリックで表示</span>
+      <label class="preview-selection"><input type="checkbox" id="previewSelection"><span id="previewSelectionLabel" data-i18n="previewSelect">ページを選択</span></label>
       <div class="preview-zoom-tools" role="group" data-i18n-aria-label="previewZoomControls" aria-label="プレビューの拡大縮小">
         <button class="preview-zoom-button" id="previewZoomOutButton" type="button" data-i18n-title="previewZoomOut" data-i18n-aria-label="previewZoomOut" title="縮小" aria-label="縮小"></button>
         <button class="preview-zoom-level" id="previewZoomResetButton" type="button" data-i18n-title="previewZoomReset" data-i18n-aria-label="previewZoomReset" title="画面に合わせる" aria-label="画面に合わせる">100%</button>
@@ -2569,6 +2594,16 @@ body.is-sorting .page-card.drag-source {
         pageRangesHint: "カード左上の番号（1〜{total}）を使います。複数の番号はカンマで区切り、連続するページはハイフンでつなげます。",
         pageRangesError: "1〜{total} の範囲で入力してください。範囲は小さい番号から指定します。",
         pageRangesApply: "選択",
+        moveTarget: "移動先を指定",
+        moveTargetHint: "選択したページを、指定したページの前または後に移動します。",
+        moveTargetSide: "移動先の位置",
+        moveBefore: "前",
+        moveAfter: "後",
+        moveApply: "移動",
+        moveInvalid: "選択されていないページ番号を指定してください。",
+        moveNoChange: "現在の順番と同じです。",
+        previewSelect: "ページを選択",
+        previewSelected: "選択済み",
         moveStart: "先頭へ",
         moveEnd: "末尾へ",
         moveSelectionStart: "選択ページを先頭へ",
@@ -2783,6 +2818,16 @@ body.is-sorting .page-card.drag-source {
         pageRangesHint: "Use the numbers on the cards (1–{total}). Separate entries with commas and use a dash for a range.",
         pageRangesError: "Enter page numbers from 1 to {total}. For a range, enter the lower number first.",
         pageRangesApply: "Select",
+        moveTarget: "Move to page",
+        moveTargetHint: "Move selected pages before or after the specified page.",
+        moveTargetSide: "Destination position",
+        moveBefore: "Before",
+        moveAfter: "After",
+        moveApply: "Move",
+        moveInvalid: "Enter the number of an unselected page.",
+        moveNoChange: "The page order is unchanged.",
+        previewSelect: "Select page",
+        previewSelected: "Selected",
         moveStart: "To start",
         moveEnd: "To end",
         moveSelectionStart: "Move selection to start",
@@ -3402,6 +3447,7 @@ body.is-sorting .page-card.drag-source {
       const locked = state.isBusy;
       elements.moveStartButton.disabled = !canMoveSelectionToEdge("start");
       elements.moveEndButton.disabled = !canMoveSelectionToEdge("end");
+      $("#moveTargetButton").disabled = locked || !hasSelection || selectedCount === pageCount;
       elements.clearSelectionButton.disabled = locked || (!hasSelection);
       elements.rotateLeftButton.disabled = locked || (!hasSelection);
       elements.rotateRightButton.disabled = locked || (!hasSelection);
@@ -3848,6 +3894,7 @@ body.is-sorting .page-card.drag-source {
       if (thumbnailObserver) thumbnailObserver.disconnect();
       disposeThumbnailPptxHandles();
       state.renderQueue.length = 0;
+      elements.pagesGrid.classList.toggle("has-multiple-sources", new Set(state.pages.map(page => page.docId)).size > 1);
       const children = state.pages.map(createPageCard);
       if (state.pages.length) children.push(createAddPdfCard());
       elements.pagesGrid.replaceChildren(...children);
@@ -3922,6 +3969,75 @@ body.is-sorting .page-card.drag-source {
       const nextPages = getSelectionEdgeOrder(edge);
       performEdit(() => { state.pages = nextPages; });
     }
+
+    function getTargetOrder(pages, selected, targetId, side) {
+      if (selected.has(targetId)) return null;
+      const moving = pages.filter(page => selected.has(page.id));
+      const remaining = pages.filter(page => !selected.has(page.id));
+      const index = remaining.findIndex(page => page.id === targetId);
+      if (!moving.length || index < 0) return null;
+      remaining.splice(index + (side === "after" ? 1 : 0), 0, ...moving);
+      return remaining;
+    }
+
+    let moveThumbToken = 0;
+    async function updateMoveTarget() {
+      const token = ++moveThumbToken;
+      const target = state.pages[Number($("#moveTargetNumber").value) - 1];
+      const order = target && getTargetOrder(state.pages, state.selected, target.id, $("#moveTargetSide").value);
+      const changed = order && order.some((page, index) => page.id !== state.pages[index].id);
+      $("#moveTargetApply").disabled = !changed || state.isBusy;
+      const info = $("#moveTargetInfo"), thumb = $("#moveTargetThumb");
+      thumb.replaceChildren();
+      info.textContent = !order ? t("moveInvalid") : !changed ? t("moveNoChange") : state.documents.get(target.docId)?.name || "";
+      if (!target || !order) return;
+      try {
+        const source = state.documents.get(target.docId);
+        let visual;
+        if (source.kind === "image") visual = await renderImagePageCanvas(target, source, 150, 110, 1);
+        else if (source.kind === "pdf") {
+          const page = await source.pdfjsDoc.getPage(target.pageIndex + 1);
+          const rotation = normalizeRotation((page.rotate || 0) + target.rotation);
+          const base = page.getViewport({ scale: 1, rotation });
+          const viewport = page.getViewport({ scale: Math.min(150 / base.width, 110 / base.height), rotation });
+          visual = document.createElement("canvas");
+          visual.width = Math.max(1, Math.ceil(viewport.width));
+          visual.height = Math.max(1, Math.ceil(viewport.height));
+          await page.render({canvasContext: visual.getContext("2d"), viewport, background: "rgb(255,255,255)"}).promise;
+        } else {
+          const handle = await createPptxSlideHandle(source, target.pageIndex);
+          try {
+            await handle.ready;
+            visual = createPptxScaledShell(handle.element, source, 150, 110, target.rotation).cloneNode(true);
+            const canvases = handle.element.querySelectorAll("canvas");
+            visual.querySelectorAll("canvas").forEach((canvas, i) => { if (canvases[i]) canvas.getContext("2d")?.drawImage(canvases[i], 0, 0); });
+          } finally { disposePptxHandle(handle); }
+        }
+        if (token === moveThumbToken && $("#moveTargetDialog").open && visual) thumb.append(visual);
+      } catch (error) { console.warn(error); }
+    }
+    $("#moveTargetButton").addEventListener("click", () => {
+      if (state.isBusy || !state.selected.size) return;
+      const index = state.pages.findIndex(page => !state.selected.has(page.id));
+      if (index < 0) return;
+      $("#moveTargetNumber").max = state.pages.length;
+      $("#moveTargetNumber").value = index + 1;
+      $("#moveTargetSide").value = "before";
+      $("#moveTargetDialog").showModal();
+      updateMoveTarget();
+    });
+    $("#moveTargetNumber").addEventListener("input", updateMoveTarget);
+    $("#moveTargetSide").addEventListener("change", updateMoveTarget);
+    $("#moveTargetCancel").addEventListener("click", () => $("#moveTargetDialog").close());
+    $("#moveTargetDialog").addEventListener("close", () => { moveThumbToken++; $("#moveTargetThumb").replaceChildren(); });
+    $("#moveTargetForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const target = state.pages[Number($("#moveTargetNumber").value) - 1];
+      const next = target && getTargetOrder(state.pages, state.selected, target.id, $("#moveTargetSide").value);
+      if (state.isBusy || !next || !next.some((page, index) => page.id !== state.pages[index].id)) return;
+      $("#moveTargetDialog").close();
+      performEdit(() => { state.pages = next; });
+    });
 
     function rotateSelected(delta) {
       if (!state.selected.size || state.isBusy) return;
@@ -4255,12 +4371,16 @@ body.is-sorting .page-card.drag-source {
       const rect = stage.getBoundingClientRect();
       const localX = anchor ? Math.max(0, Math.min(rect.width, anchor.clientX - rect.left)) : rect.width / 2;
       const localY = anchor ? Math.max(0, Math.min(rect.height, anchor.clientY - rect.top)) : rect.height / 2;
-      const targetX = stage.scrollLeft + localX;
-      const targetY = stage.scrollTop + localY;
+      const frame = elements.previewCanvasHost.querySelector(".preview-content-frame");
+      const before = frame?.getBoundingClientRect();
+      const x = rect.left + localX, y = rect.top + localY;
       previewZoom = next;
       resizePreviewContent();
-      stage.scrollLeft = Math.max(0, targetX * next / oldZoom - localX);
-      stage.scrollTop = Math.max(0, targetY * next / oldZoom - localY);
+      if (before && frame) {
+        const after = frame.getBoundingClientRect();
+        stage.scrollLeft += after.left + (x - before.left) * next / oldZoom - x;
+        stage.scrollTop += after.top + (y - before.top) * next / oldZoom - y;
+      }
       updatePreviewZoomControls();
       if (refreshDetail) schedulePreviewDetail();
     }
@@ -4292,6 +4412,9 @@ body.is-sorting .page-card.drag-source {
           ? t("previewSubtitlePptx", { name: doc.name, slide: item.pageIndex + 1, rotation })
           : t("previewSubtitle", { name: doc?.name || "PDF", sourcePage: item.pageIndex + 1, rotation });
       elements.previewCounter.textContent = `${index + 1} / ${state.pages.length}`;
+      $("#previewSelection").checked = state.selected.has(item.id);
+      $("#previewSelection").disabled = state.isBusy;
+      $("#previewSelectionLabel").textContent = t(state.selected.has(item.id) ? "previewSelected" : "previewSelect");
       elements.previewPreviousButton.disabled = index <= 0;
       elements.previewNextButton.disabled = index >= state.pages.length - 1;
     }
@@ -6227,6 +6350,11 @@ body.is-sorting .page-card.drag-source {
       input.value = sanitizeFilename(input.value.trim() || input.defaultValue);
     });
 
+    $("#previewSelection").addEventListener("change", () => {
+      if (state.isBusy || !state.pages.some(page => page.id === state.previewPageId)) return;
+      selectPage(state.previewPageId, { ctrlKey: true });
+      updatePreviewUi();
+    });
     elements.previewZoomOutButton.addEventListener("click", () => setPreviewZoom(previewZoom - .25));
     elements.previewZoomInButton.addEventListener("click", () => setPreviewZoom(previewZoom + .25));
     elements.previewZoomResetButton.addEventListener("click", () => setPreviewZoom(1));
@@ -6677,6 +6805,7 @@ body.is-sorting .page-card.drag-source {
           createMobileTool(elements.clearSelectionButton, icons.clearSelection, t("clearSelection")),
           createMobileTool(elements.moveStartButton, icons.moveStart, t("moveSelectionStart")),
           createMobileTool(elements.moveEndButton, icons.moveEnd, t("moveSelectionEnd")),
+          createMobileTool($("#moveTargetButton"), icons.pageRanges, t("moveTarget")),
           createMobileTool(elements.clearAllButton, icons.trash, mobileText("全ページを一覧から削除", "Remove every page"), true)
         );
       }
