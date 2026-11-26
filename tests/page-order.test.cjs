@@ -541,7 +541,7 @@ for (const filename of targets) {
     for (const [result, count] of [[a,1],[b,3]]) {
       const pdf = await PDFLib.PDFDocument.load(result.bytes);
       assert.equal(pdf.getPageCount(), count);
-      const labels = pdf.getPages().map(page => Array.from(page.node.Contents().asArray())
+      const labels = Array.from(pdf.getPages(), page => Array.from(page.node.Contents().asArray())
         .flatMap(ref => Buffer.from(PDFLib.decodePDFRawStream(pdf.context.lookup(ref)).decode()).toString().match(/<[0-9A-F]+> Tj/g) || [])
         .map(operator => Buffer.from(operator.slice(1, -4), 'hex').toString('ascii'))
         .filter(text => /^\d+ \/ \d+$/.test(text)));
