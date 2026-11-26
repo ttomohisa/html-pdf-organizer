@@ -412,11 +412,7 @@ async function screenshotAndSplitSettings(browser) {
         await shot.evaluate(() => window.scrollTo(0,0));
         await shot.waitForFunction(() => !document.querySelector('#importStatus')?.textContent);
         const file = lang==='ja'?'screenshot.png':'screenshot-en.png';
-        const png=await shot.screenshot({path:path.join(root,file),animations:'disabled'});
-        // Temporary transfer through CI logs; no write credentials are required.
-        const b64=png.toString('base64');
-        for(let pos=0;pos<b64.length;pos+=6000) console.log('BK_SCREENSHOT '+file+' '+(pos/6000)+' '+b64.slice(pos,pos+6000));
-        console.log('BK_SCREENSHOT_END '+file+' '+b64.length);
+        await shot.screenshot({path:path.join(root,file),animations:'disabled'});
       } finally {await shotContext.close();}
       await page.locator('#fileInput').setInputFiles([
         {name:'report.pdf',mimeType:'application/pdf',buffer:Buffer.from(input.pdf,'base64')},
