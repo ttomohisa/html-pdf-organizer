@@ -150,7 +150,7 @@ build-offline.bat -ForceDownload
 
 GitHub Pages版ではページを開くためのHTML配信は発生しますが、読み込んだPDFの内容はアプリから外部へ送信されません。完全にネットワークを切って使う場合は、生成済みの `dist/index.html` をローカルで開いてください。
 
-HTML内の `html-pdf-organizer.invalid` は仮想アセット識別用の内部キーであり、通信先ではありません。
+HTML内の `pdf-organizer.invalid` は仮想アセット識別用の内部キーであり、通信先ではありません。
 
 ## 制限事項
 

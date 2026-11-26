@@ -151,7 +151,7 @@ The generated HTML includes:
 
 The GitHub Pages version requires an initial HTML request, but the PDF content selected by the user is not transmitted by the app. For use with the network completely disconnected, open the generated `dist/index.html` locally.
 
-`html-pdf-organizer.invalid` is an internal virtual asset key and is never contacted.
+`pdf-organizer.invalid` is an internal virtual asset key and is never contacted.
 
 ## Limitations
 

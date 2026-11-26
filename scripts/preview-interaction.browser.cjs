@@ -372,7 +372,7 @@ async function screenshotAndSplitSettings(browser) {
     const errors = [], requests = [];
     const page = await context.newPage();
     page.on('pageerror', e => errors.push(e.message));
-    page.on('request', req => { if (/^https?:/i.test(req.url())) requests.push(req.url()); });
+    context.on('request', req => { if (/^https?:/i.test(req.url())) requests.push({url:req.url(),method:req.method(),body:req.postData()}); });
     try {
       await page.goto(pathToFileURL(path.resolve(__dirname, '../dist/index.html')).href);
       await page.locator('#initialDropIcon svg').waitFor();
@@ -501,7 +501,17 @@ async function screenshotAndSplitSettings(browser) {
           if(index===1) assert.ok(info.images.some(x=>x.filter==='/DCTDecode' && x.width<=2000),'Imported JPEG was compressed');
         } finally {await verify.close();}
       }
-      assert.deepEqual(errors,[]);assert.deepEqual(requests,[]);
+      assert.deepEqual(errors,[]);
+      // PDF.js may expose a virtual font request in the browser's request observer.
+      // Only allow GETs for exact keys embedded in this HTML; the context stays offline.
+      const assetKeys = await page.evaluate(() => Object.keys(JSON.parse(document.getElementById('vendorPdfAssetEntriesJson').textContent)));
+      for (const req of requests) {
+        const url = new URL(req.url);
+        assert.equal(url.origin,'https://pdf-organizer.invalid','No external HTTP(S) origin is used');
+        assert.equal(req.method,'GET');
+        assert.equal(req.body,null);
+        assert.ok(assetKeys.includes(decodeURIComponent(url.pathname.slice(1))), 'Virtual asset is embedded in the standalone HTML');
+      }
       console.log('PASS offline split with password, page numbers, watermark, compression and mixed PDF/JPEG '+lang);
     } finally {await context.close();}
   }
