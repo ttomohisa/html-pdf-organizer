@@ -855,6 +855,7 @@
       gap: 8px;
       border-radius: 8px;
     }
+    #splitButton > svg { flex: 0 0 18px; }
     .save-option-state {
       visibility: hidden;
       margin-inline-start: auto;
@@ -1808,7 +1809,7 @@ body.is-sorting .page-card.drag-source {
         <div class="toolbar-group">
           <button class="button" id="moveStartButton" type="button" data-i18n-title="moveSelectionStart" data-i18n-aria-label="moveSelectionStart" title="選択ページを先頭へ" aria-label="選択ページを先頭へ"><span id="moveStartIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveStart">先頭へ</span></button>
           <button class="button" id="moveEndButton" type="button" data-i18n-title="moveSelectionEnd" data-i18n-aria-label="moveSelectionEnd" title="選択ページを末尾へ" aria-label="選択ページを末尾へ"><span id="moveEndIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveEnd">末尾へ</span></button>
-          <button class="button icon-only" id="moveTargetButton" type="button" aria-haspopup="dialog" data-i18n-title="moveTarget" data-i18n-aria-label="moveTarget"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 5h16M4 19h16M12 8v8m-3-3 3 3 3-3"/></svg></button>
+          <button class="button icon-only" id="moveTargetButton" type="button" aria-haspopup="dialog" data-i18n-title="moveTarget" data-i18n-aria-label="moveTarget"></button>
           <button class="button" id="rotateLeftButton" type="button" data-i18n-title="rotateLeft" data-i18n-aria-label="rotateLeft"><span id="rotateLeftIcon"></span><span class="button-label optional" data-i18n="rotateLeft">左回転</span></button>
           <button class="button" id="rotateRightButton" type="button" data-i18n-title="rotateRight" data-i18n-aria-label="rotateRight"><span id="rotateRightIcon"></span><span class="button-label optional" data-i18n="rotateRight">右回転</span></button>
           <button class="button danger" id="deleteButton" type="button" data-i18n-title="delete" data-i18n-aria-label="delete"><span id="deleteIcon"></span><span class="button-label optional" data-i18n="delete">削除</span></button>
@@ -1853,7 +1854,7 @@ body.is-sorting .page-card.drag-source {
         <span id="saveOptionsIcon" aria-hidden="true"></span><span data-i18n="saveOptions">保存設定</span><span class="save-options-indicator" aria-hidden="true"></span>
       </button>
       <div class="save-options-panel" id="saveOptionsPanel" hidden>
-        <button class="button ghost save-option" id="splitButton" type="button" aria-haspopup="dialog"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M7 3h10v7H7zM3 14h7v7H3zM14 14h7v7h-7zM12 10v2M6 12h12"/></svg><span data-i18n="splitSave">分割して保存</span></button>
+        <button class="button ghost save-option" id="splitButton" type="button" aria-haspopup="dialog"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="m8.1 8.1 11.9 11.9M8.1 15.9 20 4"/></svg><span data-i18n="splitSave">分割して保存</span></button>
         <button class="button ghost save-option" id="watermarkButton" type="button" aria-haspopup="dialog" aria-controls="watermarkDialog"><span id="watermarkIcon" aria-hidden="true"></span><span data-i18n="watermark">透かし</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
         <button class="button ghost save-option" id="pageNumbersButton" type="button" aria-pressed="false"><span id="pageNumbersIcon" aria-hidden="true"></span><span data-i18n="pageNumbers">ページ番号</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
         <p class="save-option-note" id="pageNumbersExportNote" data-i18n="pageNumbersExportNote" hidden>選択ページだけ保存すると、1から番号を振り直します。</p>
@@ -2400,6 +2401,7 @@ body.is-sorting .page-card.drag-source {
       selectAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="m8.8 12 2 2 4.5-4.5"/></svg>`,
       clearSelection: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="m9 9 6 6M15 9l-6 6"/></svg>`,
       pageRanges: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m10 4-4 16M18 4l-4 16M4 9h16M4 15h16"/></svg>`,
+      moveTarget: `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h8m-3-3 3 3-3 3M15 5h6M15 12h6M15 19h6"/></svg>`,
       moveStart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14M12 20V8m-5 5 5-5 5 5"/></svg>`,
       moveEnd: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20h14M12 4v12m-5-5 5 5 5-5"/></svg>`,
       rotateLeft: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a9 9 0 1 1 2.7 8.4"/><path d="M3 4v6h6"/></svg>`,
@@ -2559,7 +2561,7 @@ body.is-sorting .page-card.drag-source {
 
     [
       ["helpButton", "help"], ["initialDropIcon", "upload"], ["initialAddIcon", "addFile"], ["addIcon", "addFile"],
-      ["selectPageRangesButton", "pageRanges"],
+      ["selectPageRangesButton", "pageRanges"], ["moveTargetButton", "moveTarget"],
       ["shieldIcon", "shield"], ["compactAddIcon", "addFile"], ["selectAllIcon", "selectAll"],
       ["clearSelectionIcon", "clearSelection"], ["rotateLeftIcon", "rotateLeft"], ["rotateRightIcon", "rotateRight"],
       ["moveStartIcon", "moveStart"], ["moveEndIcon", "moveEnd"],
@@ -4918,6 +4920,7 @@ body.is-sorting .page-card.drag-source {
       let addedPages = 0;
       let addedFiles = 0;
       const errors = [];
+      const cancelled = [];
       setBusy(true, t("readingPdf"), t("fileCount", { count: files.length }));
 
       for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
@@ -4958,6 +4961,10 @@ body.is-sorting .page-card.drag-source {
           addedPages += pdfjsDoc.numPages;
           addedFiles += 1;
         } catch (error) {
+          if (error instanceof PasswordPromptCancelledError) {
+            cancelled.push(file.name);
+            continue;
+          }
           console.error(error);
           const message = error?.message || t("loadFailed");
           errors.push(t("errorJoin", { name: file.name, message }));
@@ -4992,6 +4999,9 @@ body.is-sorting .page-card.drag-source {
           const top = toolbar.getBoundingClientRect().top + window.scrollY - toolbarInset;
           window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
         });
+      }
+      if (cancelled.length) {
+        showToast(cancelled.map(name => t("errorJoin", { name, message: t("passwordCancelled") })).join("\n"), "info");
       }
       if (errors.length) showToast(errors.join("\n"), "error", 0);
     }
@@ -6982,7 +6992,7 @@ body.is-sorting .page-card.drag-source {
           createMobileTool(elements.clearSelectionButton, icons.clearSelection, t("clearSelection")),
           createMobileTool(elements.moveStartButton, icons.moveStart, t("moveSelectionStart")),
           createMobileTool(elements.moveEndButton, icons.moveEnd, t("moveSelectionEnd")),
-          createMobileTool($("#moveTargetButton"), icons.pageRanges, t("moveTarget")),
+          createMobileTool($("#moveTargetButton"), icons.moveTarget, t("moveTarget")),
           createMobileTool(elements.clearAllButton, icons.trash, mobileText("全ページを一覧から削除", "Remove every page"), true)
         );
       }

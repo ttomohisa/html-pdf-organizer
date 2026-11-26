@@ -70,6 +70,11 @@ async function exercise(browser, buffer, width, height, mobile) {
     if (mobile) {
       await page.locator('.mobile-edit-dock').getByRole('button', { name: /その他|More/i }).click();
       assert.equal(await page.locator('.mobile-tools-dialog').getByRole('button', { name: /^(やり直す|Redo)$/i }).count(), 0);
+      const menu = page.locator('.mobile-tools-dialog');
+      const rangeIcon = await menu.getByRole('button', { name: /ページ番号で選択|Select by page number/i }).locator('svg').innerHTML();
+      const moveIcon = await menu.getByRole('button', { name: /移動先を指定|Move to page/i }).locator('svg').innerHTML();
+      assert.notEqual(moveIcon, rangeIcon, 'Moving and selecting have distinct icons');
+      assert.equal(moveIcon, await page.locator('#moveTargetButton svg').innerHTML(), 'Move icon matches desktop');
       await page.locator('.mobile-tools-close').click();
       assert.ok(await page.locator('.mobile-edit-dock').getByRole('button', { name: /^(やり直す|Redo)$/i }).isVisible());
     }
@@ -186,6 +191,8 @@ async function exercise(browser, buffer, width, height, mobile) {
     await page.evaluate(() => document.getElementById('clearSelectionButton').click());
 
     await page.locator('#saveOptionsButton').click();
+    const splitIcon = await page.locator('#splitButton svg').boundingBox();
+    assert.ok(splitIcon && splitIcon.width >= 17 && Math.abs(splitIcon.width - splitIcon.height) < 1, 'Split icon remains square');
     await page.locator('#splitButton').click();
     await page.locator('#splitBoundaries input').nth(2).check();
     assert.ok(await page.locator('#splitDialog').isVisible(), 'Checking a split boundary does not dismiss the dialog');
@@ -291,6 +298,37 @@ async function exercise(browser, buffer, width, height, mobile) {
     await page.evaluate(() => document.getElementById('undoButton').click());
     assert.equal(await page.locator('.page-card').count(), 12, 'Undo restores every page');
     assert.ok(await page.locator('.workspace-guide').isVisible(), 'Undo restores the reorder hint');
+    // Use the same embedded encryption library to create a password-protected test PDF.
+    const encrypted = await page.evaluate(async () => {
+      const payload = document.getElementById('vendorPdfEncryptGzipBase64').textContent.trim();
+      const compressed = Uint8Array.from(atob(payload), c => c.charCodeAt(0));
+      const source = await new Response(new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+      const url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
+      try {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = url;
+          script.onload = () => { script.remove(); resolve(); };
+          script.onerror = reject;
+          document.head.append(script);
+        });
+      } finally { URL.revokeObjectURL(url); }
+      const doc = await PDFLib.PDFDocument.create();
+      doc.addPage();
+      return [...await PDFEncrypt.encryptPDF(await doc.save(), 'test-password', { algorithm: 'AES-256' })];
+    });
+    await page.locator('#fileInput').setInputFiles([
+      { name: 'locked.pdf', mimeType: 'application/pdf', buffer: Buffer.from(encrypted) },
+      { name: 'additional.png', mimeType: 'image/png', buffer: buffer[0].buffer }
+    ]);
+    await page.locator('#passwordDialog[open]').waitFor();
+    await page.locator('#passwordCancelButton').click();
+    await page.locator('#busyOverlay').waitFor({ state: 'hidden' });
+    assert.equal(await page.locator('.page-card').count(), 13, 'Cancellation skips only the protected PDF');
+    const cancellation = page.locator('#toastRegion .toast').filter({ hasText: /パスワード入力をキャンセルしました|Password entry was cancelled/ });
+    await cancellation.waitFor({ state: 'visible' });
+    assert.equal(await cancellation.getAttribute('role'), 'status', 'Cancellation is informational');
+    await cancellation.waitFor({ state: 'detached', timeout: 7000 });
     assert.deepEqual(errors, [], 'No unhandled browser errors');
     console.log('PASS preview, header and deletion ' + (mobile ? 'mobile' : 'desktop'));
   } finally {
