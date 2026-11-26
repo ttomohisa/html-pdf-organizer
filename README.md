@@ -57,7 +57,7 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 
 Use **Move to page** to move selected pages before or after an unselected page number (under **More** on mobile). The destination thumbnail helps identify the page. Undo restores the previous order. When multiple source files are present, mobile cards show their original filenames. In the preview, check or uncheck **Select page** while browsing; selection stays in sync with the list.
 
-To split the current list, open **Save settings → Split and save**, mark the first page of each new PDF, and name the parts. Save them together in a ZIP; repeated names receive a numeric suffix. Current PDF export settings apply to each part, and page numbers restart at 1.
+To split the entire current page list (regardless of selection), open **Save settings → Split and save**, mark the first page of each new PDF, and name the parts. Save them together in a ZIP; repeated names receive a numeric suffix. Current PDF export settings apply to each part, and page numbers restart at 1 when enabled. If password protection is enabled, each PDF is encrypted with AES-256; the ZIP itself is not encrypted. With image compression enabled, the notification reports the combined PDF sizes before and after compression, before encryption if applicable.
 
 ### Export options
 
@@ -163,6 +163,7 @@ The GitHub Pages version requires an initial HTML request, but the PDF content s
 - Complex PowerPoint effects, charts, and unsupported content are rasterized for visual fidelity. Supported basic shapes are overlaid as vectors where possible, and a Unicode text layer is added for search/copy.
 - Word (DOCX) input is not supported yet.
 - The file size limit is 250 MiB per input file.
+- Split downloads use ZIP32 (up to 65,535 entries and less than 4 GiB total, including archive headers). Available device memory may impose a much lower limit. Filenames may be shortened to fit common filesystem limits.
 
 ## Dependencies
 

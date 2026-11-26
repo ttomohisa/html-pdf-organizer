@@ -1809,7 +1809,7 @@ body.is-sorting .page-card.drag-source {
         <div class="toolbar-group">
           <button class="button" id="moveStartButton" type="button" data-i18n-title="moveSelectionStart" data-i18n-aria-label="moveSelectionStart" title="選択ページを先頭へ" aria-label="選択ページを先頭へ"><span id="moveStartIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveStart">先頭へ</span></button>
           <button class="button" id="moveEndButton" type="button" data-i18n-title="moveSelectionEnd" data-i18n-aria-label="moveSelectionEnd" title="選択ページを末尾へ" aria-label="選択ページを末尾へ"><span id="moveEndIcon" aria-hidden="true"></span><span class="button-label optional" data-i18n="moveEnd">末尾へ</span></button>
-          <button class="button icon-only" id="moveTargetButton" type="button" aria-haspopup="dialog" data-i18n-title="moveTarget" data-i18n-aria-label="moveTarget"></button>
+          <button class="button icon-only" id="moveTargetButton" type="button" aria-haspopup="dialog" aria-controls="moveTargetDialog" data-i18n-title="moveTarget" data-i18n-aria-label="moveTarget"></button>
           <button class="button" id="rotateLeftButton" type="button" data-i18n-title="rotateLeft" data-i18n-aria-label="rotateLeft"><span id="rotateLeftIcon"></span><span class="button-label optional" data-i18n="rotateLeft">左回転</span></button>
           <button class="button" id="rotateRightButton" type="button" data-i18n-title="rotateRight" data-i18n-aria-label="rotateRight"><span id="rotateRightIcon"></span><span class="button-label optional" data-i18n="rotateRight">右回転</span></button>
           <button class="button danger" id="deleteButton" type="button" data-i18n-title="delete" data-i18n-aria-label="delete"><span id="deleteIcon"></span><span class="button-label optional" data-i18n="delete">削除</span></button>
@@ -1854,7 +1854,7 @@ body.is-sorting .page-card.drag-source {
         <span id="saveOptionsIcon" aria-hidden="true"></span><span data-i18n="saveOptions">保存設定</span><span class="save-options-indicator" aria-hidden="true"></span>
       </button>
       <div class="save-options-panel" id="saveOptionsPanel" hidden>
-        <button class="button ghost save-option" id="splitButton" type="button" aria-haspopup="dialog"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="m8.1 8.1 11.9 11.9M8.1 15.9 20 4"/></svg><span data-i18n="splitSave">分割して保存</span></button>
+        <button class="button ghost save-option" id="splitButton" type="button" aria-haspopup="dialog" aria-controls="splitDialog"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="m8.1 8.1 11.9 11.9M8.1 15.9 20 4"/></svg><span data-i18n="splitSave">分割して保存</span></button>
         <button class="button ghost save-option" id="watermarkButton" type="button" aria-haspopup="dialog" aria-controls="watermarkDialog"><span id="watermarkIcon" aria-hidden="true"></span><span data-i18n="watermark">透かし</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
         <button class="button ghost save-option" id="pageNumbersButton" type="button" aria-pressed="false"><span id="pageNumbersIcon" aria-hidden="true"></span><span data-i18n="pageNumbers">ページ番号</span><span class="save-option-state" aria-hidden="true" data-i18n="saveOptionOn">オン</span></button>
         <p class="save-option-note" id="pageNumbersExportNote" data-i18n="pageNumbersExportNote" hidden>選択ページだけ保存すると、1から番号を振り直します。</p>
@@ -1898,7 +1898,7 @@ body.is-sorting .page-card.drag-source {
         <p data-i18n="moveTargetHint">選択したページを、指定したページの前または後に移動します。</p>
         <div class="password-field">
           <label for="moveTargetNumber" data-i18n="pageRangesLabel">ページ番号</label>
-          <input class="password-input" id="moveTargetNumber" type="number" min="1" step="1" required>
+          <input class="password-input" id="moveTargetNumber" type="number" min="1" step="1" aria-describedby="moveTargetInfo" required>
         </div>
         <select class="password-input" id="moveTargetSide" data-i18n-aria-label="moveTargetSide"><option value="before" data-i18n="moveBefore">前</option><option value="after" data-i18n="moveAfter">後</option></select>
         <div id="moveTargetThumb" class="move-target-thumb"></div>
@@ -2098,7 +2098,9 @@ body.is-sorting .page-card.drag-source {
       <p data-i18n="helpSaveSettings">「保存設定」から透かし・ページ番号・画像圧縮・パスワードを設定できます。スマホでは保存ファイル名もここで変更できます。</p>
       <h3 data-i18n="multipleSelection">ページの選び方</h3>
       <p data-i18n-html="helpSelection">カードをクリックして選択します。右上のチェックでページを追加でき、PCでは<kbd>Shift</kbd>＋クリックで範囲選択できます。「ページ番号で選択」（スマホでは「その他」内）には、2-5, 9 のように入力できます。</p>
-      <p data-i18n="helpPreview">拡大ボタンでページを大きく確認できます。</p>
+      <p data-i18n="helpPreview">拡大ボタンでページを確認し、プレビュー内でも選択・解除できます。</p>
+      <p data-i18n="helpMoveTarget">「移動先を指定」（スマホでは「その他」内）で、選んだページを別のページの前後に移動できます。</p>
+      <p data-i18n="helpSplit">「保存設定」→「分割して保存」で、次のPDFが始まるページにチェックを付けます。一覧全体を複数のPDFに分けてZIPで保存します。</p>
       <h3 data-i18n="imageLayoutHeading">画像の配置</h3>
       <p data-i18n="helpImageLayout">画像のFitは全体をA4内に収め、FillはA4いっぱいに配置してはみ出す部分を切り取ります。Original Sizeは画像の大きさに合わせたページを作ります。</p>
       <details class="help-shortcuts">
@@ -2113,7 +2115,7 @@ body.is-sorting .page-card.drag-source {
       </details>
       <h3 data-i18n="limitations">保存前に知っておくこと</h3>
       <ul>
-        <li data-i18n="limitPassword">パスワード付きPDFは、開くときにパスワードが必要です。保存するPDFにもパスワードを設定できます（AES-256）。</li>
+        <li data-i18n="limitPassword">入力PDFのパスワードは保存時に引き継がれません。保護が必要な場合は保存設定でパスワード（AES-256）を指定してください。分割時は各PDFが保護され、ZIP自体は暗号化されません。</li>
         <li data-i18n="limitMetadata">しおり・添付ファイル・フォームなどは、保存後のPDFに引き継がれないことがあります。</li>
         <li data-i18n="limitSignature">電子署名の付いたPDFを編集すると、署名は無効になります。</li>
         <li data-i18n="limitPptx">PowerPointはフォントや図形などの見た目が元ファイルと異なる場合があります。</li>
@@ -2626,7 +2628,9 @@ body.is-sorting .page-card.drag-source {
         splitZip: "ZIPで保存",
         splitRange: "{start}–{end}ページ",
         splitSaved: "{count}個のPDFをZIPで保存しました。",
-        splitTooLarge: "ZIPが大きすぎます。分割数を減らしてお試しください。",
+        splitTooLarge: "ZIPの容量またはファイル数が上限を超えています。ページを減らすか、複数回に分けて保存してください。",
+        splitCompression: "PDFの合計サイズ：{before} → {after}",
+        splitCompressionEncrypted: "暗号化前のPDFの合計サイズ：{before} → {after}",
         splitProgress: "PDF {current} / {total}",
         moveStart: "先頭へ",
         moveEnd: "末尾へ",
@@ -2725,7 +2729,9 @@ body.is-sorting .page-card.drag-source {
         helpAdd: "PDF・画像・PowerPointファイルを追加します。各ページやスライドが一覧に並びます。",
         helpDrag: "ページをドラッグして順番を変更します。スマホでは長押ししてから動かします。",
         helpEdit: "不要なページは選んで削除。回転や「元に戻す」も使えます。",
-        helpPreview: "拡大ボタンでページを大きく確認できます。",
+        helpPreview: "拡大ボタンでページを確認し、プレビュー内でも選択・解除できます。",
+        helpMoveTarget: "「移動先を指定」（スマホでは「その他」内）で、選んだページを別のページの前後に移動できます。",
+        helpSplit: "「保存設定」→「分割して保存」で、次のPDFが始まるページにチェックを付けます。一覧全体を複数のPDFに分けてZIPで保存します。",
         helpMerge: "「すべて保存」または「選択ページを保存」でPDFを書き出します。",
         helpSaveSettings: "「保存設定」から透かし・ページ番号・画像圧縮・パスワードを設定できます。スマホでは保存ファイル名もここで変更できます。",
         helpImageLayout: "画像のFitは全体をA4内に収め、FillはA4いっぱいに配置してはみ出す部分を切り取ります。Original Sizeは画像の大きさに合わせたページを作ります。",
@@ -2739,7 +2745,7 @@ body.is-sorting .page-card.drag-source {
         privacy: "ファイルの扱い",
         helpPrivacy: "読み込みから編集・保存までブラウザ内で処理します。ファイルは外部サーバーへ送信しません。",
         limitations: "保存前に知っておくこと",
-        limitPassword: "パスワード付きPDFは、開くときにパスワードが必要です。保存するPDFにもパスワードを設定できます（AES-256）。",
+        limitPassword: "入力PDFのパスワードは保存時に引き継がれません。保護が必要な場合は保存設定でパスワード（AES-256）を指定してください。分割時は各PDFが保護され、ZIP自体は暗号化されません。",
         limitMetadata: "しおり・添付ファイル・フォームなどは、保存後のPDFに引き継がれないことがあります。",
         limitSignature: "電子署名の付いたPDFを編集すると、署名は無効になります。",
         limitPptx: "PowerPointはフォントや図形などの見た目が元ファイルと異なる場合があります。",
@@ -2857,7 +2863,9 @@ body.is-sorting .page-card.drag-source {
         splitZip: "Save ZIP",
         splitRange: "Pages {start}–{end}",
         splitSaved: "Saved {count} PDFs in a ZIP.",
-        splitTooLarge: "The ZIP is too large. Try saving fewer parts.",
+        splitTooLarge: "The ZIP exceeds its size or file count limit. Reduce the number of pages or save in separate batches.",
+        splitCompression: "Combined PDF size: {before} → {after}",
+        splitCompressionEncrypted: "Combined PDF size before encryption: {before} → {after}",
         splitProgress: "PDF {current} / {total}",
         moveStart: "To start",
         moveEnd: "To end",
@@ -2956,7 +2964,9 @@ body.is-sorting .page-card.drag-source {
         helpAdd: "Add PDFs, images, or PowerPoint files. Their pages and slides appear in one list.",
         helpDrag: "Drag pages to reorder them. On a phone, touch and hold before moving.",
         helpEdit: "Select pages to remove or rotate them. You can undo changes.",
-        helpPreview: "Use the expand button to inspect a page more closely.",
+        helpPreview: "Open the preview to zoom in and select or deselect pages as you browse.",
+        helpMoveTarget: "Use Move to page (under More on a phone) to move selected pages before or after another page.",
+        helpSplit: "Open Save settings → Split and save, then mark where each new PDF starts. The entire list is split into separate PDFs and saved in a ZIP.",
         helpMerge: "Use Save all or Save selected to download a PDF.",
         helpSaveSettings: "Open Save settings for watermarks, page numbers, image compression, and password protection. On a phone, you can also change the output filename there.",
         helpImageLayout: "Fit keeps an entire image inside an A4 page. Fill covers the A4 page and crops the excess. Original Size creates a page sized to the image.",
@@ -2970,7 +2980,7 @@ body.is-sorting .page-card.drag-source {
         privacy: "Your files",
         helpPrivacy: "Files are opened, edited, and saved in your browser. They are not uploaded to an external server.",
         limitations: "Before saving",
-        limitPassword: "Password-protected PDFs need a password to open. You can also set an AES-256 password on the PDF you save.",
+        limitPassword: "Input PDF passwords are not carried over to saved files. Set an output password (AES-256) if needed. When splitting, each PDF is protected, not the ZIP itself.",
         limitMetadata: "Bookmarks, attachments, forms, and other document information may not carry over to the saved PDF.",
         limitSignature: "Editing a digitally signed PDF invalidates the signature.",
         limitPptx: "PowerPoint fonts, shapes, and other visual details may differ from the original.",
@@ -3448,9 +3458,8 @@ body.is-sorting .page-card.drag-source {
       const sourceName = sourceId && state.pages.every(page => page.docId === sourceId)
         ? state.documents.get(sourceId)?.name : "";
       const basename = sourceName?.replace(/\.[^.]+$/, "").trim();
-      const suffix = "_organized.pdf";
       filenameInput.defaultValue = basename
-        ? sanitizeFilename(basename.slice(0, filenameInput.maxLength - suffix.length).replace(/[\uD800-\uDBFF]$/, "") + suffix)
+        ? sanitizeFilename(basename, "_organized")
         : "organized.pdf";
       if (filenameInput.dataset.customName !== "true") filenameInput.value = filenameInput.defaultValue;
       const lockSaveOptions = state.isBusy || !hasPages;
@@ -5363,11 +5372,23 @@ body.is-sorting .page-card.drag-source {
       }
     }
 
-    function sanitizeFilename(value) {
-      let name = String(value || "").trim().replace(/[\\/:*?"<>|\u0000-\u001F]/g, "_");
-      if (!name) name = "organized.pdf";
-      if (!name.toLowerCase().endsWith(".pdf")) name += ".pdf";
-      return name.slice(0, 180);
+    // Keep the complete filename within both the input limit and the common
+    // filesystem component limit, including the extension and any suffix.
+    function sanitizeFilename(value, suffix = "", extension = ".pdf", fallback = "organized") {
+      let base = String(value || "").trim().normalize("NFC")
+        .replace(/\.pdf$/i, "").replace(/[\\/:*?"<>|\u0000-\u001f\u007f]/g, "_")
+        .replace(/[\uD800-\uDFFF]/gu, "_").replace(/[. ]+$/g, "").trimStart();
+      if (!base) base = fallback;
+      if (/^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:[. ]|$)/i.test(base)) base = "_" + base;
+      const tail = suffix + extension;
+      let safe = "", bytes = tail.length;
+      for (const char of base) {
+        const cp = char.codePointAt(0);
+        const size = cp <= 0x7f ? 1 : cp <= 0x7ff ? 2 : cp <= 0xffff ? 3 : 4;
+        if (bytes + size > 255 || safe.length + char.length + tail.length > 180) break;
+        safe += char; bytes += size;
+      }
+      return (safe.replace(/[. ]+$/g, "") || fallback) + tail;
     }
 
     function createWatermarkCanvas(settings) {
@@ -5650,7 +5671,7 @@ body.is-sorting .page-card.drag-source {
       return candidate.length < originalBytes.length ? candidate : originalBytes;
     }
 
-    async function buildPdfBytes(targetPages, { watermark, compressImages, pageNumbers, exportPassword }) {
+    async function buildPdfBytes(targetPages, { watermark, compressImages, pageNumbers, exportPassword, sourceCache }) {
         const protectOutput = !!exportPassword;
         const output = await PDFDocument.create();
         const copiedByPageId = new Map();
@@ -5668,7 +5689,11 @@ body.is-sorting .page-card.drag-source {
         for (const [docId, items] of groupedPdfs) {
           const source = state.documents.get(docId);
           elements.busyDetail.textContent = t("processingSource", { name: source.name });
-          const sourceDoc = await PDFDocument.load(new Uint8Array(source.buffer.slice(0)));
+          let sourceDoc = sourceCache?.get(docId);
+          if (!sourceDoc) {
+            sourceDoc = await PDFDocument.load(new Uint8Array(source.buffer.slice(0)));
+            sourceCache?.set(docId, sourceDoc);
+          }
           const copiedPages = await output.copyPages(sourceDoc, items.map((item) => item.pageIndex));
           copiedPages.forEach((copiedPage, index) => {
             const item = items[index];
@@ -5725,6 +5750,7 @@ body.is-sorting .page-card.drag-source {
 
         let bytes = await output.save({ useObjectStreams: true });
         let compressionMessage = "";
+        const compressionBefore = bytes.length;
         if (compressImages) {
           // The first save flushes pending image embeds and supplies an exact baseline and fallback.
           const before = bytes.length;
@@ -5741,6 +5767,7 @@ body.is-sorting .page-card.drag-source {
             compressionMessage = t("compressionNoSavings");
           }
         }
+        const compressionAfter = bytes.length;
         if (protectOutput) {
           elements.busyTitle.textContent = t("protectingPdf");
           elements.busyDetail.textContent = t("protectingPdfDetail");
@@ -5752,7 +5779,7 @@ body.is-sorting .page-card.drag-source {
             throw new Error(`${t("outputPasswordProtectionFailed")}: ${error?.message || ""}`.replace(/:\s*$/, ""));
           }
         }
-        return { bytes, compressionMessage };
+        return { bytes, compressionMessage, compressionBefore, compressionAfter };
     }
 
     async function exportPdf(selectedOnly = false) {
@@ -5835,13 +5862,10 @@ body.is-sorting .page-card.drag-source {
     function uniqueSplitNames(values) {
       const used = new Set();
       return values.map((value, index) => {
-        let base = String(value || "").trim().replace(/\.pdf$/i, "").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").replace(/[. ]+$/g, "");
-        if (!base || /^\.+$/.test(base)) base = "part-" + (index + 1);
-        if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(base)) base = "_" + base;
-        base = base.slice(0, 150).replace(/[\uD800-\uDBFF]$/, "");
-        let name = base + ".pdf", suffix = 2;
-        while (used.has(name.normalize("NFC").toLowerCase())) name = base + "-" + suffix++ + ".pdf";
-        used.add(name.normalize("NFC").toLowerCase());
+        const fallback = "part-" + (index + 1);
+        let name = sanitizeFilename(value, "", ".pdf", fallback), suffix = 2;
+        while (used.has(name.toLowerCase())) name = sanitizeFilename(value, "-" + suffix++, ".pdf", fallback);
+        used.add(name.toLowerCase());
         return name;
       });
     }
@@ -5891,16 +5915,25 @@ body.is-sorting .page-card.drag-source {
       const names = uniqueSplitNames([...$("#splitParts").querySelectorAll("input")].map(input => input.value));
       const pages = [...state.pages];
       const settings = { watermark: state.watermark, compressImages: state.compressImages, pageNumbers: state.pageNumbers, exportPassword: outputProtection.enabled ? outputProtection.password : "" };
-      const zipName = sanitizeFilename(elements.filenameInput.value).replace(/\.pdf$/i, "") + "-split.zip";
+      const zipName = sanitizeFilename(elements.filenameInput.value, "-split", ".zip");
       $("#splitDialog").close();
       setBusy(true, t("generatingPdf"));
       try {
         const entries = [];
-        let totalSize = 0;
+        const sourceCache = new Map(), lastUse = new Map();
+        for (let i = 0; i < ranges.length; i++) {
+          for (const page of pages.slice(ranges[i].start, ranges[i].end)) lastUse.set(page.docId, i);
+        }
+        let totalSize = 0, compressionBefore = 0, compressionAfter = 0;
         for (let i = 0; i < ranges.length; i++) {
           elements.busyTitle.textContent = t("splitProgress", { current: i + 1, total: ranges.length });
           const {start,end} = ranges[i];
-          const {bytes} = await buildPdfBytes(pages.slice(start,end), settings);
+          const part = pages.slice(start,end);
+          const result = await buildPdfBytes(part, { ...settings, sourceCache });
+          const { bytes } = result;
+          compressionBefore += result.compressionBefore;
+          compressionAfter += result.compressionAfter;
+          for (const page of part) if (lastUse.get(page.docId) === i) sourceCache.delete(page.docId);
           totalSize += bytes.length;
           if (totalSize > 0xffffffff) throw new Error(t("splitTooLarge"));
           entries.push({name: names[i], bytes});
@@ -5910,7 +5943,16 @@ body.is-sorting .page-card.drag-source {
         const anchor = document.createElement("a");
         anchor.href = url; anchor.download = zipName; document.body.append(anchor); anchor.click(); anchor.remove();
         setTimeout(() => URL.revokeObjectURL(url), 30_000);
-        showToast(t("splitSaved", { count: ranges.length }));
+        let message = t("splitSaved", { count: ranges.length });
+        if (settings.compressImages) {
+          const precise = formatBytes(compressionBefore) === formatBytes(compressionAfter);
+          const label = size => precise ? size.toLocaleString() + " B" : formatBytes(size);
+          const feedback = compressionAfter < compressionBefore
+            ? t(settings.exportPassword ? "splitCompressionEncrypted" : "splitCompression", { before: label(compressionBefore), after: label(compressionAfter) })
+            : t("compressionNoSavings");
+          message += "\n" + feedback;
+        }
+        showToast(message);
       } catch (error) {
         console.error(error); showToast(error?.message || t("generationFailed"), "error", 0);
       } finally { setBusy(false); }

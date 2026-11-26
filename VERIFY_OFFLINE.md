@@ -7,6 +7,9 @@
 5. Add a multipage PDF and a JPEG. Reorder and rotate pages, delete one, undo and redo, then preview the result. Include a Japanese/CJK PDF that uses a predefined CMap to check the embedded support assets.
 6. Open **Save settings**. Apply a watermark, enable page numbers and compress a large RGB JPEG. On a phone, change the output filename in the same panel. Export all pages, then export a selection. Reopen both PDFs and check the page order, watermark, and bottom-center numbers. The selected export should start at 1. Confirm earlier searchable text is still selectable.
 7. Test password protection with **Save settings → Password**. Open the protected download with the password you set.
-8. In the Network panel, check that editing and exporting made no HTTP(S) requests. Local file and blob URLs are expected.
+8. Select a group of pages and use **Move to page** to move them before or after an unselected page. Undo the move; check and uncheck pages in the preview, and try closing the move dialog by clicking outside it.
+9. Open **Save settings → Split and save**, mark multiple boundaries and save the ZIP. Extract it and check the page counts, order, filenames (including duplicate and long Japanese names), watermarks, restarted page numbers, and password protection for each PDF if enabled. The ZIP itself is not encrypted. Confirm the workspace is unchanged. Check compression feedback when enabled.
+10. Add a password-protected PDF alongside an image, cancel the input password prompt and confirm that the image is imported and the cancellation notice disappears.
+11. In the Network panel, check that editing and exporting made no HTTP(S) requests. Local file and blob URLs are expected.
 
 The offline artifact keeps dependency libraries gzip-compressed. PDF.js support assets required by this app remain embedded and are decompressed only when requested. CMaps, standard fonts, WASM image decoders/fallbacks, and ICC profiles must remain available; size reduction must not trade away PDF rendering compatibility.

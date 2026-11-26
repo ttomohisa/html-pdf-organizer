@@ -210,19 +210,44 @@ async function exercise(browser, buffer, width, height, mobile) {
     await partNames.nth(2).fill('図面');
     const [zipDownload] = await Promise.all([page.waitForEvent('download'), page.locator('#splitApply').click()]);
     const zip = await fs.readFile(await zipDownload.path());
-    const names = [], counts = [];
+    const names = [], counts = [], localEntries = [];
+    const crc32 = bytes => {
+      let crc = 0xffffffff;
+      for (const byte of bytes) {
+        crc ^= byte;
+        for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+      }
+      return (crc ^ 0xffffffff) >>> 0;
+    };
     let offset = 0;
     while (zip.readUInt32LE(offset) === 0x04034b50) {
       const size = zip.readUInt32LE(offset + 18), nameLength = zip.readUInt16LE(offset + 26);
       const dataStart = offset + 30 + nameLength + zip.readUInt16LE(offset + 28);
       names.push(zip.toString('utf8', offset + 30, offset + 30 + nameLength));
       const bytes = [...zip.subarray(dataStart, dataStart + size)];
+      const crc = crc32(bytes);
+      assert.equal(zip.readUInt32LE(offset + 14), crc, 'Local entry CRC matches PDF bytes');
+      localEntries.push({offset, size, crc, name: names.at(-1)});
       counts.push(await page.evaluate(async data => (await PDFLib.PDFDocument.load(Uint8Array.from(data))).getPageCount(), bytes));
       offset = dataStart + size;
     }
     assert.deepEqual(names, ['申請書.pdf', '申請書-2.pdf', '図面.pdf']);
     assert.deepEqual(counts, [3,2,7]);
-    assert.equal(zip.readUInt32LE(offset), 0x02014b50, 'ZIP central directory follows local entries');
+    const centralStart = offset;
+    for (const entry of localEntries) {
+      assert.equal(zip.readUInt32LE(offset), 0x02014b50);
+      assert.equal(zip.readUInt32LE(offset + 16), entry.crc);
+      assert.equal(zip.readUInt32LE(offset + 24), entry.size);
+      assert.equal(zip.readUInt32LE(offset + 42), entry.offset);
+      const length = zip.readUInt16LE(offset + 28);
+      assert.equal(zip.toString('utf8', offset + 46, offset + 46 + length), entry.name);
+      offset += 46 + length + zip.readUInt16LE(offset + 30) + zip.readUInt16LE(offset + 32);
+    }
+    assert.equal(zip.readUInt32LE(offset), 0x06054b50);
+    assert.equal(zip.readUInt16LE(offset + 10), localEntries.length);
+    assert.equal(zip.readUInt32LE(offset + 12), offset - centralStart);
+    assert.equal(zip.readUInt32LE(offset + 16), centralStart);
+    assert.equal(offset + 22, zip.length);
     await page.locator('#busyOverlay').waitFor({ state: 'hidden' });
     assert.deepEqual(await page.locator('.page-card .source-name').allTextContents(), orderBefore, 'Split does not change the workspace');
     const openRanges = async () => {
