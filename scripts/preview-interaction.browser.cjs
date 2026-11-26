@@ -361,12 +361,159 @@ async function exercise(browser, buffer, width, height, mobile) {
   }
 }
 
+
+async function screenshotAndSplitSettings(browser) {
+  const password = 'offline-split-test';
+  const root = path.resolve(__dirname, '../test-results/mobile-label');
+  await fs.mkdir(root, {recursive: true});
+  for (const lang of ['ja', 'en']) {
+    const mobile = lang === 'ja';
+    const context = await browser.newContext({locale: lang, viewport: mobile ? {width:393,height:852} : {width:1360,height:900}, isMobile: mobile, hasTouch: mobile, offline: true});
+    const errors = [], requests = [];
+    const page = await context.newPage();
+    page.on('pageerror', e => errors.push(e.message));
+    page.on('request', req => { if (/^https?:/i.test(req.url())) requests.push(req.url()); });
+    try {
+      await page.goto(pathToFileURL(path.resolve(__dirname, '../dist/index.html')).href);
+      await page.locator('#initialDropIcon svg').waitFor();
+      if (await page.locator('html').getAttribute('lang') !== lang) await page.locator('#languageButton').click();
+      const input = await page.evaluate(async () => {
+        const doc = await PDFLib.PDFDocument.create();
+        const font = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+        for (const [i, heading] of ['Project overview','Schedule','Budget'].entries()) {
+          const p = doc.addPage([420,594]);
+          const green = PDFLib.rgb(.086,.384,.31);
+          p.drawRectangle({x:0,y:530,width:420,height:64,color:green});
+          p.drawText(heading,{x:24,y:553,size:21,font,color:PDFLib.rgb(1,1,1)});
+          p.drawText('SAMPLE DOCUMENT / 0'+(i+1),{x:24,y:498,size:10,font,color:green});
+          for(let n=0;n<6;n++){
+            p.drawRectangle({x:24,y:450-n*43,width:372,height:28,color:PDFLib.rgb(.93,.95,.94)});
+            p.drawRectangle({x:36,y:460-n*43,width:100+((n+i)%4)*48,height:5,color:green});
+          }
+        }
+        const canvas=document.createElement('canvas');
+        canvas.width=2200; canvas.height=1200;
+        const ctx=canvas.getContext('2d');
+        const gradient=ctx.createLinearGradient(0,0,2200,1200);
+        gradient.addColorStop(0,'#afc4d5');gradient.addColorStop(1,'#356f61');
+        ctx.fillStyle=gradient;ctx.fillRect(0,0,2200,1200);
+        const jpg=canvas.toDataURL('image/jpeg',.98).split(',')[1];
+        return {pdf:await doc.saveAsBase64(),jpg};
+      });
+      // Real desktop app screenshots for both README languages, from the same synthetic document.
+      const shotContext = await browser.newContext({locale:lang,viewport:{width:1360,height:900},deviceScaleFactor:1,offline:true});
+      try {
+        const shot = await shotContext.newPage();
+        await shot.goto(pathToFileURL(path.resolve(__dirname,'../dist/index.html')).href);
+        await shot.locator('#initialDropIcon svg').waitFor();
+        if (await shot.locator('html').getAttribute('lang') !== lang) await shot.locator('#languageButton').click();
+        await shot.locator('#fileInput').setInputFiles({name:'sample-report.pdf',mimeType:'application/pdf',buffer:Buffer.from(input.pdf,'base64')});
+        await shot.waitForFunction(() => document.querySelectorAll('.thumb-frame[data-rendered="true"]').length===3 && document.querySelector('#busyOverlay').hidden);
+        await shot.evaluate(() => window.scrollTo(0,0));
+        await shot.waitForFunction(() => !document.querySelector('#importStatus')?.textContent);
+        const file = lang==='ja'?'screenshot.png':'screenshot-en.png';
+        const png=await shot.screenshot({path:path.join(root,file),animations:'disabled'});
+        // Temporary transfer through CI logs; no write credentials are required.
+        const b64=png.toString('base64');
+        for(let pos=0;pos<b64.length;pos+=6000) console.log('BK_SCREENSHOT '+file+' '+(pos/6000)+' '+b64.slice(pos,pos+6000));
+        console.log('BK_SCREENSHOT_END '+file+' '+b64.length);
+      } finally {await shotContext.close();}
+      await page.locator('#fileInput').setInputFiles([
+        {name:'report.pdf',mimeType:'application/pdf',buffer:Buffer.from(input.pdf,'base64')},
+        {name:'photo.jpg',mimeType:'image/jpeg',buffer:Buffer.from(input.jpg,'base64')}
+      ]);
+      await page.waitForFunction(() => document.querySelectorAll('.page-card').length===4 && document.querySelector('#busyOverlay').hidden);
+      const settings=page.locator('#saveOptionsButton');
+      await settings.click();
+      await page.locator('#pageNumbersButton').click();
+      await page.locator('#imageCompressionButton').click();
+      await page.locator('#watermarkButton').click();
+      await page.locator('#watermarkEnabled').check();
+      await page.locator('#watermarkText').fill('SPLIT TEST');
+      await page.locator('#watermarkColor').selectOption('#bf302f');
+      await page.locator('#watermarkApply').click();
+      await settings.click();
+      await page.locator('#saveOptionsPasswordButton').click();
+      await page.locator('#outputPasswordEnabled').check();
+      await page.locator('#outputPasswordInput').fill(password);
+      await page.locator('#outputPasswordConfirmInput').fill(password);
+      await page.locator('#outputPasswordForm button[type=submit]').click();
+      await page.locator('#outputPasswordDialog').waitFor({state:'hidden'});
+      // A selected subset must not affect the split of the entire list.
+      await page.locator('.page-card').first().locator('.thumb-frame').click();
+      const before=await page.locator('.page-card .source-name').allTextContents();
+      await settings.click();
+      await page.locator('#splitButton').click();
+      await page.locator('#splitBoundaries input').nth(1).check();
+      await page.locator('#splitParts input').nth(0).fill('申請書'.repeat(45));
+      await page.locator('#splitParts input').nth(1).fill('申請書'.repeat(45));
+      const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#splitApply').click()]);
+      const zip=await fs.readFile(await download.path());
+      await page.locator('#busyOverlay').waitFor({state:'hidden'});
+      await page.locator('.toast-message').filter({hasText:/→/}).waitFor();
+      assert.deepEqual(await page.locator('.page-card .source-name').allTextContents(),before);
+      assert.equal(await page.locator('.page-card.selected').count(),1);
+      const entries=[];
+      for(let offset=0;zip.readUInt32LE(offset)===0x04034b50;){
+        const length=zip.readUInt16LE(offset+26),size=zip.readUInt32LE(offset+18),start=offset+30+length+zip.readUInt16LE(offset+28);
+        assert.equal(zip.readUInt16LE(offset+6)&1,0,'ZIP itself is not encrypted');
+        const name=zip.toString('utf8',offset+30,offset+30+length);
+        assert.ok(Buffer.byteLength(name)<=255 && name.endsWith('.pdf'));
+        const bytes=zip.subarray(start,start+size);
+        // Confirm the encryption dictionary and reject an unprotected result.
+        assert.ok(await page.evaluate(async data => {
+          const d=await PDFLib.PDFDocument.load(data,{ignoreEncryption:true,updateMetadata:false});
+          const enc=d.context.lookup(d.context.trailerInfo.Encrypt);
+          return d.isEncrypted && enc?.get(PDFLib.PDFName.of('V'))?.asNumber()===5;
+        },bytes.toString('base64')));
+        entries.push({name,bytes});offset=start+size;
+      }
+      assert.equal(entries.length,2);assert.notEqual(entries[0].name,entries[1].name);
+      // Reopen each encrypted PDF in a fresh offline workspace. Wrong password must fail;
+      // the correct one must restore two pages. Export without protection for content inspection.
+      for (const [index,entry] of entries.entries()) {
+        const verify=await context.newPage();
+        try{
+          await verify.goto(pathToFileURL(path.resolve(__dirname,'../dist/index.html')).href);
+          await verify.locator('#initialDropIcon svg').waitFor();
+          await verify.locator('#fileInput').setInputFiles({name:entry.name,mimeType:'application/pdf',buffer:entry.bytes});
+          await verify.locator('#passwordDialog[open]').waitFor();
+          await verify.locator('#passwordInput').fill('wrong-password');
+          await verify.locator('#passwordInput').press('Enter');
+          await verify.locator('#passwordError:not([hidden])').waitFor();
+          await verify.locator('#passwordInput').fill(password);
+          await verify.locator('#passwordInput').press('Enter');
+          await verify.waitForFunction(()=>document.querySelectorAll('.page-card').length===2 && document.querySelector('#busyOverlay').hidden);
+          const [plain]=await Promise.all([verify.waitForEvent('download'),verify.locator('#saveAllButton').click()]);
+          const restored=await fs.readFile(await plain.path());
+          const info=await verify.evaluate(async data=>{
+            const {PDFDocument,PDFName,PDFRawStream,decodePDFRawStream}=PDFLib;
+            const pdf=await PDFDocument.load(data);
+            const ops=pdf.getPages().map(p=>p.node.Contents().asArray().map(ref=>new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref)).decode())).join('\n'));
+            const images=pdf.context.enumerateIndirectObjects().map(x=>x[1]).filter(x=>x instanceof PDFRawStream && x.dict.get(PDFName.of('Subtype'))===PDFName.of('Image')).map(x=>({filter:x.dict.get(PDFName.of('Filter'))?.toString(),width:x.dict.get(PDFName.of('Width'))?.asNumber()}));
+            return {ops,images};
+          },restored.toString('base64'));
+          for (const [i,ops] of info.ops.entries()) {
+            const hex=Buffer.from((i+1)+' / 2','ascii').toString('hex').toUpperCase();
+            assert.ok(ops.toUpperCase().includes('<'+hex+'> TJ'),'Page numbering restarted inside each PDF');
+            assert.match(ops, /\/[^\s]+ Do/,'Watermark image drawing is present on every page');
+          }
+          if(index===1) assert.ok(info.images.some(x=>x.filter==='/DCTDecode' && x.width<=2000),'Imported JPEG was compressed');
+        } finally {await verify.close();}
+      }
+      assert.deepEqual(errors,[]);assert.deepEqual(requests,[]);
+      console.log('PASS offline split with password, page numbers, watermark, compression and mixed PDF/JPEG '+lang);
+    } finally {await context.close();}
+  }
+}
+
 (async () => {
   const browser = await chromium.launch();
   try {
     const buffer = fixture();
     await exercise(browser, buffer, 1360, 900, false);
     await exercise(browser, buffer, 393, 852, true);
+    await screenshotAndSplitSettings(browser);
   } finally {
     await browser.close();
   }
