@@ -54,7 +54,7 @@ function harness(filename) {
   const names = ['setBusy', 'pushHistory', 'performEdit', 'reconcileSelection', 'undo', 'redo', 'selectPage', 'ensureTargetSelected', 'rotateSelected', 'deleteSelected', 'selectAll', 'clearSelection', 'addFiles', 'beginPointerDrag', 'finishPointerDrag', 'exportPdf', 'sanitizeFilename', 'updateUiState'];
   const optional = ['cancelPointerDrag', 'getSelectionEdgeOrder', 'canMoveSelectionToEdge', 'moveSelectionToEdge', 'askToDeleteAll', 'commitDeleteSelected', 'getWatermarkPlacement', 'drawPdfWatermark'];
   optional.push('getPdfJpegSize', 'inspectPdfJpeg', 'reencodePdfJpeg', 'compressPdfImages', 'formatBytes', 'closeSaveOptions');
-  optional.push('getPdfPageView', 'getPageNumberLayout', 'drawPdfPageNumber');
+  optional.push('getPdfPageView', 'getPageNumberLayout', 'drawPdfPageNumber', 'buildPdfBytes');
   for (const name of optional) if (source.includes('function ' + name + '(')) names.push(name);
   const initial = source.slice(source.indexOf('    const state = {'), source.indexOf('    function setIcon'));
   const helpers = source.slice(source.indexOf('    const makeId = '), source.indexOf('    const A4_WIDTH = '));
@@ -506,5 +506,47 @@ for (const filename of targets) {
     assert.equal(h.app.state.pages.length, 0);
     h.app.undo();
     assert.equal(h.app.state.pages.length, 4, 'Deletion can be undone');
+  });
+}
+
+for (const filename of targets) {
+  test(path.relative(root, filename) + ': safe output and ZIP entry names retain complete extensions', () => {
+    const source = fs.readFileSync(filename, 'utf8');
+    const ctx = vm.createContext({});
+    vm.runInContext([extract(source, 'sanitizeFilename'), extract(source, 'uniqueSplitNames')].join('\n') +
+      '\nglobalThis.names = {sanitizeFilename, uniqueSplitNames};', ctx);
+    const {sanitizeFilename: safe, uniqueSplitNames: unique} = ctx.names;
+    for (const input of ['a'.repeat(180), '申請書'.repeat(50), '😀'.repeat(90), 'a'.repeat(175) + '😀']) {
+      for (const name of [safe(input), safe(input, '-split', '.zip'), ...unique([input,input])]) {
+        assert.ok(Buffer.byteLength(name) <= 255 && name.length <= 180);
+        assert.match(name, /\.(pdf|zip)$/);
+        assert.doesNotMatch(name, /[\uD800-\uDFFF]/u);
+      }
+    }
+    assert.equal(safe('CON.pdf'), '_CON.pdf');
+    assert.equal(safe('..'), 'organized.pdf');
+    assert.equal(safe('日本語', '_organized'), '日本語_organized.pdf');
+    assert.deepEqual(Array.from(unique(['申請書','申請書.pdf','申請書-2.pdf'])), ['申請書.pdf','申請書-2.pdf','申請書-2-2.pdf']);
+    assert.deepEqual(Array.from(unique(['Cafe\u0301','CAFÉ'])), ['Café.pdf','CAFÉ-2.pdf']);
+  });
+  test(path.relative(root, filename) + ': split parts reuse parsed PDF and restart page numbers', async () => {
+    const h = await setup(filename, []);
+    const cache = new Map();
+    const settings = {watermark: null, compressImages: false, pageNumbers: true, exportPassword: '', sourceCache: cache};
+    const a = await h.ctx.buildPdfBytes(h.app.state.pages.slice(0, 1), settings);
+    const parsed = cache.values().next().value;
+    const b = await h.ctx.buildPdfBytes(h.app.state.pages.slice(1), settings);
+    assert.equal(cache.size, 1);
+    assert.equal(cache.values().next().value, parsed);
+    for (const [result, count] of [[a,1],[b,3]]) {
+      const pdf = await PDFLib.PDFDocument.load(result.bytes);
+      assert.equal(pdf.getPageCount(), count);
+      const labels = Array.from(pdf.getPages(), page => Array.from(page.node.Contents().asArray())
+        .flatMap(ref => Buffer.from(PDFLib.decodePDFRawStream(pdf.context.lookup(ref)).decode()).toString().match(/<[0-9A-F]+> Tj/g) || [])
+        .map(operator => Buffer.from(operator.slice(1, -4), 'hex').toString('ascii'))
+        .filter(text => /^\d+ \/ \d+$/.test(text)));
+      assert.deepEqual(labels, Array.from({length: count}, (_,i) => [(i+1) + ' / ' + count]));
+      assert.equal(result.compressionBefore, result.compressionAfter);
+    }
   });
 }

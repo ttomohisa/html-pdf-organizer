@@ -55,6 +55,10 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 5. Rotate, preview, or delete pages from the toolbar or card controls. Image cards also let you choose `Fit`, `Fill`, or `Original Size`.
 6. Save all pages or only the selection. With one source file, the default filename adds `_organized.pdf` to the original name without its extension. With multiple source files, it defaults to `organized.pdf`. On mobile, selecting pages reveals **Save selected** in the save bar.
 
+Use **Move to page** to move selected pages before or after an unselected page number (under **More** on mobile). The destination thumbnail helps identify the page. Undo restores the previous order. When multiple source files are present, mobile cards show their original filenames. In the preview, check or uncheck **Select page** while browsing; selection stays in sync with the list.
+
+To split the entire current page list (regardless of selection), open **Save settings → Split and save**, mark the first page of each new PDF, and name the parts. Save them together in a ZIP; repeated names receive a numeric suffix. Current PDF export settings apply to each part, and page numbers restart at 1 when enabled. If password protection is enabled, each PDF is encrypted with AES-256; the ZIP itself is not encrypted. With image compression enabled, the notification reports the combined PDF sizes before and after compression, before encryption if applicable.
+
 ### Export options
 
 Open **Save settings** for watermark, page numbers, image compression, and password options. On a phone, you can also change the output filename there. The page preview shows the source filename.
@@ -147,7 +151,7 @@ The generated HTML includes:
 
 The GitHub Pages version requires an initial HTML request, but the PDF content selected by the user is not transmitted by the app. For use with the network completely disconnected, open the generated `dist/index.html` locally.
 
-`html-pdf-organizer.invalid` is an internal virtual asset key and is never contacted.
+`pdf-organizer.invalid` is an internal virtual asset key and is never contacted.
 
 ## Limitations
 
@@ -159,6 +163,7 @@ The GitHub Pages version requires an initial HTML request, but the PDF content s
 - Complex PowerPoint effects, charts, and unsupported content are rasterized for visual fidelity. Supported basic shapes are overlaid as vectors where possible, and a Unicode text layer is added for search/copy.
 - Word (DOCX) input is not supported yet.
 - The file size limit is 250 MiB per input file.
+- Split downloads use ZIP32 (up to 65,535 entries and less than 4 GiB total, including archive headers). Available device memory may impose a much lower limit. Filenames may be shortened to fit common filesystem limits.
 
 ## Dependencies
 

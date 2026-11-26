@@ -13,7 +13,7 @@ When preparing a release, update the version in `app.config.json` and the versio
 
 ## Automated regression tests
 
-The Node tests check the source template and checked-in standalone HTML, executing the page controller and bundled pdf-lib against synthetic PDFs. Pull requests also run Playwright in Chromium against the built HTML, covering the mobile controls, preview, watermarks, page numbers, and JPEG compression. The **Build offline HTML** run uploads the browser evidence and the offline build as artifacts.
+The Node tests check the source template and checked-in standalone HTML, executing the page controller and bundled pdf-lib against synthetic PDFs. Pull requests also run Playwright in Chromium against the built HTML, covering mobile controls, preview and zoom, targeted moves, split ZIP exports, cancelled input passwords, watermarks, page numbers, and JPEG compression. Node regressions cover Unicode filenames and reuse of parsed source PDFs during split export. Browser regressions also combine split export with AES-256 protection, wrong/correct password reopening, page numbers, watermarks and JPEG compression in an offline context. The preview-interaction script captures genuine Japanese and English desktop screenshots from a synthetic PDF under `test-results/mobile-label/`. The **Build offline HTML** run uploads the browser evidence and the offline build as artifacts.
 
 To run the page-controller tests specifically against a fresh build in Windows PowerShell, set `$env:PDF_ORGANIZER_HTML="dist/index.html"` and `$env:PDF_ORGANIZER_BUNDLE="dist/index.html"`, then run `node --test tests/page-order.test.cjs`. Unset both variables afterward. Optionally set `PDF_ORGANIZER_EXPORT_DIR` to write synthetic result PDFs for inspection.
 
